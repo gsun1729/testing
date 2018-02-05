@@ -8,3 +8,5 @@ def timestwo(function,c):
 def sq(a):
     return a*a
 print timestwo(sq,2)
+
+print "gitplus test"

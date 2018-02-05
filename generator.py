@@ -8,5 +8,15 @@ def factorial(x):
     else:
         return 1
 
-print factorial(3)
-print factorial(10)
+a = generate_int(5)
+print repr(a)
+print a.next()
+print sum(a)
+print a.next()
+print sum(a)
+print a.next()
+print sum(a)
+print a.next()
+print sum(a)
+print a.next()
+print sum(a)
