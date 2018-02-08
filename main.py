@@ -5,42 +5,49 @@ import os
 import re
 from PIL import Image
 from skimage import io
-from render import stack_viewer as sv
+from render import *
+from processing import *
+from math_funcs import *
+from sklearn.preprocessing import normalize
 
-
-def split_and_trim(path_prefix, main_root):
-	"""
-	helper function for OS Path trimming routine that accounts for the trailing separator
-
-	:param path_prefix: [str]
-	:param main_root: [str]
-	:return:[list]
-	"""
-	trim_length = len(main_root)
-	print os.sep, main_root[-1]
-	if main_root[-1] != os.sep:
-		trim_length += 1
-
-	return path_prefix[trim_length:].split(os.sep)
-
-
+from scipy import ndimage as ndi, stats
+from scipy.ndimage import gaussian_filter
+from skimage.feature import peak_local_max
+from skimage.filters import median, rank, threshold_otsu
+from skimage.morphology import disk, dilation, watershed, closing, skeletonize, medial_axis
+from skimage.segmentation import random_walker
 
 def get_img_filenames(root_directory):
-	matched_images = []
+	img_filelist = []
 	for current_location, sub_directories, files in os.walk(root_directory):
 		if files:
 			for img_file in files:
 				if ('.TIF' in img_file or '.tif' in img_file) and '_thumb_' not in img_file:
 					img_filename = img_file.replace('.tif','', re.IGNORECASE)
-					matched_images.append((img_filename, img_file, os.path.join(current_location, img_file)))
-	return matched_images
+					img_filelist.append((img_filename, img_file, os.path.join(current_location, img_file)))
+	return img_filelist
 
 def main():
-	root = ".\\Images\\generated"
+	root = ".\\data\\generated"
 	print get_img_filenames(root)
-	a = io.imread(".\\Images\\linhao\\hs\\P34A12_1_w1488 Laser.TIF")
-	print a.shape
-	sv(a)
+	cell = io.imread(".\\data\\linhao\\hs\\P34A12_1_w1488 Laser.TIF")
+	mito = io.imread(".\\data\\linhao\\hs\\P34A12_1_w2561 Laser.TIF")
+	print dtype2bits[mito.dtype.name]
+	# test = np.uint8(mito)
+	# print test
+	a = (max_projection(mito, axis = 0))
+	print dtype2bits[a.dtype.name]
+	c = gamma_stabilize(a)
+	# c = median(a, disk(50))
+		# c = gamma_stabilize(a)
+    #
+	# c = normalize(c, axis = 0, norm = 'max')
+	# view_2d_img(a)
+	view_2d_img(a-c)
+	print global_max(a), global_min(a)
+	print global_max(c), global_min(c)
+	# view_2d_img(c-a)
+
 
 if __name__ == "__main__":
 	main()
