@@ -3,11 +3,19 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
+import sys
 '''
 Module to allow for scrolling through a 3d stack image modified from the following source:
 https://matplotlib.org/gallery/animation/image_slices_viewer.html
 '''
 def stack_viewer(image):
+	try:
+		z,x,y = image.shape
+	except ValueError:
+		print("Improper dimensions, non-stack Image")
+		print(image.shape)
+		sys.exit()
+
 	class IndexTracker(object):
 		def __init__(self, axes, image_stack):
 			self.axes = axes
@@ -36,6 +44,10 @@ def stack_viewer(image):
 	fig, axes = plt.subplots(1, 1)
 	tracker = IndexTracker(axes, image)
 	fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
+	plt.show()
+
+def view_2d_img(img):
+	imgplot = plt.imshow(img)
 	plt.show()
 
 if __name__ == "__main__":
