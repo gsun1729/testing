@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 from skimage.exposure import adjust_gamma
+from skimage import io
 dtype2bits = {'uint8': 8,
               'uint16': 16,
               'uint32': 32}
@@ -75,3 +76,6 @@ def avg_projection(image, axis = 0):
         else:
             print "Image input faulty"
         sys.exit()
+
+def process_cell_outline(img_filepath):
+    cell = io.imread(img_filepath)
