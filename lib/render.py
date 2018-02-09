@@ -50,6 +50,18 @@ def view_2d_img(img):
 	imgplot = plt.imshow(img)
 	plt.show()
 
+def montage_x(tuple_img):
+	num_img = len(tuple_img);
+	for x in xrange(len(tuple_img)):
+		plt.subplot(1, num_img, x + 1)
+		plt.imshow(tuple_img[x])
+
+	# plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+	# cax = plt.axes([0.85, 0.1, 0.075, 0.8])
+	# plt.colorbar(cax=cax)
+
+	plt.show()
+
 if __name__ == "__main__":
 	test_image = binary_blobs(length = 200,
 								blob_size_fraction = 0.1,
