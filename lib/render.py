@@ -1,15 +1,16 @@
 from __future__ import print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
 from matplotlib.gridspec import GridSpec
 import sys
-'''
-Module to allow for scrolling through a 3d stack image modified from the following source:
-https://matplotlib.org/gallery/animation/image_slices_viewer.html
-'''
+from properties import properties
+
 def stack_viewer(image):
+	'''
+	Module to allow for scrolling through a 3d stack image modified from the following source:
+	https://matplotlib.org/gallery/animation/image_slices_viewer.html
+	'''
 	try:
 		z,x,y = image.shape
 	except ValueError:
@@ -49,13 +50,16 @@ def stack_viewer(image):
 
 
 def view_2d_img(img):
+	'''
+	Displays a single 2d images
+	'''
 	imgplot = plt.imshow(img)
 	plt.show()
 
 
 def make_ticklabels_invisible(fig):
 	'''
-	Helper function for montage_n_x
+	Helper function for montage_n_x, removes tick labels
 	https://matplotlib.org/users/gridspec.html
 	'''
 	for i, ax in enumerate(fig.axes):
@@ -65,6 +69,12 @@ def make_ticklabels_invisible(fig):
 
 
 def montage_n_x(*tuple_img_line):
+	'''
+	Function takes a tuple of images to show a progression of images at each step in a processing
+	pipeline.
+	Multiple pipelines are displayed as individual rows, with each tuple submitted to the function
+	representing a single pipeline.
+	'''
 	num_rows = len(tuple_img_line)
 	num_cols = 0;
 	for lines in tuple_img_line:
@@ -76,13 +86,13 @@ def montage_n_x(*tuple_img_line):
 		for col in xrange(num_cols):
 			try:
 				plt.subplot(grid[row,col])
-
+				properties(tuple_img_line[row][col])
 				plt.imshow(tuple_img_line[row][col])
 			except IndexError:
 				print("Exceed index")
 				break
+		print("\n")
 	make_ticklabels_invisible(plt.gcf())
-
 	plt.show()
 
 

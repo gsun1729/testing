@@ -122,11 +122,11 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	return image
 
 
-def fft_ifft(image, struct_disk, pinhole = False):
+def fft_ifft(image, disk_radius, pinhole = False):
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
 
-	f_shift_filtered = f_shift * struct_disk
+	f_shift_filtered = f_shift * disk_hole(image, disk_radius, pinhole)
 
 	f_inv_shift = np.fft.ifftshift(f_shift_filtered)
 	recovered_img = np.fft.ifft2(f_inv_shift)

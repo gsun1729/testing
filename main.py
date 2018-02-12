@@ -30,20 +30,26 @@ def main():
 	cell = io.imread(".\\data\\linhao\\hs\\P26H5_2_w1488 Laser.TIF")
 	mito = io.imread(".\\data\\linhao\\hs\\P26H5_2_w2561 Laser.TIF")
 	# Bad Images
-	# cell = io.imread(".\\data\\linhao\\hs\\P34A12_3_w1488 Laser.TIF")
-	# mito = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
+	cellb = io.imread(".\\data\\linhao\\hs\\P34A12_3_w1488 Laser.TIF")
+	mitob = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
 	sel_elem = disk(2)
 
-	a = max_projection(cell)
+	a1 = max_projection(cell)
+	a2 = gamma_stabilize(a1,alpha_clean = 1.2)
 
-	b = smooth(a)
-	b1 = median(b,sel_elem)
-	c = erosion(b1,selem = disk(2))
-	d = dilation(c,selem = disk(2))
+	a3 = smooth(a2)
+	a4 = median(a3,sel_elem)
+	a5 = erosion(a4,selem = disk(1))
 
-	properties(c)
+	a6 = median(a5,sel_elem)
+	a7 = dilation(a6,selem = disk(1))
+	a8 = fft_ifft(a7, 10, pinhole = True)
+
+
+
+	# properties(c)
 	# montage_n_x(("a","b"),("b","a","c"),("c","d" ,"d" ,"a","b1"), ("a","c"))
-	montage_n_x((a,b,a,a,a,a),(b,a,c))
+	montage_n_x((a1,a2,a3,a4,a5,a6,a7,a8))
 	# montage_2x((a, b, b1, c, d), (a,b,c))
 
 	# q = fft_ifft(a, 175, pinhole = False)
