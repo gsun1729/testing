@@ -34,7 +34,8 @@ def main():
 	mitob = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
 	sel_elem = disk(2)
 
-	a1 = max_projection(cell)
+	# a1 = max_projection(cell)
+	a1 = mito[3,:,:]
 	a2 = gamma_stabilize(a1,alpha_clean = 1.2)
 
 	a3 = smooth(a2)
@@ -43,13 +44,25 @@ def main():
 
 	a6 = median(a5,sel_elem)
 	a7 = dilation(a6,selem = disk(1))
-	a8 = fft_ifft(a7, 10, pinhole = True)
+
+	d = disk_hole(a7, 10, pinhole = True)
+	a8 = fft_ifft(a7, d)
+
+	# ff = binarize_image(a1)
+
+	# montage_n_x((a1,ff))
+
+	# img_type_2uint8(a8)
+	# properties(a8)
+	b = img_type_2uint8(a8, func = 'floor')
+	properties(b)
+	c = binarize_image(b)
+	montage_n_x((a8,b,c))
+	# montage_n_x((a1,a2,a3,a4,a5,a6,a7,a8))
 
 
 
-	# properties(c)
-	# montage_n_x(("a","b"),("b","a","c"),("c","d" ,"d" ,"a","b1"), ("a","c"))
-	montage_n_x((a1,a2,a3,a4,a5,a6,a7,a8))
+
 	# montage_2x((a, b, b1, c, d), (a,b,c))
 
 	# q = fft_ifft(a, 175, pinhole = False)
