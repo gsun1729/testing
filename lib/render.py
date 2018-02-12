@@ -3,6 +3,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
+from matplotlib.gridspec import GridSpec
 import sys
 '''
 Module to allow for scrolling through a 3d stack image modified from the following source:
@@ -46,21 +47,44 @@ def stack_viewer(image):
 	fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
 	plt.show()
 
+
 def view_2d_img(img):
 	imgplot = plt.imshow(img)
 	plt.show()
 
-def montage_x(tuple_img):
-	num_img = len(tuple_img);
-	for x in xrange(len(tuple_img)):
-		plt.subplot(1, num_img, x + 1)
-		plt.imshow(tuple_img[x])
 
-	# plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-	# cax = plt.axes([0.85, 0.1, 0.075, 0.8])
-	# plt.colorbar(cax=cax)
+def make_ticklabels_invisible(fig):
+	'''
+	Helper function for montage_n_x
+	https://matplotlib.org/users/gridspec.html
+	'''
+	for i, ax in enumerate(fig.axes):
+		ax.text(0.5, 0.5, "ax%d" % (i+1), va="center", ha="center")
+		for tl in ax.get_xticklabels() + ax.get_yticklabels():
+			tl.set_visible(False)
+
+
+def montage_n_x(*tuple_img_line):
+	num_rows = len(tuple_img_line)
+	num_cols = 0;
+	for lines in tuple_img_line:
+		if len(lines) > num_cols:
+			num_cols = len(lines)
+	# plt.figure()
+	grid = GridSpec(num_rows, num_cols)
+	for row in xrange(num_rows):
+		for col in xrange(num_cols):
+			try:
+				plt.subplot(grid[row,col])
+
+				plt.imshow(tuple_img_line[row][col])
+			except IndexError:
+				print("Exceed index")
+				break
+	make_ticklabels_invisible(plt.gcf())
 
 	plt.show()
+
 
 if __name__ == "__main__":
 	test_image = binary_blobs(length = 200,

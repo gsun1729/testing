@@ -111,15 +111,18 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	:param smoothing_px:
 	:return:
 	"""
-	for i in range(0, image.shape[0]):
-		image[i, :, :] = gaussian_filter(image[i, :, :],
-										 smoothing_px, mode='constant')
+	if len(image.shape) > 2:
+		for i in range(0, image.shape[0]):
+			image[i, :, :] = gaussian_filter(image[i, :, :],
+											 smoothing_px, mode='constant')
+			image[image < threshold * np.mean(image)] = 0
+	else:
+		image = gaussian_filter(image, smoothing_px, mode='constant')
 		image[image < threshold * np.mean(image)] = 0
 	return image
 
 
-def fft_ifft(image, radius, pinhole = False):
-	struct_disk = disk_hole(image, radius, pinhole)
+def fft_ifft(image, struct_disk, pinhole = False):
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
 
@@ -129,10 +132,13 @@ def fft_ifft(image, radius, pinhole = False):
 	recovered_img = np.fft.ifft2(f_inv_shift)
 	recovered_img = np.abs(recovered_img)
 	return recovered_img
-	# Uncomment for viewing of frequency spectrum change
-	#
 
 
+def bandpass_disk(image, r_range = (10, 200), pinhole = False):
+	outer = disk_hole(image, r_range[1], pinhole)
+	inner = disk_hole(image, r_range[0], pinhole)
+	structuring_element = outer - inner
+	return structuring_element
 
 
 def median_layers(image, struct_disk_r = 5):
