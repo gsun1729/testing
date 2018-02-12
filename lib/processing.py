@@ -8,9 +8,16 @@ from skimage.morphology import disk
 from skimage.filters import median, rank, threshold_otsu
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
+from render import view_2d_img
+from properties import global_max, global_min
 dtype2bits = {'uint8': 8,
 			  'uint16': 16,
 			  'uint32': 32}
+
+dtype2range = { 'uint8': 255,
+				'uint16': 65535,
+				'uint32': 4294967295,
+				'uint64': 18446744073709551615}
 
 def gamma_stabilize(image, alpha_clean=5, floor_method='min'):
 	"""
@@ -122,11 +129,25 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	return image
 
 
-def fft_ifft(image, disk_radius, pinhole = False):
+def fft_ifft(image, struct_element):
+	'''
+	Performs a fast fourier transform, removes certain frequencies highlighted by
+	the structuring element, and returns the inverse fourier transform back.
+	Pinhole =  True : pinhole filter, or high pass filter. Filters out low frequency
+	content to yield edges
+	Pinhole = False: single dot filter, preserves low frequency content
+	'''
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
 
-	f_shift_filtered = f_shift * disk_hole(image, disk_radius, pinhole)
+	# magnitude_spectrum = 20*np.log(np.abs(f_shift))
+	# view_2d_img(magnitude_spectrum)
+	# view_2d_img(struct_element)
+
+	f_shift_filtered = f_shift * struct_element
+
+	# magnitude_spectrum_filtered = 20*np.log(np.abs(f_shift_filtered))
+	# view_2d_img(magnitude_spectrum_filtered)
 
 	f_inv_shift = np.fft.ifftshift(f_shift_filtered)
 	recovered_img = np.fft.ifft2(f_inv_shift)
@@ -146,3 +167,40 @@ def median_layers(image, struct_disk_r = 5):
 		image[i, :, :] = median(image[i, :, :], disk(struct_disk_r))
 		# image[image < 2 * np.mean(image)] = 0
 	return image
+
+
+def img_type_2uint8(base_image, func = 'floor'):
+	try:
+		bi_max_val = global_max(base_image)
+		bi_min_val = global_min(base_image)
+		dt_max = dtype2range['uint8']
+		dt_min = 0
+		scaled = dt_min * (1 - ((base_image - bi_min_val) / (bi_max_val - bi_min_val))) + dt_max * ((base_image - bi_min_val)/(bi_max_val - bi_min_val))
+		if func == 'floor':
+			pre_int = np.floor(scaled)
+		elif func == 'ceiling':
+			pre_int = np.ceil(scaled)
+		elif func == 'fix':
+			pre_int = np.fix(scaled)
+		else:
+			raise IOErrorgit
+		return np.uint8(pre_int)
+	except IOError:
+		print "Function '{}' not recognized ".format(func)
+		sys.exit()
+
+
+def binarize_image(base_image, heterogeity_size = 10, feature_size = 2):
+	if np.percentile(base_image, 99) < 0.20:
+		if np.percentile(base_image, 99) > 0:
+			mult = 0.20 / np.percentile(base_image, 99)  # poissonean background assumptions
+		else:
+			mult = 1000. / np.sum(base_image)
+		base_image = base_image * mult
+		base_image[base_image > 1] = 1
+
+	selem2 = disk(feature_size)
+	print 'local'
+	local_otsu = rank.otsu(base_image, selem2)
+	print 'local done'
+	return local_otsu
