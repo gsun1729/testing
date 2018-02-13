@@ -3,6 +3,7 @@ import sys
 from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
+from scipy import ndimage as ndi
 from skimage.filters import median
 from skimage.morphology import disk
 from skimage.filters import median, rank, threshold_otsu
@@ -175,7 +176,8 @@ def img_type_2uint8(base_image, func = 'floor'):
 		bi_min_val = global_min(base_image)
 		dt_max = dtype2range['uint8']
 		dt_min = 0
-		scaled = dt_min * (1 - ((base_image - bi_min_val) / (bi_max_val - bi_min_val))) + dt_max * ((base_image - bi_min_val)/(bi_max_val - bi_min_val))
+		# scaled = dt_min * (1 - ((base_image - bi_min_val) / (bi_max_val - bi_min_val))) + dt_max * ((base_image - bi_min_val)/(bi_max_val - bi_min_val))
+		scaled = (base_image - bi_min_val) * ((dt_max - dt_min) / (bi_max_val - bi_min_val)) + dt_min
 		if func == 'floor':
 			pre_int = np.floor(scaled)
 		elif func == 'ceiling':
@@ -190,7 +192,7 @@ def img_type_2uint8(base_image, func = 'floor'):
 		sys.exit()
 
 
-def binarize_image(base_image, heterogeity_size = 10, feature_size = 2):
+def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_size = 2):
 	if np.percentile(base_image, 99) < 0.20:
 		if np.percentile(base_image, 99) > 0:
 			mult = 0.20 / np.percentile(base_image, 99)  # poissonean background assumptions
@@ -198,9 +200,47 @@ def binarize_image(base_image, heterogeity_size = 10, feature_size = 2):
 			mult = 1000. / np.sum(base_image)
 		base_image = base_image * mult
 		base_image[base_image > 1] = 1
-
+	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
 	print 'local'
 	local_otsu = rank.otsu(base_image, selem2)
 	print 'local done'
-	return local_otsu
+	clustering_markers[base_image < local_otsu * 0.9] = 1
+	clustering_markers[base_image > local_otsu * 1.1] = 2
+	print "before rw"
+	binary_labels = random_walker(base_image, clustering_markers, beta=10, mode='bf') - 1
+	print "post rw"
+
+	if _dilation:
+		selem = disk(_dilation)
+		binary_labels = dilation(binary_labels, selem)
+
+
+	return binary_labels
+
+
+def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, min_intensity = 0, mean_diff = 10):
+	"""
+	Labelling of a binary image, with constraints on minimal feature size, minimal intensity of area
+	 covered by a binary label or minimal mean difference from background
+
+	:param binary_channel:
+	:param value_channel: used to compute total intensity
+	:param min_px_radius: minimal feature size
+	:param min_intensity: minimal total intensity
+	:param mean_diff: minimal (multiplicative) difference from the background
+	:return:
+	"""
+	labeled_field, object_no = ndi.label(binary_channel, structure=np.ones((3, 3)))
+	background_mean = np.mean(pre_binary[labeled_field == 0])
+	print background_mean
+	#
+	for label in range(1, object_no+1):
+	    mask = labeled_field == label
+	    px_radius = np.sqrt(np.sum((mask).astype(np.int8)))
+	    total_intensity = np.sum(pre_binary[mask])
+	    label_mean = np.mean(pre_binary[labeled_field == label])
+	    if px_radius < min_px_radius or total_intensity < min_intensity or label_mean < mean_diff*background_mean:
+	        labeled_field[labeled_field == label] = 0
+	# dbg.label_and_correct_debug(labeled_field)
+	return labeled_field

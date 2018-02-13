@@ -10,10 +10,10 @@ from math_funcs import *
 from properties import properties
 from read_write import *
 
-from sklearn.preprocessing import normalize
-
-from scipy import ndimage as ndi, stats
-from scipy.ndimage import gaussian_filter
+# from sklearn.preprocessing import normalize
+#
+# from scipy import ndimage as ndi, stats
+# from scipy.ndimage import gaussian_filter
 from skimage.feature import peak_local_max
 from skimage.filters import median, rank, threshold_otsu, laplace
 from skimage.morphology import (disk, dilation, watershed,
@@ -35,8 +35,9 @@ def main():
 	sel_elem = disk(2)
 
 	# a1 = max_projection(cell)
-	a1 = mito[3,:,:]
-	a2 = gamma_stabilize(a1,alpha_clean = 1.2)
+	a1 = cell[3,:,:]
+
+	a2 = gamma_stabilize(a1,alpha_clean = 1.3)
 
 	a3 = smooth(a2)
 	a4 = median(a3,sel_elem)
@@ -46,6 +47,7 @@ def main():
 	a7 = dilation(a6,selem = disk(1))
 
 	d = disk_hole(a7, 10, pinhole = True)
+	# USE ONLY FOR MITOS
 	a8 = fft_ifft(a7, d)
 
 	# ff = binarize_image(a1)
@@ -54,10 +56,11 @@ def main():
 
 	# img_type_2uint8(a8)
 	# properties(a8)
-	b = img_type_2uint8(a8, func = 'floor')
+	b = img_type_2uint8(a7, func = 'floor')
 	properties(b)
 	c = binarize_image(b)
-	montage_n_x((a8,b,c))
+	d = label_and_correct(c,b,min_px_radius = 10)
+	montage_n_x((a7,b,c,d))
 	# montage_n_x((a1,a2,a3,a4,a5,a6,a7,a8))
 
 
