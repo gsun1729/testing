@@ -10,6 +10,7 @@ from math_funcs import *
 from properties import properties
 from read_write import *
 
+from skimage import measure
 # from sklearn.preprocessing import normalize
 #
 # from scipy import ndimage as ndi, stats
@@ -21,6 +22,7 @@ from skimage.morphology import (disk, dilation, watershed,
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
 import scipy.signal as ss
+from math_funcs import *
 
 def main():
 	os.system('cls' if os.name == 'nt' else 'clear')
@@ -34,8 +36,8 @@ def main():
 	mitob = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
 	sel_elem = disk(2)
 
-	# a1 = max_projection(cell)
-	a1 = cell[3,:,:]
+	a1 = max_projection(cell)
+	# a1 = cell[3,:,:]
 
 	a2 = gamma_stabilize(a1,alpha_clean = 1.3)
 
@@ -59,8 +61,43 @@ def main():
 	b = img_type_2uint8(a7, func = 'floor')
 	properties(b)
 	c = binarize_image(b)
-	d = label_and_correct(c,b,min_px_radius = 10)
-	montage_n_x((a7,b,c,d))
+	d = label_and_correct(c,b,min_px_radius = 20)
+	e = measure.find_contours(d,0.8)
+	# montage_n_x((a7,b,c,d))
+
+
+	for x in e:
+		if x.shape[0] >= 300:
+			holding = x
+			# plot_contour(holding)
+			z = points2img(holding)
+			q = hough_num_circles(z)
+			break
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	# Display the image and plot all contours found
+	# fig, ax = plt.subplots()
+	# ax.imshow(d, interpolation='nearest', cmap=plt.cm.gray)
+	# # print e
+	# for n, contour in enumerate(e):
+	# 	ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+	#
+	# ax.axis('image')
+	# ax.set_xticks([])
+	# ax.set_yticks([])
+	# plt.show()
 	# montage_n_x((a1,a2,a3,a4,a5,a6,a7,a8))
 
 
@@ -76,7 +113,7 @@ def main():
 	# print save_file(root, root, root, root)
 	# sigma_est = estimate_sigma(a, multichannel=False, average_sigmas=True)
 	# denoise_bilateral(a,sigma_color=0.1, sigma_spatial=15,
-    #             multichannel=False)
+	#             multichannel=False)
 	# print sigma_est
 
 	# z = median(a, disk(5))
@@ -105,7 +142,7 @@ def main():
 	# properties(c)
 	# view_2d_img(c)
 	# # 	# c = gamma_stabilize(a)
-    # #
+	# #
 	# # c = normalize(c, axis = 0, norm = 'max')
 	# # view_2d_img(a)
 	# selem = disk(10)
