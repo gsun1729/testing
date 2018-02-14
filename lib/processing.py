@@ -11,6 +11,10 @@ from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
 from render import view_2d_img
 from properties import global_max, global_min
+from skimage.transform import hough_circle, hough_circle_peaks
+from skimage.draw import circle_perimeter
+from math_funcs import *
+
 dtype2bits = {'uint8': 8,
 			  'uint16': 16,
 			  'uint32': 32}
@@ -119,6 +123,7 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	:param smoothing_px:
 	:return:
 	"""
+	print ">Filtering image with Gaussian filter"
 	if len(image.shape) > 2:
 		for i in range(0, image.shape[0]):
 			image[i, :, :] = gaussian_filter(image[i, :, :],
@@ -138,6 +143,7 @@ def fft_ifft(image, struct_element):
 	content to yield edges
 	Pinhole = False: single dot filter, preserves low frequency content
 	'''
+	print ">Performing FFT>filter>IFFT transform"
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
 
@@ -171,6 +177,7 @@ def median_layers(image, struct_disk_r = 5):
 
 
 def img_type_2uint8(base_image, func = 'floor'):
+	print ">Converting Image to uin8"
 	try:
 		bi_max_val = global_max(base_image)
 		bi_min_val = global_min(base_image)
@@ -193,6 +200,7 @@ def img_type_2uint8(base_image, func = 'floor'):
 
 
 def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_size = 2):
+	print ">Binarizing Image..."
 	if np.percentile(base_image, 99) < 0.20:
 		if np.percentile(base_image, 99) > 0:
 			mult = 0.20 / np.percentile(base_image, 99)  # poissonean background assumptions
@@ -202,14 +210,13 @@ def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_siz
 		base_image[base_image > 1] = 1
 	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
-	print 'local'
+	print '>Performing Local Otsu'
 	local_otsu = rank.otsu(base_image, selem2)
-	print 'local done'
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
-	print "before rw"
+	print ">Performing Random Walker Binarization"
 	binary_labels = random_walker(base_image, clustering_markers, beta=10, mode='bf') - 1
-	print "post rw"
+
 
 	if _dilation:
 		selem = disk(_dilation)
@@ -219,7 +226,26 @@ def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_siz
 	return binary_labels
 
 
-def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, min_intensity = 0, mean_diff = 10):
+
+
+def hough_num_circles(input_binary_img, min_r = 20, max_r = 35, step = 2):
+	hough_radii = np.arange(min_r, max_r, 2)
+	hough_res = hough_circle(input_binary_img, hough_radii)
+	accums, cx, cy, radii = hough_circle_peaks(hough_res, hough_radii,
+										total_num_peaks=3)
+	circles = zip(cy, cx, radii);
+	no_duplicates = crop_close(circles)
+
+
+	for center_y, center_x, radius in no_duplicates:
+		circy, circx = circle_perimeter(center_y, center_x, radius)
+		input_binary_img[circy, circx] = 10
+	#
+	view_2d_img(input_binary_img)
+
+
+
+def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_radius = 65, min_intensity = 0, mean_diff = 10):
 	"""
 	Labelling of a binary image, with constraints on minimal feature size, minimal intensity of area
 	 covered by a binary label or minimal mean difference from background
@@ -233,14 +259,14 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, min_intens
 	"""
 	labeled_field, object_no = ndi.label(binary_channel, structure=np.ones((3, 3)))
 	background_mean = np.mean(pre_binary[labeled_field == 0])
-	print background_mean
+	# print background_mean
 	#
 	for label in range(1, object_no+1):
-	    mask = labeled_field == label
-	    px_radius = np.sqrt(np.sum((mask).astype(np.int8)))
-	    total_intensity = np.sum(pre_binary[mask])
-	    label_mean = np.mean(pre_binary[labeled_field == label])
-	    if px_radius < min_px_radius or total_intensity < min_intensity or label_mean < mean_diff*background_mean:
-	        labeled_field[labeled_field == label] = 0
+		mask = labeled_field == label
+		px_radius = np.sqrt(np.sum((mask).astype(np.int8)))
+		total_intensity = np.sum(pre_binary[mask])
+		label_mean = np.mean(pre_binary[labeled_field == label])
+		if px_radius < min_px_radius or total_intensity < min_intensity or label_mean < mean_diff*background_mean or px_radius > max_px_radius:
+			labeled_field[labeled_field == label] = 0
 	# dbg.label_and_correct_debug(labeled_field)
 	return labeled_field

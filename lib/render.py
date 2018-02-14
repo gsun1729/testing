@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
 from matplotlib.gridspec import GridSpec
 import sys
-from properties import properties
+from properties import *
+
 
 def stack_viewer(image):
 	'''
@@ -94,6 +95,25 @@ def montage_n_x(*tuple_img_line):
 		print("\n")
 	make_ticklabels_invisible(plt.gcf())
 	plt.show()
+
+
+def plot_contour(points):
+	plt.plot(points[:, 0],  points[:, 1])
+	plt.show()
+
+
+def points2img(points):
+	x_data = points[:, 0]
+	y_data = points[:, 1]
+	x_dim = int(np.ceil(np.amax(x_data) - np.amin(x_data)) + 1)
+	y_dim = int(np.ceil(np.amax(y_data) - np.amin(y_data)) + 1)
+	img = np.zeros((x_dim, y_dim))
+	x_data = [int(np.floor(i)) - int(np.amin(x_data)) for i in x_data]
+	y_data = [int(np.floor(j)) - int(np.amin(y_data)) for j in y_data]
+
+	img[x_data, y_data] = 1
+	return img
+
 
 
 if __name__ == "__main__":
