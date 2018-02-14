@@ -4,18 +4,20 @@ from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
 from scipy import ndimage as ndi
-from skimage.filters import median
 from skimage.morphology import disk
 from skimage.filters import median, rank, threshold_otsu
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
-from render import view_2d_img
+
 from properties import global_max, global_min
 from skimage.transform import hough_circle, hough_circle_peaks
 from skimage.draw import circle_perimeter
 from math_funcs import *
-from scipy import stats
-
+from render import *
+from skimage import measure
+from scipy.ndimage.morphology import binary_fill_holes
+from skimage.segmentation import active_contour
+from skimage.filters import gaussian
 
 dtype2bits = {'uint8': 8,
 			  'uint16': 16,
@@ -219,21 +221,36 @@ def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_siz
 	print ">Performing Random Walker Binarization"
 	binary_labels = random_walker(base_image, clustering_markers, beta=10, mode='bf') - 1
 
-
 	if _dilation:
 		selem = disk(_dilation)
 		binary_labels = dilation(binary_labels, selem)
-
-
 	return binary_labels
 
 
+def smooth_contours(binary_group_img):
+	'''
+	Function is broken as fuck DO NOT USE
+	Given a binary image with edges = 1, attempts to smooth out the contours of the individual elements in the image
+	'''
+	boundary = obtain_border(binary_group_img)
+	init = points2img(boundary)
+
+	snake = active_contour(binary_group_img, boundary, alpha = 0.015, beta = 10, gamma = 0.001)
+
+	fig, ax = plt.subplots(figsize=(7, 7))
+	ax.imshow(binary_group_img, cmap=plt.cm.gray)
+	ax.plot(boundary[:, 0], boundary[:, 1], '--r', lw=3)
+	ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
+	ax.set_xticks([]), ax.set_yticks([])
+	ax.axis([0, binary_group_img.shape[1], binary_group_img.shape[0], 0])
+	plt.show()
 
 
-def hough_num_circles(input_binary_img, min_r = 20, max_r = 35, step = 2):
+def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	'''
 	ONLY CAPABLE OF SEPARATING 2 CELLS WILL BE UPDATED TO THREE EVENTUALLY
 	'''
+	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
 	hough_radii = np.arange(min_r, max_r, 2)
 	hough_res = hough_circle(input_binary_img, hough_radii)
 	accums, cx, cy, radii = hough_circle_peaks(hough_res, hough_radii,
@@ -242,31 +259,47 @@ def hough_num_circles(input_binary_img, min_r = 20, max_r = 35, step = 2):
 	# remove any circles too close to each other
 	no_duplicates = crop_close(circles)
 
+	# HYPOTHETICAL # of cells
 	N_cells = len(no_duplicates)
+	print ">Number cells in subsection: {}".format(N_cells)
+	# Grow circle size until there is a collision
 	collision = False
 	while collision == False:
-		blank = np.zeros_like(input_binary_img)
+		# Create empty mask
+		mask = np.zeros_like(input_binary_img)
 		for center_y, center_x, radius in no_duplicates:
-			sub_blank = np.zeros_like(input_binary_img)
+			sub_mask = np.zeros_like(input_binary_img)
+			# List of coodinates for perimeter of a circle
 			circy, circx = circle_perimeter(center_y, center_x, radius)
-			sub_blank[circy, circx] = 10
-			blank += sub_blank
+			# Make sure that the circle being masked, anything out of bounds is not masked
+			for y, x in zip(circy, circx):
+				# print y, x, sub_mask.shape
+				if y < sub_mask.shape[0] and x < sub_mask.shape[1]:
+					sub_mask[y, x] = 5
+
+			mask += dilation(sub_mask, disk(1))
+			# Append circles into the empty image to get overview of outline
+			# Aka add submask to mask
+		# Grow circle radius by 5% per iteration
 		for rows in no_duplicates:
 			rows[-1] += 1
-		if np.amax(blank.flatten()) > 10:
+			rows[-1] = np.int(rows[-1])
+
+		# Determine if there is a collision between circles
+		if np.amax(mask.flatten()) >= 10:
 			collision = True
-			collision_pt =np.where(blank > 10)
+			collision_pt = np.where(mask >= 10)
+
+	# Create mask to divide both cells
 	print collision_pt
-	x = collision_pt[0]
-	y = collision_pt[1]
-	slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
-	structuring_mask = np.zeros_like(input_binary_img)
-
-
-	view_2d_img(blank)
-	view_2d_img(input_binary_img)
+	dm, d_dm = create_dividing_mask(mask, collision_pt)
+	# Fill edges to create mask
+	filled_cells = binary_fill_holes(input_binary_img).astype(int)
+	montage_n_x((mask,dm, d_dm,  mask + input_binary_img, filled_cells, filled_cells * (1 - dm)))
+	return filled_cells * (1 - dm)
 
 	# Uncomment for visualization
+	# montage_n_x((input_binary_img, filled_cells, dm,  filled_cells * (1 - dm)))
 	# for center_y, center_x, radius in no_duplicates:
 	# 	circy, circx = circle_perimeter(center_y, center_x, radius)
 	# 	input_binary_img[circy, circx] = 10

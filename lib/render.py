@@ -98,11 +98,27 @@ def montage_n_x(*tuple_img_line):
 
 
 def plot_contour(points):
+	'''
+	Given a set of points in the format:
+		[[1,2]
+		 [1,2]
+		 [3,2]
+		 [4,3]]]
+	plots the points in 2d space.
+	'''
 	plt.plot(points[:, 0],  points[:, 1])
 	plt.show()
 
 
 def points2img(points):
+	'''
+	Given a set of points in the format:
+		[[1,2]
+		 [1,2]
+		 [3,2]
+		 [4,3]]]
+	Creates an image of the points. (2d Numpy array)
+	'''
 	x_data = points[:, 0]
 	y_data = points[:, 1]
 	x_dim = int(np.ceil(np.amax(x_data) - np.amin(x_data)) + 1)
