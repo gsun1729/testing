@@ -22,4 +22,4 @@ def crop_close(points, max_sep = 5):
 
 	for f in failures:
 		del points[f]
-	return points
+	return [list(elem) for elem in points]

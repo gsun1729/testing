@@ -14,6 +14,8 @@ from properties import global_max, global_min
 from skimage.transform import hough_circle, hough_circle_peaks
 from skimage.draw import circle_perimeter
 from math_funcs import *
+from scipy import stats
+
 
 dtype2bits = {'uint8': 8,
 			  'uint16': 16,
@@ -229,19 +231,46 @@ def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_siz
 
 
 def hough_num_circles(input_binary_img, min_r = 20, max_r = 35, step = 2):
+	'''
+	ONLY CAPABLE OF SEPARATING 2 CELLS WILL BE UPDATED TO THREE EVENTUALLY
+	'''
 	hough_radii = np.arange(min_r, max_r, 2)
 	hough_res = hough_circle(input_binary_img, hough_radii)
 	accums, cx, cy, radii = hough_circle_peaks(hough_res, hough_radii,
 										total_num_peaks=3)
 	circles = zip(cy, cx, radii);
+	# remove any circles too close to each other
 	no_duplicates = crop_close(circles)
 
+	N_cells = len(no_duplicates)
+	collision = False
+	while collision == False:
+		blank = np.zeros_like(input_binary_img)
+		for center_y, center_x, radius in no_duplicates:
+			sub_blank = np.zeros_like(input_binary_img)
+			circy, circx = circle_perimeter(center_y, center_x, radius)
+			sub_blank[circy, circx] = 10
+			blank += sub_blank
+		for rows in no_duplicates:
+			rows[-1] += 1
+		if np.amax(blank.flatten()) > 10:
+			collision = True
+			collision_pt =np.where(blank > 10)
+	print collision_pt
+	x = collision_pt[0]
+	y = collision_pt[1]
+	slope, intercept, r_value, p_value, std_err = stats.linregress(x,y)
+	structuring_mask = np.zeros_like(input_binary_img)
 
-	for center_y, center_x, radius in no_duplicates:
-		circy, circx = circle_perimeter(center_y, center_x, radius)
-		input_binary_img[circy, circx] = 10
-	#
+
+	view_2d_img(blank)
 	view_2d_img(input_binary_img)
+
+	# Uncomment for visualization
+	# for center_y, center_x, radius in no_duplicates:
+	# 	circy, circx = circle_perimeter(center_y, center_x, radius)
+	# 	input_binary_img[circy, circx] = 10
+	# view_2d_img(input_binary_img)
 
 
 
