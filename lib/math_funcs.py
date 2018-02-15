@@ -18,17 +18,19 @@ def crop_close(points, max_sep = 20):
 	points_no_R = [x[:-1] for x in points]
 	num_pts = len(points_no_R)
 	distance_array = np.zeros((num_pts, num_pts))
-
+	print points_no_R
 	# Indexes of duplicate points
 	failures = []
 	# Compute upper triangular of distance matrix
 	for x in xrange(0, num_pts):
 		for y in xrange(x + 1, num_pts):
 			distance_array[x, y] = distance_2d(points_no_R[x], points_no_R[y])
-			if distance_array[x, y] != 0 and distance_array[x, y] <= max_sep:
+			if distance_array[x, y] <= max_sep:
 				failures.append(x)
 	failures = sorted(failures, key = int, reverse = True)
-
+	print distance_array
+	print max_sep
+	print failures
 	# Remove failures
 	if len(failures) == len(points_no_R):
 		return [list(points_no_R[0])]
@@ -111,3 +113,12 @@ def remove_neg_pts(list_coords):
 test = [(29, 14), (-1, 14), (29, 14), (-1, 14), (14, 29), (14, 29), (14, -1), (14, -1), (29, 15), (-1, 15), (29, 13), (-1, 13), (15, 29), (13, 29), (15, -1), (13, -1), (29, 16), (-1, 16), (29, 12), (-1, 12), (16, 29), (12, 29), (16, -1), (12, -1), (29, 17), (-1, 17), (29, 11), (-1, 11), (17, 29), (11, 29), (17, -1), (11, -1), (28, 18), (0, 18), (28, 10), (0, 10), (18, 28), (10, 28), (18, 0), (10, 0), (28, 19), (0, 19), (28, 9), (0, 9), (19, 28), (9, 28), (19, 0), (9, 0), (28, 20), (0, 20), (28, 8), (0, 8), (20, 28), (8, 28), (20, 0), (8, 0), (27, 21), (1, 21), (27, 7), (1, 7), (21, 27), (7, 27), (21, 1), (7, 1), (27, 22), (1, 22), (27, 6), (1, 6), (22, 27), (6, 27), (22, 1), (6, 1), (26, 23), (2, 23), (26, 5), (2, 5), (23, 26), (5, 26), (23, 2), (5, 2), (25, 24), (3, 24), (25, 4), (3, 4), (24, 25), (4, 25), (24, 3), (4, 3)]
 
 print remove_neg_pts(test)
+
+a = np.random.rand(5,5)
+z = np.zeros_like(a)
+
+for x in xrange(0, 5):
+	for y in xrange(x + 1, 5):
+		z[x,y] = a[x,y]
+print a
+print z
