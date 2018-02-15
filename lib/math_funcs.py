@@ -28,9 +28,6 @@ def crop_close(points, max_sep = 20):
 			if distance_array[x, y] <= max_sep:
 				failures.append(x)
 	failures = sorted(failures, key = int, reverse = True)
-	print distance_array
-	print max_sep
-	print failures
 	# Remove failures
 	if len(failures) == len(points_no_R):
 		return [list(points_no_R[0])]
@@ -61,32 +58,41 @@ def obtain_border(input_image_2d):
 				points.append([x,y])
 	return np.asarray(points)
 
-
-def create_dividing_mask(img_mask, collision_pt, erode = 2, dilate = 4):
-	'''
-	Helper function. Given a list of points, determine the line that cuts through all of them,
-	Also given the image to be cut in half, determine which pixels in the image fall on the line.
-	Creates a structuring element with two parallel lines
-	'''
-	x = collision_pt[1]
-	y = collision_pt[0]
-	slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-
-	structuring_mask = np.zeros_like(img_mask)
-	x_d, y_d = structuring_mask.shape
-	for x in xrange(x_d):
-		for y in xrange(y_d):
-			if np.ceil(y * slope + intercept) == x:
-				structuring_mask[x, y] = 1
-	structuring_mask = dilation(structuring_mask, disk(dilate))
-	structuring_mask = erosion(structuring_mask, disk(erode))
-	# Take derivative of an image
-	sm_derivative = np.zeros_like(img_mask)
-	for x in xrange(x_d - 1):
-		for y in xrange(y_d - 1):
-			if structuring_mask[x + 1, y] - structuring_mask[x, y] != 0:
-				sm_derivative[x, y] = 1
-	return structuring_mask, sm_derivative
+# FUNCTION NO LONGER NEEDED, FOUND BETTER OPTION FUCK YEAH
+# def create_dividing_mask(img_mask, collision_pt, erode = 2, dilate = 4):
+# 	'''
+# 	Helper function. Given a list of points, determine the line that cuts through all of them,
+# 	Also given the image to be cut in half, determine which pixels in the image fall on the line.
+# 	Creates a structuring element with two parallel lines
+# 	'''
+# 	x = collision_pt[1]
+# 	y = collision_pt[0]
+# 	slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
+# 	print x,y
+# 	print slope, intercept
+# 	# print slope, intercept
+# 	structuring_mask = np.zeros_like(img_mask)
+# 	x_d, y_d = structuring_mask.shape
+# 	if slope == 0:
+# 		slope, intercept, r_value, p_value, std_err = stats.linregress(y, x)
+# 		for x in xrange(x_d):
+# 			for y in xrange(y_d):
+# 				if np.ceil(y * slope + intercept) == x:
+# 					structuring_mask[x, y] = 1
+# 	else:
+# 		for x in xrange(x_d):
+# 			for y in xrange(y_d):
+# 				if np.ceil(x * slope + intercept) == y:
+# 					structuring_mask[x, y] = 1
+# 	structuring_mask = dilation(structuring_mask, disk(dilate))
+# 	structuring_mask = erosion(structuring_mask, disk(erode))
+# 	# Take derivative of an image
+# 	sm_derivative = np.zeros_like(img_mask)
+# 	for x in xrange(x_d - 1):
+# 		for y in xrange(y_d - 1):
+# 			if structuring_mask[x + 1, y] - structuring_mask[x, y] != 0:
+# 				sm_derivative[x, y] = 1
+# 	return structuring_mask, sm_derivative
 
 
 def remove_element_bounds(image, lower_area = 500, upper_area = 3000):
