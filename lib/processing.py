@@ -8,6 +8,7 @@ from skimage.morphology import disk
 from skimage.filters import median, rank, threshold_otsu
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
+
 from properties import global_max, global_min
 from skimage.transform import hough_circle, hough_circle_peaks
 from skimage.draw import circle_perimeter
@@ -147,6 +148,7 @@ def fft_ifft(image, struct_element):
 	Pinhole = False: single dot filter, preserves low frequency content
 	'''
 	print ">Performing FFT>filter>IFFT transform"
+
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
 
@@ -180,14 +182,18 @@ def median_layers(image, struct_disk_r = 5):
 
 
 def img_type_2uint8(base_image, func = 'floor'):
+
 	print ">Converting Image to uin8"
+
 	try:
 		bi_max_val = global_max(base_image)
 		bi_min_val = global_min(base_image)
 		dt_max = dtype2range['uint8']
 		dt_min = 0
+
 		# scaled = dt_min * (1 - ((base_image - bi_min_val) / (bi_max_val - bi_min_val))) + dt_max * ((base_image - bi_min_val)/(bi_max_val - bi_min_val))
 		scaled = (base_image - bi_min_val) * ((dt_max - dt_min) / (bi_max_val - bi_min_val)) + dt_min
+
 		if func == 'floor':
 			pre_int = np.floor(scaled)
 		elif func == 'ceiling':
@@ -196,10 +202,12 @@ def img_type_2uint8(base_image, func = 'floor'):
 			pre_int = np.fix(scaled)
 		else:
 			raise IOError
+
 		return np.uint8(pre_int)
 	except IOError:
 		print "Function '{}' not recognized ".format(func)
 		sys.exit()
+
 
 
 def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_size = 2):
@@ -211,7 +219,8 @@ def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_siz
 			mult = 1000. / np.sum(base_image)
 		base_image = base_image * mult
 		base_image[base_image > 1] = 1
-	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
+	
+  clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
 	print '>Performing Local Otsu'
 	local_otsu = rank.otsu(base_image, selem2)
