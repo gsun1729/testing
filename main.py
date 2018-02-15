@@ -2,9 +2,7 @@
 import sys
 sys.path.insert(0, '.\\lib')
 sys.path.insert(0, '.\\lines')
-
 import os
-
 import cell_line
 import mito_line
 # from render import *
@@ -27,23 +25,24 @@ import mito_line
 # from skimage.feature import peak_local_max
 # from skimage.filters import median, rank, threshold_otsu, laplace
 # from math_funcs import *
-
 def main():
 	os.system('cls' if os.name == 'nt' else 'clear')
 	root = ".\\data\\generated"
 	# print get_img_filenames(root)
-	# Good Images
 	cell = ".\\data\\hs\\P11B3_2_w1488 Laser.TIF"
 	mito = ".\\data\\hs\\P11B3_2_w2561 Laser.TIF"
 	cell2 = ".\\data\\_hs\\P45F12_3_w1488 Laser.TIF"
 	mito2 = ".\\data\\_hs\\P45F12_3_w2561 Laser.TIF"
+	cell3 = ".\\data\\hs\\P26G1_1_w1488 Laser.TIF"
+	mito3 = ".\\data\\hs\\P26G1_1_w2561 Laser.TIF"
+	cell4 = ".\\data\\_hs\\P42A12_1_w1488 Laser.TIF"
+	mito4 = ".\\data\\_hs\\P42A12_1_w2561 Laser.TIF"
 	# # Bad Images
 	# cellb = ".\\data\\hs\\P34A12_3_w1488 Laser.TIF"
 	# mitob = ".\\data\\hs\\P34A12_2_w2561 Laser.TIF"
 
-	cell_line.analyze(cell2)
-	# cell_line.analyze(cell)
-	# mito_line.analyze(mito)
+	# cell_line.analyze(cell3)
+	mito_line.analyze(mito)
 	sys.exit()
 	# d = disk_hole(a7, 10, pinhole = True)
 
@@ -58,7 +57,7 @@ def main():
 	b = img_type_2uint8(a7, func = 'floor')
 	properties(b)
 	c = binarize_image(b)
-	d = label_and_correct(c,b,min_px_radius = 20)
+	d = label_and_correct(c,b, min_px_radius = 20)
 
 	remove_element_bounds(d)
 	montage_n_x((c, d))
