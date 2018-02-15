@@ -8,7 +8,6 @@ from skimage.morphology import disk
 from skimage.filters import median, rank, threshold_otsu
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
-
 from properties import global_max, global_min
 from skimage.transform import hough_circle, hough_circle_peaks
 from skimage.draw import circle_perimeter
@@ -250,6 +249,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	'''
 	ONLY CAPABLE OF SEPARATING 2 CELLS WILL BE UPDATED TO THREE EVENTUALLY
 	'''
+	print ">Performing Hough cell splitting"
 	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
 	hough_radii = np.arange(min_r, max_r, 2)
 	hough_res = hough_circle(input_binary_img, hough_radii)
@@ -257,11 +257,11 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 										total_num_peaks=3)
 	circles = zip(cy, cx, radii);
 	# remove any circles too close to each other
-	no_duplicates = crop_close(circles)
+	no_duplicates = crop_close(circles, max_sep = 20)
 
 	# HYPOTHETICAL # of cells
-	N_cells = len(no_duplicates)
-	print ">Number cells in subsection: {}".format(N_cells)
+	# N_cells = len(no_duplicates)
+	# print ">Number cells in subsection: {}".format(N_cells)
 	# Grow circle size until there is a collision
 	collision = False
 	while collision == False:
@@ -282,7 +282,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 			# Aka add submask to mask
 		# Grow circle radius by 5% per iteration
 		for rows in no_duplicates:
-			rows[-1] += 1
+			rows[-1] *= 1.1
 			rows[-1] = np.int(rows[-1])
 
 		# Determine if there is a collision between circles
@@ -291,7 +291,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 			collision_pt = np.where(mask >= 10)
 
 	# Create mask to divide both cells
-	print collision_pt
+	# print collision_pt
 	dm, d_dm = create_dividing_mask(mask, collision_pt)
 	# Fill edges to create mask
 	filled_cells = binary_fill_holes(input_binary_img).astype(int)
@@ -305,6 +305,10 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	# 	input_binary_img[circy, circx] = 10
 	# view_2d_img(input_binary_img)
 
+
+def just_label(binary_image):
+	labeled_field, object_no = ndi.label(binary_image, structure=np.ones((3, 3)))
+	return labeled_field
 
 
 def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_radius = 65, min_intensity = 0, mean_diff = 10):
@@ -332,3 +336,20 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 			labeled_field[labeled_field == label] = 0
 	# dbg.label_and_correct_debug(labeled_field)
 	return labeled_field
+
+
+def cell_split(input_img, contours):
+	output = np.zeros_like(input_img)
+	output[input_img > 0] = 1
+	for item_contour in contours:
+		# remove cells that have a low circumference or too high circumference
+		if item_contour.shape[0] >= 250 and item_contour.shape[0] <= 350:
+			holding = points2img(item_contour)
+			split_cells = hough_num_circles(holding)
+			tlx, tly, brx, bry = location(item_contour)
+			# print location(item_contour)
+			# print split_cells.shape, output.shape
+			for x in xrange(tlx, brx + 1):
+				for y in xrange(tly, bry + 1):
+					output[y, x] = output[y, x] * split_cells[y - tly, x - tlx]
+	return label_and_correct(output, input_img)

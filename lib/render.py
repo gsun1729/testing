@@ -50,6 +50,8 @@ def stack_viewer(image):
 	plt.show()
 
 
+
+## 2d Stuff below here
 def view_2d_img(img):
 	'''
 	Displays a single 2d images
@@ -130,6 +132,27 @@ def points2img(points):
 	img[x_data, y_data] = 1
 	return img
 
+
+def render_contours(background, contour_list):
+	fig, ax = plt.subplots()
+	ax.imshow(background, interpolation = 'nearest', cmap = plt.cm.gray)
+	for n, contour in enumerate(contour_list):
+		ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+	plt.show()
+
+
+def location(points):
+	'''
+	Given a set of points, determine what square in the image they lie in
+	'''
+	x_data = points[:, 1]
+	y_data = points[:, 0]
+	top_left_x = int(np.ceil(np.amin(x_data)))
+	top_left_y = int(np.ceil(np.amin(y_data)))
+	bot_rite_x = int(np.ceil(np.amax(x_data)))
+	bot_rite_y = int(np.ceil(np.amax(y_data)))
+
+	return top_left_x, top_left_y, bot_rite_x, bot_rite_y
 
 
 if __name__ == "__main__":
