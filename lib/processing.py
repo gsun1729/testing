@@ -361,6 +361,8 @@ def cell_split(input_img, contours):
 	output[input_img > 0] = 1
 	for item_contour in contours:
 		# remove cells that have a low circumference or too high circumference
+		contour_holding = points2img(item_contour)
+
 		if item_contour.shape[0] >= 100 and item_contour.shape[0] <= 350:
 			holding = points2img(item_contour)
 			holding_fill = binary_fill_holes(holding).astype(int)
