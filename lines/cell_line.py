@@ -33,15 +33,19 @@ def analyze(input_image_pathway):
 	a13 = measure.find_contours(a12, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
 	# Split and label double cells
 	a14 = cell_split(a12, a13)
+	# REMOVE ANYTHING HUGE
+	a100 = remove_element_bounds(a14, lower_area = 10, upper_area = 2000)
+
+
 	# Update contours
-	a15 = measure.find_contours(a14, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
+	a15 = measure.find_contours(a100, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
 	# Plot block
-	render_contours(a14, a15)
-	montage_n_x((a1, a2, a3, a4, a5, a6), (a7, a9, a10, a11, a12, a14))
-	view_2d_img(a14)
+	render_contours(a100, a15)
+	montage_n_x((a1, a2, a3, a4, a5, a6), (a7, a9, a10, a11, a12, a14, a100))
+	view_2d_img(a100)
 
 	return a14
-	sys.exit()
+
 if __name__ == "__main__":
 	arguments = sys.argv
 

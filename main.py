@@ -33,13 +33,16 @@ def main():
 	root = ".\\data\\generated"
 	# print get_img_filenames(root)
 	# Good Images
-	cell = ".\\data\\linhao\\hs\\P26H5_2_w1488 Laser.TIF"
-	mito = ".\\data\\linhao\\hs\\P26H5_2_w2561 Laser.TIF"
+	cell = ".\\data\\hs\\P11B3_2_w1488 Laser.TIF"
+	mito = ".\\data\\hs\\P11B3_2_w2561 Laser.TIF"
+	cell2 = ".\\data\\_hs\\P45F12_3_w1488 Laser.TIF"
+	mito2 = ".\\data\\_hs\\P45F12_3_w2561 Laser.TIF"
 	# # Bad Images
-	# cellb = io.imread(".\\data\\linhao\\hs\\P34A12_3_w1488 Laser.TIF")
-	# mitob = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
+	# cellb = ".\\data\\hs\\P34A12_3_w1488 Laser.TIF"
+	# mitob = ".\\data\\hs\\P34A12_2_w2561 Laser.TIF"
 
-	cell_line.analyze(cell)
+	cell_line.analyze(cell2)
+	# cell_line.analyze(cell)
 	# mito_line.analyze(mito)
 	sys.exit()
 	# d = disk_hole(a7, 10, pinhole = True)
