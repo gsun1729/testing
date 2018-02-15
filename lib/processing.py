@@ -272,14 +272,18 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	N_cells = len(no_duplicates)
 	# view_2d_img(input_binary_img)
 	print ">Number cells in subsection: {}".format(N_cells)
-	print no_duplicates
+	# print no_duplicates
 	if N_cells > 1:
 		# Create mask to divide both cells
 		# Grow circle size until there is a collision followed by no more collisions
 		collision = False
 		end_collision = False
 		actual_mask = np.zeros_like(input_binary_img)
-		while end_collision == False:
+		n = 0
+		# Set initial radius to 1
+		for rows in no_duplicates:
+			rows[-1] == 1
+		while end_collision == False or n >10000:
 			# Create empty mask
 			mask = np.zeros_like(input_binary_img)
 			for center_y, center_x, radius in no_duplicates:
@@ -311,13 +315,18 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 			# view_2d_img(actual_mask)
 			# Grow circle radius by 5% per iteration
 			for rows in no_duplicates:
-				rows[-1] *= 1.1
+				rows[-1] *= 1.08
 				rows[-1] = np.int(rows[-1])
-		# Fill edges to create mask
-		filled_cells = binary_fill_holes(input_binary_img).astype(int)
-		montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
-		# view_2d_img(filled_cells * (1 - dm))
-		return filled_cells * (1 - actual_mask)
+			n += 1
+		if n == 10000:
+			montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
+			return binary_fill_holes(input_binary_img).astype(int)
+		else:
+			# Fill edges to create mask
+			filled_cells = binary_fill_holes(input_binary_img).astype(int)
+			montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
+			# view_2d_img(filled_cells * (1 - dm))
+			return filled_cells * (1 - actual_mask)
 	else:
 		# view_2d_img(input_binary_img)
 		return binary_fill_holes(input_binary_img).astype(int)
@@ -362,7 +371,7 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 	return labeled_field
 
 
-def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 100, max_peri = 500):
+def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 100, max_peri = 1500):
 	print ">Starting Cell Split"
 	output = np.zeros_like(input_img)
 	output[input_img > 0] = 1

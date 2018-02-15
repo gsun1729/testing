@@ -28,13 +28,13 @@ def analyze(input_image_pathway):
 	a9 = binarize_image(a8, _dilation = 0, heterogeity_size = 10, feature_size = 2)
 	a10 = binary_fill_holes(a9).astype(int)
 
-	a11 = label_and_correct(a10, a8, min_px_radius = 20)
+	a11 = label_and_correct(a10, a8, min_px_radius = 10)
 	a12 = remove_element_bounds(a11, lower_area = 550, upper_area = 3000)
 	a13 = measure.find_contours(a12, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
 	# Split and label double cells
-	a14 = cell_split(a12, a13)
+	a14 = cell_split(a12, a13, min_area = 100, max_area = 3500, min_peri = 100, max_peri = 1500)
 	# REMOVE ANYTHING HUGE
-	a100 = remove_element_bounds(a14, lower_area = 10, upper_area = 2000)
+	a100 = remove_element_bounds(a14, lower_area = 10, upper_area = 1800)
 
 
 	# Update contours
