@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
 from matplotlib.gridspec import GridSpec
 import sys
-from properties import properties
+from properties import *
+
 
 def stack_viewer(image):
 	'''
@@ -49,6 +50,8 @@ def stack_viewer(image):
 	plt.show()
 
 
+
+## 2d Stuff below here
 def view_2d_img(img):
 	'''
 	Displays a single 2d images
@@ -94,6 +97,62 @@ def montage_n_x(*tuple_img_line):
 		print("\n")
 	make_ticklabels_invisible(plt.gcf())
 	plt.show()
+
+
+def plot_contour(points):
+	'''
+	Given a set of points in the format:
+		[[1,2]
+		 [1,2]
+		 [3,2]
+		 [4,3]]]
+	plots the points in 2d space.
+	'''
+	plt.plot(points[:, 0],  points[:, 1])
+	plt.show()
+
+
+def points2img(points):
+	'''
+	Given a set of points in the format:
+		[[1,2]
+		 [1,2]
+		 [3,2]
+		 [4,3]]]
+	Creates an image of the points. (2d Numpy array)
+	'''
+	x_data = points[:, 0]
+	y_data = points[:, 1]
+	x_dim = int(np.ceil(np.amax(x_data) - np.amin(x_data)) + 1)
+	y_dim = int(np.ceil(np.amax(y_data) - np.amin(y_data)) + 1)
+	img = np.zeros((x_dim, y_dim))
+	x_data = [int(np.floor(i)) - int(np.amin(x_data)) for i in x_data]
+	y_data = [int(np.floor(j)) - int(np.amin(y_data)) for j in y_data]
+
+	img[x_data, y_data] = 1
+	return img
+
+
+def render_contours(background, contour_list):
+	fig, ax = plt.subplots()
+	ax.imshow(background, interpolation = 'nearest', cmap = plt.cm.gray)
+	for n, contour in enumerate(contour_list):
+		ax.plot(contour[:, 1], contour[:, 0], linewidth=2)
+	plt.show()
+
+
+def location(points):
+	'''
+	Given a set of points, determine what square in the image they lie in
+	'''
+	x_data = points[:, 1]
+	y_data = points[:, 0]
+	top_left_x = int(np.ceil(np.amin(x_data)))
+	top_left_y = int(np.ceil(np.amin(y_data)))
+	bot_rite_x = int(np.ceil(np.amax(x_data)))
+	bot_rite_y = int(np.ceil(np.amax(y_data)))
+
+	return top_left_x, top_left_y, bot_rite_x, bot_rite_y
 
 
 if __name__ == "__main__":

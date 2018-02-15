@@ -1,55 +1,77 @@
-import sys
 
+import sys
 sys.path.insert(0, '.\\lib')
+sys.path.insert(0, '.\\lines')
+
 import os
 
-from skimage import io
-from render import *
-from processing import *
-from math_funcs import *
-from properties import properties
-from read_write import *
-
-from sklearn.preprocessing import normalize
-
-from scipy import ndimage as ndi, stats
-from scipy.ndimage import gaussian_filter
-from skimage.feature import peak_local_max
-from skimage.filters import median, rank, threshold_otsu, laplace
-from skimage.morphology import (disk, dilation, watershed,
-								closing, opening, erosion, skeletonize, medial_axis)
-from skimage.segmentation import random_walker
-from skimage.restoration import denoise_bilateral, estimate_sigma
-import scipy.signal as ss
+import cell_line
+import mito_line
+# from render import *
+# from processing import *
+# from math_funcs import *
+# from properties import properties
+# from read_write import *
+#
+# from skimage import measure
+# from scipy.ndimage.morphology import binary_fill_holes
+# from skimage.morphology import (disk, dilation, watershed,
+# 								closing, opening, erosion, skeletonize, medial_axis)
+# # from skimage.segmentation import random_walker
+# # from skimage.restoration import denoise_bilateral, estimate_sigma
+# import scipy.signal as ss
+# from sklearn.preprocessing import normalize
+#
+# from scipy import ndimage as ndi, stats
+# from scipy.ndimage import gaussian_filter
+# from skimage.feature import peak_local_max
+# from skimage.filters import median, rank, threshold_otsu, laplace
+# from math_funcs import *
 
 def main():
 	os.system('cls' if os.name == 'nt' else 'clear')
 	root = ".\\data\\generated"
 	# print get_img_filenames(root)
 	# Good Images
-	cell = io.imread(".\\data\\linhao\\hs\\P26H5_2_w1488 Laser.TIF")
-	mito = io.imread(".\\data\\linhao\\hs\\P26H5_2_w2561 Laser.TIF")
-	# Bad Images
-	cellb = io.imread(".\\data\\linhao\\hs\\P34A12_3_w1488 Laser.TIF")
-	mitob = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
-	sel_elem = disk(2)
+	cell = ".\\data\\linhao\\hs\\P26H5_2_w1488 Laser.TIF"
+	mito = ".\\data\\linhao\\hs\\P26H5_2_w2561 Laser.TIF"
+	# # Bad Images
+	# cellb = io.imread(".\\data\\linhao\\hs\\P34A12_3_w1488 Laser.TIF")
+	# mitob = io.imread(".\\data\\linhao\\hs\\P34A12_2_w2561 Laser.TIF")
 
-	a1 = max_projection(cell)
-	a2 = gamma_stabilize(a1,alpha_clean = 1.2)
+	cell_line.analyze(cell)
+	# mito_line.analyze(mito)
+	sys.exit()
+	# d = disk_hole(a7, 10, pinhole = True)
 
-	a3 = smooth(a2)
-	a4 = median(a3,sel_elem)
-	a5 = erosion(a4,selem = disk(1))
+	# USE ONLY FOR MITOS
+	# a8 = fft_ifft(a7, d)
 
-	a6 = median(a5,sel_elem)
-	a7 = dilation(a6,selem = disk(1))
-	a8 = fft_ifft(a7, 10, pinhole = True)
+	# ff = binarize_image(a1)
+
+	# montage_n_x((a1,ff))
+
+	# img_type_2uint8(a8)
+	b = img_type_2uint8(a7, func = 'floor')
+	properties(b)
+	c = binarize_image(b)
+	d = label_and_correct(c,b,min_px_radius = 20)
+
+	remove_element_bounds(d)
+	montage_n_x((c, d))
+	# sys.exit()
+
+	e = measure.find_contours(d, 0.8)
 
 
 
-	# properties(c)
-	# montage_n_x(("a","b"),("b","a","c"),("c","d" ,"d" ,"a","b1"), ("a","c"))
-	montage_n_x((a1,a2,a3,a4,a5,a6,a7,a8))
+
+
+
+
+
+
+
 	# montage_2x((a, b, b1, c, d), (a,b,c))
 
 	# q = fft_ifft(a, 175, pinhole = False)
@@ -60,7 +82,7 @@ def main():
 	# print save_file(root, root, root, root)
 	# sigma_est = estimate_sigma(a, multichannel=False, average_sigmas=True)
 	# denoise_bilateral(a,sigma_color=0.1, sigma_spatial=15,
-    #             multichannel=False)
+	#             multichannel=False)
 	# print sigma_est
 
 	# z = median(a, disk(5))
@@ -89,7 +111,7 @@ def main():
 	# properties(c)
 	# view_2d_img(c)
 	# # 	# c = gamma_stabilize(a)
-    # #
+	# #
 	# # c = normalize(c, axis = 0, norm = 'max')
 	# # view_2d_img(a)
 	# selem = disk(10)
