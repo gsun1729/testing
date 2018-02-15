@@ -45,6 +45,7 @@ def stack_viewer(image):
 			self.im.axes.figure.canvas.draw()
 
 	fig, axes = plt.subplots(1, 1)
+
 	tracker = IndexTracker(axes, image)
 	fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
 	plt.show()

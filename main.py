@@ -5,6 +5,8 @@ sys.path.insert(0, '.\\lines')
 import os
 import cell_line
 import mito_line
+from skimage.morphology import skeletonize_3d
+from render import *
 # from render import *
 # from processing import *
 # from math_funcs import *
@@ -25,6 +27,7 @@ import mito_line
 # from skimage.feature import peak_local_max
 # from skimage.filters import median, rank, threshold_otsu, laplace
 # from math_funcs import *
+
 def main():
 	os.system('cls' if os.name == 'nt' else 'clear')
 	root = ".\\data\\generated"
@@ -42,7 +45,9 @@ def main():
 	# mitob = ".\\data\\hs\\P34A12_2_w2561 Laser.TIF"
 
 	# cell_line.analyze(cell3)
-	mito_line.analyze(mito)
+	binary_map = mito_line.analyze(mito)
+	skeleton3d = skeletonize_3d(binary_map)
+	stack_viewer(skeleton3d)
 	sys.exit()
 	# d = disk_hole(a7, 10, pinhole = True)
 

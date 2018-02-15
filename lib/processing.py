@@ -209,7 +209,7 @@ def img_type_2uint8(base_image, func = 'floor'):
 		sys.exit()
 
 
-def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_size = 2):
+def binarize_image(base_image, _dilation = 0, feature_size = 2):
 	print ">Binarizing Image..."
 	if np.percentile(base_image, 99) < 0.20:
 		if np.percentile(base_image, 99) > 0:
@@ -226,7 +226,7 @@ def binarize_image(base_image, _dilation = 0, heterogeity_size = 10, feature_siz
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
 	print ">Performing Random Walker Binarization"
-	binary_labels = random_walker(base_image, clustering_markers, beta=10, mode='bf') - 1
+	binary_labels = random_walker(base_image, clustering_markers, beta = 10, mode = 'bf') - 1
 
 	if _dilation:
 		selem = disk(_dilation)

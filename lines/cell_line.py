@@ -15,6 +15,9 @@ def analyze(input_image_pathway):
 	cell = io.imread(input_image_pathway)
 	sel_elem = disk(2)
 	a1 = max_projection(cell)
+	test1 = avg_projection(cell)
+	test2 = sum_projection(cell)
+	montage_n_x((a1, test1, test2))
 	a2 = gamma_stabilize(a1, alpha_clean = 1.3)
 	# Remove noise
 	a3 = smooth(a2)
