@@ -53,12 +53,17 @@ def stack_viewer(image):
 
 
 ## 2d Stuff below here
-def view_2d_img(img):
+def view_2d_img(img, save = False):
 	'''
 	Displays a single 2d images
 	'''
-	imgplot = plt.imshow(img)
-	plt.show()
+	fig = plt.figure()
+	plt.imshow(img)
+	if not save:
+		plt.show()
+	else:
+		plt.savefig("asdf.png")
+		# plt.close()
 
 
 def make_ticklabels_invisible(fig):

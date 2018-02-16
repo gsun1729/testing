@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import math
 from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
@@ -127,7 +128,7 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	:param smoothing_px:
 	:return:
 	"""
-	print ">Filtering image with Gaussian filter"
+	print "> Filtering image with Gaussian filter"
 	if len(image.shape) > 2:
 		for i in range(0, image.shape[0]):
 			image[i, :, :] = gaussian_filter(image[i, :, :],
@@ -147,7 +148,7 @@ def fft_ifft(image, struct_element):
 	content to yield edges
 	Pinhole = False: single dot filter, preserves low frequency content
 	'''
-	print ">Performing FFT>filter>IFFT transform"
+	print "> Performing FFT>filter>IFFT transform"
 
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
@@ -183,7 +184,7 @@ def median_layers(image, struct_disk_r = 5):
 
 def img_type_2uint8(base_image, func = 'floor'):
 
-	print ">Converting Image to uin8"
+	print "> Converting Image to uin8"
 
 	try:
 		bi_max_val = global_max(base_image)
@@ -210,7 +211,7 @@ def img_type_2uint8(base_image, func = 'floor'):
 
 
 def binarize_image(base_image, _dilation = 0, feature_size = 2):
-	print ">Binarizing Image..."
+	print "> Binarizing Image..."
 	if np.percentile(base_image, 99) < 0.20:
 		if np.percentile(base_image, 99) > 0:
 			mult = 0.20 / np.percentile(base_image, 99)  # poissonean background assumptions
@@ -221,11 +222,11 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 
 	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
-	print '>Performing Local Otsu'
+	print '> Performing Local Otsu'
 	local_otsu = rank.otsu(base_image, selem2)
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
-	print ">Performing Random Walker Binarization"
+	print "> Performing Random Walker Binarization"
 	binary_labels = random_walker(base_image, clustering_markers, beta = 10, mode = 'bf') - 1
 
 	if _dilation:
@@ -257,7 +258,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	'''
 	ONLY CAPABLE OF SEPARATING 2 CELLS WILL BE UPDATED TO THREE EVENTUALLY
 	'''
-	print ">Performing Hough cell splitting"
+	print "> Performing Hough cell splitting"
 	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
 	hough_radii = np.arange(min_r, max_r, 2)
 	hough_res = hough_circle(input_binary_img, hough_radii)
@@ -271,7 +272,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	# HYPOTHETICAL # of cells
 	N_cells = len(no_duplicates)
 	# view_2d_img(input_binary_img)
-	print ">Number cells in subsection: {}".format(N_cells)
+	print "\t> Number cells in subsection: {}".format(N_cells)
 	# print no_duplicates
 	if N_cells > 1:
 		# Create mask to divide both cells
@@ -319,12 +320,12 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 				rows[-1] = np.int(rows[-1])
 			n += 1
 		if n == 10000:
-			montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
+			# montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
 			return binary_fill_holes(input_binary_img).astype(int)
 		else:
 			# Fill edges to create mask
 			filled_cells = binary_fill_holes(input_binary_img).astype(int)
-			montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
+			# montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
 			# view_2d_img(filled_cells * (1 - dm))
 			return filled_cells * (1 - actual_mask)
 	else:
@@ -372,7 +373,7 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 
 
 def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 100, max_peri = 1500):
-	print ">Starting Cell Split"
+	print "> Starting Cell Split"
 	output = np.zeros_like(input_img)
 	output[input_img > 0] = 1
 	for item_contour in contours:
@@ -393,3 +394,19 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 				for y in xrange(tly, bry + 1):
 					output[y, x] = output[y, x] * split_cells[y - tly, x - tlx]
 	return label_and_correct(output, input_img)
+
+
+def rm_eccentric(input_img, contour_list,  eccentricity = 0.3):
+	for contour_indx, contour in enumerate(contour_list):
+		tlx, tly, brx, bry = location(contour)
+		contour_len = contour.shape[0]
+		contour_img = binary_fill_holes(points2img(contour)).astype(int)
+		contour_inv = 1 - contour_img
+		contour_area = sum(contour_img.flatten())
+		contour_roundness = (4 * math.pi * contour_area) / (contour_len ** 2)
+		# view_2d_img(contour_inv)
+		if contour_roundness < eccentricity:
+			for x in xrange(tlx, brx + 1):
+				for y in xrange(tly, bry + 1):
+					input_img[y, x] = input_img[y, x] * contour_inv[y - tly, x - tlx]
+	return input_img
