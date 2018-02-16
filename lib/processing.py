@@ -262,8 +262,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
 	hough_radii = np.arange(min_r, max_r, 2)
 	hough_res = hough_circle(input_binary_img, hough_radii)
-	accums, cx, cy, radii = hough_circle_peaks(hough_res, hough_radii,
-										total_num_peaks=3)
+	accums, cx, cy, radii = hough_circle_peaks(hough_res, hough_radii, total_num_peaks = 3)
 	circles = zip(cy, cx, radii);
 	# remove any circles too close to each other
 
@@ -275,62 +274,71 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	print "\t> Number cells in subsection: {}".format(N_cells)
 	# print no_duplicates
 	if N_cells > 1:
-		# Create mask to divide both cells
-		# Grow circle size until there is a collision followed by no more collisions
-		collision = False
-		end_collision = False
-		actual_mask = np.zeros_like(input_binary_img)
-		n = 0
 		# Set initial radius to 1
 		for rows in no_duplicates:
 			rows[-1] == 1
-		while end_collision == False or n >10000:
-			# Create empty mask
+		# Create mask to divide both cells
+		# Grow circle size until there is a collision followed by no more collisions
+		actual_mask = np.zeros_like(input_binary_img)
+		# Create Conditions for Whileloop
+		collision = False
+		end_collision = False
+		stop_condition = False
+		n = 0
+		max_iter = 100
+
+		# while end_collision == False or n < 10:
+		while (n < max_iter and stop_condition == False):
+			# Create empty mask to grow
 			mask = np.zeros_like(input_binary_img)
 			for center_y, center_x, radius in no_duplicates:
+				# Create mask for each circle in no_duplicates
 				sub_mask = np.zeros_like(input_binary_img)
-				# List of coodinates for perimeter of a circle
+				# List of coodinates for perimeter of a circle and remove any negative points to prevent edge looparound
 				circy, circx = circle_perimeter(center_y, center_x, radius)
 				no_negs = remove_neg_pts(zip(circy, circx))
-				# print zip(circy, circx)
-				# Make sure that the circle being masked, anything out of bounds is not masked
 				for y, x in no_negs:
-					# print y, x, sub_mask.shape
+					# for each circle point, if it falls within the dimensions of the submask, plot it.
 					if y < sub_mask.shape[0] and x < sub_mask.shape[1]:
 						sub_mask[y, x] = 1
-				# view_2d_img(sub_mask)
+				# Append submask to growing mask after dilation (aka making the circle boundaries wide as fuck)
 				mask += dilation(sub_mask, disk(2))
-				# Append circles into the empty image to get overview of outline
-				# Aka add submask to mask
-			# view_2d_img(mask)
-			# Determine if there is a collision between circles
-			if np.amax(mask.flatten()) >= 2:
+			# Determine if there is a collision between circles (max element in grow mask is more than just one submask)
+			# montage_n_x((actual_mask, mask))
+			# print np.amax(mask.flatten())
+			if np.amax(mask.flatten()) > 1:
 				collision = True
 				# collision_pt = np.where(mask >= 2)
-				mask[np.less(mask, 2)] = 0
+				mask[mask < 2] = 0
 				# view_2d_img(mask)
 				actual_mask += mask
 				actual_mask[actual_mask != 0 ] = 1
-			if collision == True and np.amax(mask.flatten()) == 1:
+			# montage_n_x((actual_mask, mask))
+			if collision == True and np.amax(mask.flatten()) <= 1:
 				end_collision = True
-			# view_2d_img(actual_mask)
-			# Grow circle radius by 5% per iteration
+				stop_condition = True
+
+			# Grow circle radius by 8% per
 			for rows in no_duplicates:
 				rows[-1] *= 1.08
 				rows[-1] = np.int(rows[-1])
 			n += 1
-		if n == 10000:
+			# print n, collision, end_collision, stop_condition
+		if stop_condition == False:
 			# montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
-			return binary_fill_holes(input_binary_img).astype(int)
+			return np.ones_like(input_binary_img)
+			# return binary_fill_holes(input_binary_img).astype(int)
 		else:
 			# Fill edges to create mask
-			filled_cells = binary_fill_holes(input_binary_img).astype(int)
+			# filled_cells = binary_fill_holes(input_binary_img).astype(int)
 			# montage_n_x((actual_mask, actual_mask + input_binary_img, filled_cells, filled_cells * (1 - actual_mask)))
 			# view_2d_img(filled_cells * (1 - dm))
-			return filled_cells * (1 - actual_mask)
+			# return filled_cells * (1 - actual_mask)
+			return actual_mask
 	else:
 		# view_2d_img(input_binary_img)
-		return binary_fill_holes(input_binary_img).astype(int)
+		return np.ones_like(input_binary_img)
+		# return binary_fill_holes(input_binary_img).astype(int)
 
 	# Uncomment for visualization
 	# montage_n_x((input_binary_img, filled_cells, dm,  filled_cells * (1 - dm)))
@@ -341,7 +349,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 
 
 def just_label(binary_image):
-	labeled_field, object_no = ndi.label(binary_image, structure=np.ones((3, 3)))
+	labeled_field, object_no = ndi.label(binary_image, structure = np.ones((3, 3)))
 	return labeled_field
 
 
@@ -386,13 +394,35 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 			# holding = points2img(item_contour)
 			# holding_fill = binary_fill_holes(holding).astype(int)
 			# if sum(holding_fill.flatten()) > 100:
-			split_cells = hough_num_circles(contour_img)
+			split_cells_mask = hough_num_circles(contour_img)
+
 			tlx, tly, brx, bry = location(item_contour)
-				# print location(item_contour)
-				# print split_cells.shape, output.shape
-			for x in xrange(tlx, brx + 1):
-				for y in xrange(tly, bry + 1):
-					output[y, x] = output[y, x] * split_cells[y - tly, x - tlx]
+			if array_all_ones(split_cells_mask):
+				output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * split_cells_mask
+				# montage_n_x((output,output[tly-1:bry+1,tlx-1:brx+1], split_cells_mask, output[tly-1:bry+1,tlx-1:brx+1] * split_cells_mask))
+			else:
+				d_contour_img = dilation(contour_img, disk(1))
+				specific_mask = split_cells_mask + d_contour_img
+				specific_mask[specific_mask < 2] = 0
+				specific_mask[specific_mask >= 2] = 1
+				output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * (1 - specific_mask)
+				# montage_n_x((output,output[tly-1:bry+1,tlx-1:brx+1],d_contour_img, contour_img, split_cells_mask, specific_mask, output[tly-1:bry+1,tlx-1:brx+1] *(1 - specific_mask)))
+			# print tlx, tly, brx, bry
+			# print split_cells_mask.shape, output[tly-1:bry+1,tlx-1:brx+1].shape
+			# new_mask =  split_cells_mask + output[tly-1:bry+1,tlx-1:brx+1]
+			# new_mask[new_mask != 0] = 1
+			# new_mask -= split_cells_mask
+			# new_mask -= output[tly-1:bry+1,tlx-1:brx+1]
+			# new_mask[new_mask < 0] = 0
+			# new_mask[new_mask!]
+			# specific_mask = split_cells_mask + d_contour_img
+			# specific_mask[specific_mask < 2] = 0
+			# specific_mask[specific_mask >= 2] =1
+
+
+			# for x in xrange(tlx, brx + 1):
+			# 	for y in xrange(tly, bry + 1):
+			# 		output[y, x] = output[y, x] + new_mask[y - tly, x - tlx]
 	return label_and_correct(output, input_img)
 
 
