@@ -56,7 +56,7 @@ def uuid_present(UUID, lookupTable):
 	return UUID_index, UUID_found
 
 
-def uuid2info(filename, lookupTable):
+def filename2info(filename, lookupTable):
 	UUID = get_UUID(filename)
 	found = False
 	for row in lookupTable:
@@ -72,7 +72,7 @@ def get_partner(filename, lookupTable):
 	Given a UUID for a cell or mitochondria image, determine the UUID for the mitochondria or cell data partner
 	'''
 	attribute_type = get_M_C(filename)
-	input_info = uuid2info(filename, lookupTable)
+	input_info = filename2info(filename, lookupTable)
 	if input_info == None:
 		return
 	else:
@@ -87,48 +87,67 @@ def get_partner(filename, lookupTable):
 				return row
 
 
+def create_pairTable(filelist, lookupTable):
+	UUID_pairs = []
+	for row in filelist:
+		input_info = filename2info(row, lookupTable)
+		partner_info = get_partner(row, lookupTable)
+		UUID_pairs.append([input_info[0], partner_info[0], input_info[2], partner_info[2], input_info[-2]])
+	return UUID_pairs
+
+
+def create_densepairTable(filelist, lookupTable):
+	UUID_pairs = []
+	for row in filelist:
+		input_info = filename2info(row, lookupTable)
+		partner_info = get_partner(row, lookupTable)
+		UUID_pairs.append([input_info[0], partner_info[0]])
+	return UUID_pairs
+
+
+def write_list_txt(location, filename, array):
+	writefile = open(os.path.join(location, filename), 'w')
+	for row in array:
+		for row_ele in xrange(len(row)):
+			writefile.write(row[row_ele]+"\t")
+		writefile.write("\n")
+	writefile.close()
+
 
 def main():
-	UID_file_loc = "L:\\Users\\gordon\\00000004 - Running Projects\\20180126 Mito quantification for Gordon\\results\\20180218_2 Run\\isolate\\filename_list.txt"
+	UID_file_loc = "L:\\Users\\gordon\\00000004 - Running Projects\\20180126 Mito quantification for Gordon\\results\\20180218_2 Run\\results_advanced 1 layer\\filename_list.txt"
 	root_read_dir = os.path.dirname(UID_file_loc)
 	cell_data_dir = os.path.join(root_read_dir, "cell")
 	mito_data_dir = os.path.join(root_read_dir, "mito")
 
 	cell_filelist = get_img_filenames(cell_data_dir)
 	mito_filelist = get_img_filenames(mito_data_dir)
-	UUID_data = read_UUID_file(UID_file_loc)
+	UUID_datatable = read_UUID_file(UID_file_loc)
 
-	test = cell_filelist[0]
-	test2 = test.replace("2","3")
-	print test
-	print test2
+	C_M_UUID_pairs = create_pairTable(cell_filelist, UUID_datatable)
+	UUID_pairs = create_densepairTable(cell_filelist, UUID_datatable)
 
-	a = get_partner(test2, UUID_data)
-	print a
-	a = get_partner(test, UUID_data)
-	print a
 
-	for row in UUID_data:
-		print row
+	filename_pairs = []
+	for cell_UUID, mito_UUID in UUID_pairs:
+		filename_pairs.append(["C_" + cell_UUID + "_dat.mat",
+								"M_" + mito_UUID + "_bin.mat",
+								"M_" + mito_UUID + "_skel.mat"])
 
-	for x, row in enumerate(UUID_data):
-		if x%2 == 0:
-			UUID_data[x] = []
-	print "============"
-	for row in UUID_data:
-		print row
+	write_list_txt(root_read_dir, "Cell_mito_UUID_Pairs.txt", C_M_UUID_pairs)
+	write_list_txt(root_read_dir, "UUID_paired_filenames.txt", filename_pairs)
 
-	# print cell_filelist
-	# print test
-	# print info
-	# print get_partner(test, UUID_data)
-	#
-	#
-	# print cell_filelist
-	# print mito_filelist
 
-	# cell_img = scipy.io.loadmat(os.path.join(cell_data_dir, cell_filelist[0]))
-	# mito_stack = scipy.io.loadmat(os.path.join(mito_data_dir, mito_filelist[0]))
+	cell_img = scipy.io.loadmat(os.path.join(cell_data_dir, filename_pairs[0][0]))['data']
+	mito_stack = scipy.io.loadmat(os.path.join(mito_data_dir, filename_pairs[0][1]))['data']
+	mito_skel = scipy.io.loadmat(os.path.join(mito_data_dir, filename_pairs[0][2]))['data']
+
+
+
+
+	stack_viewer(mito_stack)
+	stack_viewer(mito_skel)
+	view_2d_img(cell_img)
 	# cell_img = cell_img['data']
 	# mito_stack = mito_stack['data']
 	# print cell_img.shape
