@@ -9,33 +9,16 @@ import mito_line
 from render import *
 from read_write import *
 from skimage import io
-# from render import *
+
 from processing import *
-# from math_funcs import *
-# from properties import properties
-# from read_write import *
-#
-# from skimage import measure
-# from scipy.ndimage.morphology import binary_fill_holes
-# from skimage.morphology import (disk, dilation, watershed,
-# 								closing, opening, erosion, skeletonize, medial_axis)
-# # from skimage.segmentation import random_walker
-# # from skimage.restoration import denoise_bilateral, estimate_sigma
-# import scipy.signal as ss
-# from sklearn.preprocessing import normalize
-#
-# from scipy import ndimage as ndi, stats
-# from scipy.ndimage import gaussian_filter
-# from skimage.feature import peak_local_max
-# from skimage.filters import median, rank, threshold_otsu, laplace
-# from math_funcs import *
+import time, string, uuid
 
 def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
+	sys.stdout = open(os.devnull, 'w')
 
-# Restore
+
 def enablePrint():
-    sys.stdout = sys.__stdout__
+	sys.stdout = sys.__stdout__
 
 
 def main():
@@ -54,47 +37,61 @@ def main():
 		print "> CELL Save Directory : {}\n".format(save_dir_CELL)
 		print "> MITO Save Directory : {}\n".format(save_dir_MITO)
 
+	start = time.time()
 	filenames = get_img_filenames(root_read_dir)
-	# print "\nFiles to be processed:\n"
-	# for img_name, img_loc, img_path in filenames:
-	# 	print img_path
-	# sys.exit()
-	# root = ".\\data\\generated"
-	for img_name, img_loc, img_path in filenames:
+	num_images = len(filenames)
+	end = time.time()
+	print "> {} images detected, time taken: {}".format(num_images, end - start)
+
+
+	mito_stats = []
+	cell_stats = []
+	ID_data_file_loc = os.path.dirname(save_dir_CELL)
+	print "> Processing IDs saved here: {}\n".format(ID_data_file_loc)
+
+
+	file_list_ID = open(os.path.join(ID_data_file_loc, "filename_list.txt"),'w')
+	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
+		file_list_ID.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(UID, img_name, img_fname, path_diff, img_loc, img_path))
+	file_list_ID.close()
+
+
+
+	img_num = 1
+	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
 		print "> ==========================================================================================\n"
 		print "\n> Currently Processing : {}\n".format(img_name)
+		print "> \tImage Unique ID: {}\n".format(UID)
+		print "> \tImage/Total Number of Images: {}/{}\n".format(img_num, num_images)
 		if '1488' in img_name:
-			print "> Image ID: 1488: Cell TD\n"
+			print "> Image ID: 1488 - Cell TD\n"
 			# blockPrint()
-			cell_line.analyze(img_name, img_loc, img_path, save_dir_CELL)
+			start = time.time()
+			cell_line.analyze(UID, img_path, save_dir_CELL)
+			end = time.time()
 			# enablePrint()
+			print "> Time to Compete: {}".format(end - start)
+			mito_stats.append(end - start)
+			img_num += 1
+
 		elif '2561' in img_name:
-			print "> Image ID: 2561: Mitochondria\n"
+			print "> Image ID: 2561 - Mitochondria\n"
 			# blockPrint()
-			mito_line.analyze(img_name, img_loc, img_path, save_dir_MITO)
+			start = time.time()
+			mito_line.analyze(UID, img_path, save_dir_MITO)
+			end = time.time()
 			# enablePrint()
-	# sys.exit()
+			print "> Time to Compete: {}".format(end - start)
+			cell_stats.append(end - start)
+			img_num += 1
 
 
 
+	print "> ==========================================================================================\n"
+	print "> Prelim Analysis completed"
+	save_data(mito_stats, "mito_processing_RT", ID_data_file_loc)
+	save_data(cell_stats, "cell_processing_RT",  ID_data_file_loc)
 
-#
-# print 'This will print'
-#
-#
-# print "This won't"
-#
-#
-# print "This will too"
-			# print os.path.join(img_name, img_filename)
-	# cell_line.analyze(img_name, img_loc, img_path)
-	# 	# elif '2561' in img_name:
-	# 	# 	print "mito"
-	# 	# else:
-	# 	# 	print "whatdo"
-	#
-	#
-	# sys.exit()
 	# cell = ".\\data\\hs\\P11B3_2_w1488 Laser.TIF"
 	# mito = ".\\data\\hs\\P11B3_2_w2561 Laser.TIF"
 	# cell2 = ".\\data\\_hs\\P45F12_3_w1488 Laser.TIF"

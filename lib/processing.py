@@ -5,11 +5,11 @@ from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
 from scipy import ndimage as ndi
-from skimage.morphology import disk
-from skimage.filters import median, rank, threshold_otsu
+from skimage.morphology import disk, closing, watershed
+from skimage.filters import median, rank, threshold_otsu, gaussian
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
-
+from skimage.feature import peak_local_max
 from properties import global_max, global_min
 from skimage.transform import hough_circle, hough_circle_peaks
 from skimage.draw import circle_perimeter
@@ -18,7 +18,8 @@ from render import *
 from skimage import measure
 from scipy.ndimage.morphology import binary_fill_holes
 from skimage.segmentation import active_contour
-from skimage.filters import gaussian
+from skimage import measure
+
 
 dtype2bits = {'uint8': 8,
 			  'uint16': 16,
@@ -128,7 +129,7 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	:param smoothing_px:
 	:return:
 	"""
-	print "> Filtering image with Gaussian filter"
+	# print "> Filtering image with Gaussian filter"
 	if len(image.shape) > 2:
 		for i in range(0, image.shape[0]):
 			image[i, :, :] = gaussian_filter(image[i, :, :],
@@ -148,7 +149,7 @@ def fft_ifft(image, struct_element):
 	content to yield edges
 	Pinhole = False: single dot filter, preserves low frequency content
 	'''
-	print "> Performing FFT>filter>IFFT transform"
+	# print "> Performing FFT>filter>IFFT transform"
 
 	fft_transform = np.fft.fft2(image)
 	f_shift = np.fft.fftshift(fft_transform)
@@ -184,7 +185,7 @@ def median_layers(image, struct_disk_r = 5):
 
 def img_type_2uint8(base_image, func = 'floor'):
 
-	print "> Converting Image to uin8"
+	# print "> Converting Image to uin8"
 
 	try:
 		bi_max_val = global_max(base_image)
@@ -222,11 +223,11 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 
 	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
-	print '> Performing Local Otsu'
+	# print '> Performing Local Otsu'
 	local_otsu = rank.otsu(base_image, selem2)
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
-	print "> Performing Random Walker Binarization"
+	# print "> Performing Random Walker Binarization"
 	binary_labels = random_walker(base_image, clustering_markers, beta = 10, mode = 'bf') - 1
 
 	if _dilation:
@@ -398,14 +399,20 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 
 			tlx, tly, brx, bry = location(item_contour)
 			if array_all_ones(split_cells_mask):
-				output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * split_cells_mask
+				for x in xrange(tlx, brx + 1):
+					for y in xrange(tly, bry + 1):
+						output[y, x] = output[y, x] * split_cells_mask[y - tly, x - tlx]
+				# output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * split_cells_mask
 				# montage_n_x((output,output[tly-1:bry+1,tlx-1:brx+1], split_cells_mask, output[tly-1:bry+1,tlx-1:brx+1] * split_cells_mask))
 			else:
 				d_contour_img = dilation(contour_img, disk(1))
 				specific_mask = split_cells_mask + d_contour_img
 				specific_mask[specific_mask < 2] = 0
 				specific_mask[specific_mask >= 2] = 1
-				output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * (1 - specific_mask)
+				for x in xrange(tlx, brx + 1):
+					for y in xrange(tly, bry + 1):
+						output[y, x] = output[y, x] * (1- specific_mask[y - tly, x - tlx])
+				# output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * (1 - specific_mask)
 				# montage_n_x((output,output[tly-1:bry+1,tlx-1:brx+1],d_contour_img, contour_img, split_cells_mask, specific_mask, output[tly-1:bry+1,tlx-1:brx+1] *(1 - specific_mask)))
 			# print tlx, tly, brx, bry
 			# print split_cells_mask.shape, output[tly-1:bry+1,tlx-1:brx+1].shape
@@ -420,23 +427,83 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 			# specific_mask[specific_mask >= 2] =1
 
 
-			# for x in xrange(tlx, brx + 1):
-			# 	for y in xrange(tly, bry + 1):
-			# 		output[y, x] = output[y, x] + new_mask[y - tly, x - tlx]
+
 	return label_and_correct(output, input_img)
 
 
-def rm_eccentric(input_img, contour_list,  eccentricity = 0.3):
-	for contour_indx, contour in enumerate(contour_list):
-		tlx, tly, brx, bry = location(contour)
-		contour_len = contour.shape[0]
-		contour_img = binary_fill_holes(points2img(contour)).astype(int)
-		contour_inv = 1 - contour_img
-		contour_area = sum(contour_img.flatten())
-		contour_roundness = (4 * math.pi * contour_area) / (contour_len ** 2)
-		# view_2d_img(contour_inv)
-		if contour_roundness < eccentricity:
-			for x in xrange(tlx, brx + 1):
-				for y in xrange(tly, bry + 1):
-					input_img[y, x] = input_img[y, x] * contour_inv[y - tly, x - tlx]
+def rm_eccentric(input_img, min_eccentricity = 0.3, max_area = 2000):
+	max_cells = np.amax(input_img.flatten())
+	# print max_cel/ls
+	for x in xrange(max_cells):
+		mask = np.zeros_like(input_img)
+		mask[input_img == x + 1] = 1
+		area = sum(mask.flatten())
+		# print area
+		contours = measure.find_contours(mask, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
+		eccentricity = (4 * math.pi * area) / (len(contours[0]) ** 2)
+		if eccentricity < min_eccentricity or area > max_area:
+			input_img[input_img == x + 1] = 0
 	return input_img
+
+ #
+ # contour_list,  eccentricity = 0.3):
+	# for contour_indx, contour in enumerate(contour_list):
+	# 	tlx, tly, brx, bry = location(contour)
+	# 	contour_len = contour.shape[0]
+	# 	contour_img = binary_fill_holes(points2img(contour)).astype(int)
+	# 	contour_inv = 1 - contour_img
+	# 	contour_area = sum(contour_img.flatten())
+	# 	contour_roundness = (4 * math.pi * contour_area) / (contour_len ** 2)
+	# 	# view_2d_img(contour_inv)
+	# 	if contour_roundness < eccentricity:
+	# 		for x in xrange(tlx, brx + 1):
+	# 			for y in xrange(tly, bry + 1):
+	# 				input_img[y, x] = input_img[y, x] * contour_inv[y - tly, x - tlx]
+	# return input_img
+
+
+def improved_watershed(binary_base, intensity, expected_separation = 10):
+	"""
+	Improved watershed method that takes in account minimum intensity as well as minimal size of
+	separation between the elements
+
+	:param binary_base: support for watershedding
+	:param intensity: intensity value used to exclude  watershed points with too low of intensity
+	:param expected_separation: expected minimal separation (in pixels) between watershed centers
+	:return:
+	"""
+	print "> Performing Improved Watershed"
+	sel_elem = disk(2)
+
+	# changed variable name for "labels"
+	post_closing_labels = closing(binary_base, sel_elem)
+
+	distance = ndi.distance_transform_edt(post_closing_labels)
+	local_maxi = peak_local_max(distance,
+								indices=False,  # we want the image mask, not peak position
+								min_distance=expected_separation,  # about half of a bud with our size
+								threshold_abs=10,  # allows to clear the noise
+								labels=post_closing_labels)
+	# we fuse the labels that are close together that escaped the min distance in local_maxi
+	local_maxi = ndi.convolve(local_maxi, np.ones((5, 5)), mode='constant', cval=0.0)
+	# finish the watershed
+	expanded_maxi_markers = ndi.label(local_maxi, structure=np.ones((3, 3)))[0]
+	segmented_cells_labels = watershed(-distance, expanded_maxi_markers, mask=post_closing_labels)
+
+	unique_segmented_cells_labels = np.unique(segmented_cells_labels)
+	unique_segmented_cells_labels = unique_segmented_cells_labels[1:]
+	average_apply_mask_list = []
+	# Gimick fix
+	intensity_array = intensity * np.ones_like(segmented_cells_labels)
+	for cell_label in unique_segmented_cells_labels:
+		my_mask = segmented_cells_labels == cell_label
+		apply_mask = segmented_cells_labels[my_mask]
+		average_apply_mask = np.mean(intensity_array[my_mask])
+		if average_apply_mask < 0.005:
+			average_apply_mask = 0
+			segmented_cells_labels[segmented_cells_labels == cell_label] = 0
+		average_apply_mask_list.append(average_apply_mask)
+	# x_labels = ['cell13', 'cell1', 'cell7', 'cell2', 'cell14', 'cell6', 'cell3', 'cell5', 'cell4', 'cell11', 'cell12', 'cell8', 'cell10', 'cell9']
+	# dbg.improved_watershed_debug(segmented_cells_labels, intensity)
+	# dbg.improved_watershed_plot_intensities(x_labels, average_apply_mask_list.sort())
+	return segmented_cells_labels

@@ -10,13 +10,20 @@ from skimage import measure
 from scipy.ndimage.morphology import binary_fill_holes
 from skimage.morphology import (disk, dilation, watershed,
 								closing, opening, erosion, skeletonize, medial_axis)
+from skimage.morphology import skeletonize_3d
 
-def analyze(input_image_pathway):
-	mito = io.imread(input_image_pathway)
+mito_prefix = "M_"
+skeleton_suffix = "_skel"
+binary_suffix = "_bin"
+figure_suffix = "_fig.png"
+
+def analyze(UID, read_path, write_path):
+	mito = io.imread(read_path)
 	z, x, y = mito.shape
 	# stack_viewer(mito)
 	# z = 2
 	binary = np.zeros_like(mito)
+	max_P_d = max_projection(mito)
 	for layer in xrange(z):
 		sel_elem = disk(1)
 		layer_data = mito[layer,:,:]
@@ -37,20 +44,23 @@ def analyze(input_image_pathway):
 		# Simple threshold
 		scale_ratio = 10
 		threshold = np.mean(asdf.flatten()) * scale_ratio
-		print "> Simple Thresholding threshold: {}".format(threshold)
+		# print "> Simple Thresholding threshold: {}".format(threshold)
 		asdf[asdf <= threshold] = 0
 		asdf[asdf > 0] = 1
 
 		wow = label_and_correct(asdf, a9, min_px_radius = 3)
 		wow[wow > 0] = 1
 		# montage_n_x((a9, wow))
-		binary[layer,:,:] = wow
+		binary[layer, :, :] = wow
 		# montage_n_x((q, a10))
 		# montage_n_x((layer_data, output1, output2),(m4, a8, a9, asdf))
-	stack_viewer(binary)
-	return binary
-# def apply_over_layers(function())
+	# stack_viewer(binary)
+	spooky = skeletonize_3d(binary)
 
+	save_figure(max_P_d, mito_prefix + UID + "_maxP" + figure_suffix, write_path)
+	save_data(spooky, mito_prefix + UID + skeleton_suffix, write_path)
+	save_data(binary, mito_prefix + UID + binary_suffix, write_path)
+	# return binary, spooky
 
 if __name__ == "__main__":
 	arguments = sys.argv
