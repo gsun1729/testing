@@ -33,6 +33,7 @@ dtype2range = { 'uint8': 255,
 def gamma_stabilize(image, alpha_clean=5, floor_method='min'):
 	"""
 	Normalizes the luma curve. floor intensity becomes 0 and max allowed by the bit number - 1
+	Borrowed from Andrei's Imagepipe
 
 	:param image:
 	:param alpha_clean: size of features that would be removed if surrounded by a majority of
@@ -59,6 +60,11 @@ def sum_projection(image, axis = 0):
 	'''
 	Axis is defined as the index of the image.shape output.
 	By default it is the Z axis (z,x,y)
+	Takes a 3d image, and sums it along a defined axis to form a 2d Image
+
+	:param image: 3d stack image in <np.ndarray> format
+	:param axis: axis to sum along, z = 0, x = 1, y = 2
+	:return: returns 2d image in the shape x,y summed along z axis (by default)
 	'''
 	try:
 		return np.sum(image, axis)
@@ -74,6 +80,13 @@ def max_projection(image, axis = 0):
 	'''
 	Axis is defined as the index of the image.shape output.
 	By default it is the Z axis (z,x,y)
+	Takes a 3d image, and projects it along a defined axis to form a 2d Image
+	Takes the max value for each pixel along (default) x,y plane, and projects it
+	to one plane
+
+	:param image: 3d stack image in <np.ndarray> format
+	:param axis: axis to sum along, z = 0, x = 1, y = 2
+	:return: returns 2d image in the shape x,y
 	'''
 	try:
 		return np.amax(image, axis)
@@ -89,6 +102,13 @@ def avg_projection(image, axis = 0):
 	'''
 	Axis is defined as the index of the image.shape output.
 	By default it is the Z axis (z,x,y)
+	Takes a 3d image, and projects it along a defined axis to form a 2d Image
+	Takes the average value for each pixel in the (default) x,y plane along the
+	z axis
+
+	:param image: 3d stack image in <np.ndarray> format
+	:param axis: axis to sum along, z = 0, x = 1, y = 2
+	:return: returns 2d image in the shape x,y
 	'''
 	try:
 		print axis
@@ -106,6 +126,15 @@ def disk_hole(image, radius, pinhole = False):
 	'''
 	Returns either an image of a pinhole or a circle in the
 	middle for removing high frequency/ low frequency noise using FFT
+	same dimensions as input image
+	Pinhole =  True : pinhole filter, or high pass filter. Filters out low frequency
+	content to yield edges
+	Pinhole = False: single dot filter, preserves low frequency content
+
+	:param image: input image (filter will be applied eventually), used to get dims
+	:param radius: radius of pinhole/pinpoint
+	:param pinhole: determines whether the filter will be a pinhole or pinpoint
+	:return: filter of same size of 2d image input
 	'''
 	x, y = image.shape
 	structuring_element = np.zeros((x, y), dtype = long)
@@ -124,9 +153,11 @@ def disk_hole(image, radius, pinhole = False):
 def smooth(image, smoothing_px = 0.5, threshold = 1):
 	"""
 	Gaussian smoothing of the image
+	Borrowed from Andrei's Imagepipe
 
-	:param image:
-	:param smoothing_px:
+	:param image: Input image
+	:param smoothing_px: size of smoothing pixel
+	:param threshold: threshold to filter image intensity
 	:return:
 	"""
 	# print "> Filtering image with Gaussian filter"
@@ -145,9 +176,11 @@ def fft_ifft(image, struct_element):
 	'''
 	Performs a fast fourier transform, removes certain frequencies highlighted by
 	the structuring element, and returns the inverse fourier transform back.
-	Pinhole =  True : pinhole filter, or high pass filter. Filters out low frequency
-	content to yield edges
-	Pinhole = False: single dot filter, preserves low frequency content
+	Helper function disk_hole
+
+	:param image: Image to be filtered
+	:param struct_element: filter to be applied to image in frequency space
+	:return: filtered image
 	'''
 	# print "> Performing FFT>filter>IFFT transform"
 
@@ -170,6 +203,15 @@ def fft_ifft(image, struct_element):
 
 
 def bandpass_disk(image, r_range = (10, 200), pinhole = False):
+	'''
+	Creates a bandpass disk for filtering FFT images, creates either a solid
+	torus filter or negative image of that
+
+	:param image: image that filter will be applied to
+	:param r_range: (inner, outer) radius of bandpass filter
+	:param pinhole: torus (true) or inverse torus (false) filter
+	:return: bandpass filter structuring element
+	'''
 	outer = disk_hole(image, r_range[1], pinhole)
 	inner = disk_hole(image, r_range[0], pinhole)
 	structuring_element = outer - inner
@@ -177,6 +219,13 @@ def bandpass_disk(image, r_range = (10, 200), pinhole = False):
 
 
 def median_layers(image, struct_disk_r = 5):
+	'''
+	Applies median filter over multiple layer of a 3d stack image
+
+	:param image: input image
+	:param struct_disk_r: size of median filter kernel
+	:return: de-noised median filtered image
+	'''
 	for i in range(0, image.shape[0]):
 		image[i, :, :] = median(image[i, :, :], disk(struct_disk_r))
 		# image[image < 2 * np.mean(image)] = 0
@@ -184,9 +233,14 @@ def median_layers(image, struct_disk_r = 5):
 
 
 def img_type_2uint8(base_image, func = 'floor'):
+	'''
+	Converts a given image type to a uint8 image
+	Rounding is done either via 'floor', 'ceiling', or 'fix' functions in numpy
 
+	:param base_image: input image
+
+	'''
 	# print "> Converting Image to uin8"
-
 	try:
 		bi_max_val = global_max(base_image)
 		bi_min_val = global_min(base_image)
@@ -466,6 +520,7 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	"""
 	Improved watershed method that takes in account minimum intensity as well as minimal size of
 	separation between the elements
+	Borrowed from Andrei's Imagepipe
 
 	:param binary_base: support for watershedding
 	:param intensity: intensity value used to exclude  watershed points with too low of intensity
@@ -480,15 +535,15 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 
 	distance = ndi.distance_transform_edt(post_closing_labels)
 	local_maxi = peak_local_max(distance,
-								indices=False,  # we want the image mask, not peak position
-								min_distance=expected_separation,  # about half of a bud with our size
-								threshold_abs=10,  # allows to clear the noise
-								labels=post_closing_labels)
+								indices = False,  # we want the image mask, not peak position
+								min_distance = expected_separation,  # about half of a bud with our size
+								threshold_abs = 10,  # allows to clear the noise
+								labels = post_closing_labels)
 	# we fuse the labels that are close together that escaped the min distance in local_maxi
-	local_maxi = ndi.convolve(local_maxi, np.ones((5, 5)), mode='constant', cval=0.0)
+	local_maxi = ndi.convolve(local_maxi, np.ones((5, 5)), mode = 'constant', cval = 0.0)
 	# finish the watershed
-	expanded_maxi_markers = ndi.label(local_maxi, structure=np.ones((3, 3)))[0]
-	segmented_cells_labels = watershed(-distance, expanded_maxi_markers, mask=post_closing_labels)
+	expanded_maxi_markers = ndi.label(local_maxi, structure = np.ones((3, 3)))[0]
+	segmented_cells_labels = watershed(-distance, expanded_maxi_markers, mask = post_closing_labels)
 
 	unique_segmented_cells_labels = np.unique(segmented_cells_labels)
 	unique_segmented_cells_labels = unique_segmented_cells_labels[1:]
