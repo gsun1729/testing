@@ -1,8 +1,10 @@
-### Bootlegged Image Analysis Pipeline ###
+# Bootlegged Image Analysis Pipeline
+======
 the most bootlegged image processing pipeline for mitochondrial 3d skeletonization ever
 
 more smashed together than smashmouth
-==========================================
+## Running the Script
+======
 To run this script, must be entered into console in the form:
 
 python main.py "<READ DIRECTORY>" "<CELL DATA WRITE DIRECTORY>" "<MITO DATA WRITE DIRECTORY>"
@@ -41,3 +43,6 @@ Under the folder ‘analysis’, there are three types of files you’ll see the
                 The prefix ‘CM_’ means that the file contains data concerning cell juxtaposed mitochondrial data
                 The suffix ‘_bin.mat’ means the file contains labeled mitochondria with each cell
                 The suffix ‘_skel.mat’ means that the file contains labeled mito skeletons with each cell
+
+
+==========================================
