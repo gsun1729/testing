@@ -238,7 +238,8 @@ def img_type_2uint8(base_image, func = 'floor'):
 	Rounding is done either via 'floor', 'ceiling', or 'fix' functions in numpy
 
 	:param base_image: input image
-
+	:param func: function used for scaling image pixel intensity
+	:return: uint8 image
 	'''
 	# print "> Converting Image to uin8"
 	try:
@@ -266,6 +267,15 @@ def img_type_2uint8(base_image, func = 'floor'):
 
 
 def binarize_image(base_image, _dilation = 0, feature_size = 2):
+	'''
+	Binarizes an image using local otsu and random walker
+	Borrowed from Andrei's Imagepipe
+
+	:param base_image: input image
+	:param _dilation: amount of dilation to implement in Binarization
+	:param feature_size: size of the structuring disk for random Walker
+	:return: binarized image
+	'''
 	print "> Binarizing Image..."
 	if np.percentile(base_image, 99) < 0.20:
 		if np.percentile(base_image, 99) > 0:
@@ -290,28 +300,18 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 	return binary_labels
 
 
-def smooth_contours(binary_group_img):
-	'''
-	Function is broken as fuck DO NOT USE
-	Given a binary image with edges = 1, attempts to smooth out the contours of the individual elements in the image
-	'''
-	boundary = obtain_border(binary_group_img)
-	init = points2img(boundary)
-
-	snake = active_contour(binary_group_img, boundary, alpha = 0.015, beta = 10, gamma = 0.001)
-
-	fig, ax = plt.subplots(figsize=(7, 7))
-	ax.imshow(binary_group_img, cmap=plt.cm.gray)
-	ax.plot(boundary[:, 0], boundary[:, 1], '--r', lw=3)
-	ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
-	ax.set_xticks([]), ax.set_yticks([])
-	ax.axis([0, binary_group_img.shape[1], binary_group_img.shape[0], 0])
-	plt.show()
-
-
 def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	'''
-	ONLY CAPABLE OF SEPARATING 2 CELLS WILL BE UPDATED TO THREE EVENTUALLY
+	Helper function for cell_split
+	Runs hough transform on a cell cluster in a binary image to determine where
+	individual cells may lie. Does not take in a whole binary image, only takes in a contour converted
+	to a binary image for a single cluster
+
+	:param input_binary_img: Input binary image of the single cell group
+	:param min_r: minimum radius acceptable for a cell
+	:param max_r: maximum radius acceptable for a cell
+	:param step: rate at which minimum radius will be stepped up to maximum radius size
+	:return: cropped and split version of input binary image
 	'''
 	print "> Performing Hough cell splitting"
 	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
@@ -404,6 +404,12 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 
 
 def just_label(binary_image):
+	'''
+	Just labels a binary image (segments everything)
+
+	:params binary_image: input image
+	:return: segmented image
+	'''
 	labeled_field, object_no = ndi.label(binary_image, structure = np.ones((3, 3)))
 	return labeled_field
 
@@ -436,6 +442,18 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 
 
 def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 100, max_peri = 1500):
+	'''
+	Function finds individual cluster of cells that have a contour fall within the bounds of area and perimeter
+	and attempts to divide them by their constituents
+
+	:param input_img: binary input image containing all segmented cells
+	:param contours: a list of list of points for each of the contours for each cell
+	:param min_area: minimum acceptable area for a cell
+	:param max_area: max acceptable area for a cell
+	:param min_peri: minimum acceptable perimeter for a cell
+	:param max_peri: maximum acceptable perimeter for a cell
+	:return: full image with cell clusters split
+	'''
 	print "> Starting Cell Split"
 	output = np.zeros_like(input_img)
 	output[input_img > 0] = 1
@@ -486,6 +504,14 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 
 
 def rm_eccentric(input_img, min_eccentricity = 0.3, max_area = 2000):
+	'''
+	Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
+	Also chucks any cells that have an area larger than max_area
+
+	:param input_img: segmented binary image
+	:param min_eccentricity: minimum acceptable eccentricity
+	:param max_area: maximum area acceptable for a cell
+	'''
 	max_cells = np.amax(input_img.flatten())
 	# print max_cel/ls
 	for x in xrange(max_cells):
@@ -562,3 +588,23 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	# dbg.improved_watershed_debug(segmented_cells_labels, intensity)
 	# dbg.improved_watershed_plot_intensities(x_labels, average_apply_mask_list.sort())
 	return segmented_cells_labels
+
+
+# Function is broken as fuck DO NOT USE
+# def smooth_contours(binary_group_img):
+# 	'''
+# 	Function is broken as fuck DO NOT USE
+# 	Given a binary image with edges = 1, attempts to smooth out the contours of the individual elements in the image
+# 	'''
+# 	boundary = obtain_border(binary_group_img)
+# 	init = points2img(boundary)
+#
+# 	snake = active_contour(binary_group_img, boundary, alpha = 0.015, beta = 10, gamma = 0.001)
+#
+# 	fig, ax = plt.subplots(figsize=(7, 7))
+# 	ax.imshow(binary_group_img, cmap=plt.cm.gray)
+# 	ax.plot(boundary[:, 0], boundary[:, 1], '--r', lw=3)
+# 	ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
+# 	ax.set_xticks([]), ax.set_yticks([])
+# 	ax.axis([0, binary_group_img.shape[1], binary_group_img.shape[0], 0])
+# 	plt.show()
