@@ -9,9 +9,6 @@ def global_max(img_2d):
 def global_min(img_2d):
 	'''
 	Returns the minimum pixel value within a 2-3d image
-
-	:params 
-
 	'''
 	return np.amin(img_2d.flatten())
 
