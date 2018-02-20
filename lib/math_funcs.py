@@ -128,6 +128,39 @@ def array_all_ones(array):
 				break
 	return result
 
+
+def verify_shape(img_2d, stack_3d):
+	'''
+	Function verifies that the shape of a 2d image matches with a single slice of a 3d stack image.
+	Helper function for stack_multiplier
+
+	:param img_2d: 2d image input
+	:param stack_3d: 3d stack image input
+	:return: boolean indicating whether a single slice of the 3d stack matches in dimension w/ the 2d image
+	'''
+	z3, x3, y3 = stack_3d.shape
+	x2, y2 = img_2d.shape
+	if x2 == x3 and y2 == y3:
+		return True
+	else:
+		return False
+
+
+def stack_multiplier(image, stack):
+	'''
+	Multiplies each layer of a 3d stack image (3d image) with a 2d image after verifying shape fit
+
+	:param image: 2d Image to be multiplied
+	:param stack: 3d stack image to have 2d image convoluted w/ along all slices
+	:return: returns a convoluted 3d image
+	'''
+	z, x, y = stack.shape
+	composite = np.zeros_like(stack)
+	if verify_shape(image, stack):
+		for layer in xrange(z):
+			composite[layer, :, :] = stack[layer, :, :] * image
+	return composite
+
 # test = [(29, 14), (-1, 14), (29, 14), (-1, 14), (14, 29), (14, 29), (14, -1), (14, -1), (29, 15), (-1, 15), (29, 13), (-1, 13), (15, 29), (13, 29), (15, -1), (13, -1), (29, 16), (-1, 16), (29, 12), (-1, 12), (16, 29), (12, 29), (16, -1), (12, -1), (29, 17), (-1, 17), (29, 11), (-1, 11), (17, 29), (11, 29), (17, -1), (11, -1), (28, 18), (0, 18), (28, 10), (0, 10), (18, 28), (10, 28), (18, 0), (10, 0), (28, 19), (0, 19), (28, 9), (0, 9), (19, 28), (9, 28), (19, 0), (9, 0), (28, 20), (0, 20), (28, 8), (0, 8), (20, 28), (8, 28), (20, 0), (8, 0), (27, 21), (1, 21), (27, 7), (1, 7), (21, 27), (7, 27), (21, 1), (7, 1), (27, 22), (1, 22), (27, 6), (1, 6), (22, 27), (6, 27), (22, 1), (6, 1), (26, 23), (2, 23), (26, 5), (2, 5), (23, 26), (5, 26), (23, 2), (5, 2), (25, 24), (3, 24), (25, 4), (3, 4), (24, 25), (4, 25), (24, 3), (4, 3)]
 #
 # print remove_neg_pts(test)
