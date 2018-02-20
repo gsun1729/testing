@@ -6,10 +6,9 @@ more smashed together than smashmouth
 ## Running the Script
 ======
 To run this script, must be entered into console in the form:
-
+```python
 python main.py "<READ DIRECTORY>" "<CELL DATA WRITE DIRECTORY>" "<MITO DATA WRITE DIRECTORY>"
-
-==========================================
+```
 The read directory must contain paired images with either w1488 or w2561 included in the filename.
 w1488 corresponds to transmitted light images of yeast cells
 w2561 corresponds to 3d stack images of mitochondrial structures
