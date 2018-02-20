@@ -6,7 +6,7 @@ from skimage.morphology import dilation, disk, erosion
 def distance_2d(p0, p1):
 	'''
 	Returns the euclidian distance between two points in 2d linspace
-	
+
 	:param p0: point 1 tuple
 	:param p1: point 2 tuple
 	:return: <float> distance between p1 and p0
@@ -17,7 +17,12 @@ def distance_2d(p0, p1):
 def crop_close(points, max_sep = 20):
 	'''
 	Given a list of 2d points, removes any possible duplicate points within a
-	distance of max_sep
+	distance of max_sep. Helper function for hough cell splitter, tries to ID
+	any circles that should theoretically be identical
+
+	:param points: <list> of [circle center x, circle center y, circle radius]
+	:param max_sep: minimum separation needed for a point to be considered distinct from another circle center
+	:return: returns the list of curated circle centers and points
 	'''
 	points_no_R = [x[:-1] for x in points]
 	num_pts = len(points_no_R)
@@ -43,7 +48,7 @@ def crop_close(points, max_sep = 20):
 
 def obtain_border(input_image_2d):
 	'''
-	returns a list of points that classifies the border of the Image
+	returns a list of points that classifies the rectangular border of the Image
 	Used for defining border around segmented image in active contour finding function
 
 	Returns a Numpy array in the format
@@ -53,6 +58,9 @@ def obtain_border(input_image_2d):
 	 [4,3]]]
 	Helper function for processing.smooth_contours
 	Smooth contours is gimmicky as fuck though so don't use it for it
+
+	:param input_image_2d: image whos border is to be determined
+	:return: <np.ndarray> 2d array with borders of the 2d array 1, center = 0
 	'''
 	points = []
 	x_dim, y_dim = input_image_2d.shape
@@ -61,6 +69,7 @@ def obtain_border(input_image_2d):
 			if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
 				points.append([x,y])
 	return np.asarray(points)
+
 
 # FUNCTION NO LONGER NEEDED, FOUND BETTER OPTION FUCK YEAH
 # def create_dividing_mask(img_mask, collision_pt, erode = 2, dilate = 4):
@@ -187,6 +196,10 @@ def stack_multiplier(image, stack):
 			composite[layer, :, :] = stack[layer, :, :] * image
 	return composite
 
+
+'''
+Misc testing code
+'''
 # test = [(29, 14), (-1, 14), (29, 14), (-1, 14), (14, 29), (14, 29), (14, -1), (14, -1), (29, 15), (-1, 15), (29, 13), (-1, 13), (15, 29), (13, 29), (15, -1), (13, -1), (29, 16), (-1, 16), (29, 12), (-1, 12), (16, 29), (12, 29), (16, -1), (12, -1), (29, 17), (-1, 17), (29, 11), (-1, 11), (17, 29), (11, 29), (17, -1), (11, -1), (28, 18), (0, 18), (28, 10), (0, 10), (18, 28), (10, 28), (18, 0), (10, 0), (28, 19), (0, 19), (28, 9), (0, 9), (19, 28), (9, 28), (19, 0), (9, 0), (28, 20), (0, 20), (28, 8), (0, 8), (20, 28), (8, 28), (20, 0), (8, 0), (27, 21), (1, 21), (27, 7), (1, 7), (21, 27), (7, 27), (21, 1), (7, 1), (27, 22), (1, 22), (27, 6), (1, 6), (22, 27), (6, 27), (22, 1), (6, 1), (26, 23), (2, 23), (26, 5), (2, 5), (23, 26), (5, 26), (23, 2), (5, 2), (25, 24), (3, 24), (25, 4), (3, 4), (24, 25), (4, 25), (24, 3), (4, 3)]
 #
 # print remove_neg_pts(test)
