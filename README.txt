@@ -1,21 +1,20 @@
-# Bootlegged Image Analysis Pipeline
+### Bootlegged Image Analysis Pipeline ###
 the most bootlegged image processing pipeline for mitochondrial 3d skeletonization ever
 
 more smashed together than smashmouth
-
+==========================================
 To run this script, must be entered into console in the form:
 
 python main.py "<READ DIRECTORY>" "<CELL DATA WRITE DIRECTORY>" "<MITO DATA WRITE DIRECTORY>"
 
+==========================================
 The read directory must contain paired images with either w1488 or w2561 included in the filename.
 w1488 corresponds to transmitted light images of yeast cells
 w2561 corresponds to 3d stack images of mitochondrial structures
 
-Each image set should be a pair, and each pair should be located within the same folder. There is no way for
-
-
-
-In this directory there is a file called “filename_list.txt” < DO NOT DELETE THIS FILE
+Each image set should be a pair, and each pair should be located within the same folder. There is no way for the algorithm to determine otherwise which images are paired with each other.
+==========================================
+When done running, in the write directory , there will be a file called “filename_list.txt” < DO NOT DELETE THIS FILE
 This file contains the associations of each image file to their corresponding location and experiment, since
 
 Each image is given a new unique hexadecimal identifier (such as 000a8b8873a7497aa839c98a2ea55d6b)
