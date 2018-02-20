@@ -7,12 +7,17 @@ def global_max(img_2d):
 
 
 def global_min(img_2d):
-	'''Returns the minimum pixel value within a 2-3d image'''
+	'''
+	Returns the minimum pixel value within a 2-3d image
+
+	:params 
+
+	'''
 	return np.amin(img_2d.flatten())
 
 
 def properties(image):
-	'''Prints some of an image's properties into the consol directly'''
+	'''Prints some of an image's properties into the console directly'''
 	print ">Image Properties"
 	print "Dimensions: {}".format(image.shape)
 	print "Format: {}".format(image.dtype.name)
