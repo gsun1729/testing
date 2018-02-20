@@ -6,6 +6,10 @@ from skimage.morphology import dilation, disk, erosion
 def distance_2d(p0, p1):
 	'''
 	Returns the euclidian distance between two points in 2d linspace
+	
+	:param p0: point 1 tuple
+	:param p1: point 2 tuple
+	:return: <float> distance between p1 and p0
 	'''
 	return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
@@ -99,6 +103,13 @@ def remove_element_bounds(image, lower_area = 500, upper_area = 3000):
 	'''
 	accepts an image with segemented binary elements labeled 0-x int and removes
 	any that exceed an area greater than upper_area and are under lower_area
+	Counts the # of pixels labeled with 0-x int and if lower than lower_area,
+	or higher than upper_area, removes from the image
+
+	:param image: labeled segmented binary 2d Image
+	:param lower_area: minimum pixel area acceptable
+	:param upper_area: maximum pixel area acceptable
+	:return: <np.ndarray> 2d array with filtered segmented binary labels (not renumbered)
 	'''
 	max_elements = np.amax(image)
 	# sum(float(num) >= 1.3 for num in mylist)
@@ -114,10 +125,24 @@ def remove_element_bounds(image, lower_area = 500, upper_area = 3000):
 
 
 def remove_neg_pts(list_coords):
+	'''
+	Given a list of 2d coordinates in the format [(1,2), (2,3),...], removes any
+	coordinates with a negative value for x or y
+
+	:param list_coords: list of coordinates in the form of a list of tuples
+	:return: list of tuples 2d coordinates
+	'''
 	return [pt for pt in list_coords if not (pt[0] < 0 or pt[1] < 0)]
-#
+
 
 def array_all_ones(array):
+	'''
+	Function determines if a 2d array is full of only ones, used for Hough cell
+	splitter
+
+	:param array: 2d numpy array
+	:return: <bool> returns whether if >array< contains only ones
+	'''
 	x, y = array.shape
 	result = True
 	for xd in xrange(x):
@@ -131,12 +156,12 @@ def array_all_ones(array):
 
 def verify_shape(img_2d, stack_3d):
 	'''
-	Function verifies that the shape of a 2d image matches with a single slice of a 3d stack image.
-	Helper function for stack_multiplier
+	Function verifies that the shape of a 2d image matches with a single slice
+	of a 3d stack image. Helper function for stack_multiplier
 
 	:param img_2d: 2d image input
 	:param stack_3d: 3d stack image input
-	:return: boolean indicating whether a single slice of the 3d stack matches in dimension w/ the 2d image
+	:return: <bool> indicating whether a single slice of the 3d stack matches in dimension w/ the 2d image
 	'''
 	z3, x3, y3 = stack_3d.shape
 	x2, y2 = img_2d.shape
@@ -148,11 +173,12 @@ def verify_shape(img_2d, stack_3d):
 
 def stack_multiplier(image, stack):
 	'''
-	Multiplies each layer of a 3d stack image (3d image) with a 2d image after verifying shape fit
+	Multiplies each layer of a 3d stack image (3d image) with a 2d image after
+	verifying shape fit
 
 	:param image: 2d Image to be multiplied
 	:param stack: 3d stack image to have 2d image convoluted w/ along all slices
-	:return: returns a convoluted 3d image
+	:return: <np.ndarray> returns a convoluted 3d image
 	'''
 	z, x, y = stack.shape
 	composite = np.zeros_like(stack)
