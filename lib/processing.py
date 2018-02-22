@@ -287,11 +287,11 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 
 	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
-	# print '> Performing Local Otsu'
+	print '> Performing Local Otsu'
 	local_otsu = rank.otsu(base_image, selem2)
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
-	# print "> Performing Random Walker Binarization"
+	print "> Performing Random Walker Binarization"
 	binary_labels = random_walker(base_image, clustering_markers, beta = 10, mode = 'bf') - 1
 
 	if _dilation:
@@ -575,11 +575,11 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	unique_segmented_cells_labels = unique_segmented_cells_labels[1:]
 	average_apply_mask_list = []
 	# Gimick fix
-	intensity_array = intensity * np.ones_like(segmented_cells_labels)
+	# intensity_array = intensity * np.ones_like(segmented_cells_labels)
 	for cell_label in unique_segmented_cells_labels:
 		my_mask = segmented_cells_labels == cell_label
 		apply_mask = segmented_cells_labels[my_mask]
-		average_apply_mask = np.mean(intensity_array[my_mask])
+		average_apply_mask = np.mean(intensity[my_mask])
 		if average_apply_mask < 0.005:
 			average_apply_mask = 0
 			segmented_cells_labels[segmented_cells_labels == cell_label] = 0

@@ -161,6 +161,26 @@ def location(points):
 	return top_left_x, top_left_y, bot_rite_x, bot_rite_y
 
 
+def img_px_histogram(data, nbins = None):
+	'''
+	Plots an image's pixel intensity distribution, takes in a 1d list
+	'''
+	n, bins, patches = plt.hist(data, nbins)
+	plt.show()
+	plt.xlabel('Pixel Intensity')
+	plt.ylabel('Count')
+
+
+def px_hist_stats_n0(image):
+	data = image.flatten()
+	f_data = [s for s in data if s != 0]
+	return np.mean(f_data), np.std(f_data)
+
+
+
+
+
+
 if __name__ == "__main__":
 	test_image = binary_blobs(length = 200,
 								blob_size_fraction = 0.1,

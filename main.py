@@ -5,13 +5,12 @@ sys.path.insert(0, '.\\lines')
 import os
 import cell_line
 import mito_line
-
 from render import *
 from read_write import *
 from skimage import io
-
 from processing import *
 import time, string, uuid
+
 
 def blockPrint():
 	sys.stdout = open(os.devnull, 'w')
@@ -22,6 +21,7 @@ def enablePrint():
 
 
 def main():
+
 	os.system('cls' if os.name == 'nt' else 'clear')
 	options = sys.argv
 	if len(options) != 4:

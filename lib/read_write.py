@@ -4,7 +4,7 @@ import scipy.io
 import scipy.misc
 import matplotlib.pyplot as plt
 from scipy.misc import imsave
-
+import skimage.io
 import uuid
 img_suffix = ".tif"
 
@@ -33,9 +33,11 @@ def save_data(data, filename, write_directory):
 	# scipy.io.savemat(write_directory,)
 	print "> Image Data '{}' saved to '{}'".format(filename, write_directory)
 
+
 def save_figure(fig, name, write_directory):
 	imsave(os.path.join(write_directory,name), fig)
 	print "> Image Figure '{}' saved to '{}'".format(name, write_directory)
+
 
 def filepath2name(filepath):
 	if filepath[0] == ".":
@@ -45,3 +47,8 @@ def filepath2name(filepath):
 	filepath = filepath.replace("\\","_")
 	filepath = filepath.replace(" ","-")
 	return filepath
+
+
+def channel_separator(multichannel_img_path):
+	image = skimage.io.imread(multichannel_img_path)
+	print image.shape
