@@ -7,6 +7,7 @@ from lib.math_funcs import *
 import numpy as np
 from skimage.morphology import disk
 from skimage import measure
+from dev.binary_cell import *
 import copy
 def main():
 	read_directory = "L:\\Common\\Gordon Jobs\\20180222 Josh Colony Size Analysis\\cropped_dataset\\oneimg"
@@ -38,10 +39,8 @@ def main():
 		for colony_num in xrange(num_colonies):
 			mask = np.zeros_like(processed_image2)
 			mask[processed_image2 == colony_num + 1] = 1
-			contour = measure.find_contours(mask, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
-			# area = np.sum(mask.flatten())
-			# peri = perimeter(contour[0])
-			print
+			contour = measure.find_contours(mask, level = 0.5, fully_connected = 'low', positive_orientation = 'low')
+			print len(contour)
 
 
 

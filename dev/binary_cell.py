@@ -78,9 +78,8 @@ test = np.zeros((100,100))
 test[20:80, 20:80] = 1
 # test[30:50, 30:50] = 0
 
-view_2d_img(test)
+# view_2d_img(test)
 q = Binary_cell_img(test)
-print q.num_contours()
-print q.contour_perimeter()
+
 # print q.cell_area()
 # view_2d_img(q.return_peri())
