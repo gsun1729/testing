@@ -9,9 +9,14 @@ from skimage.morphology import disk
 from skimage import measure
 from dev.binary_cell import *
 import copy
+import math
 def main():
-	read_directory = "L:\\Common\\Gordon Jobs\\20180222 Josh Colony Size Analysis\\cropped_dataset\\oneimg"
+	read_directory = "L:\\Common\\Gordon Jobs\\20180222 Josh Colony Size Analysis\\cropped_dataset"
 	file_list = get_img_filenames(read_directory)
+
+	results = open(os.path.join(read_directory, "results.txt"),'w')
+
+
 	for img_file in file_list:
 		print img_file[1]
 		raw_image = io.imread(img_file[-1])[:, :, 1]
@@ -40,8 +45,18 @@ def main():
 			mask = np.zeros_like(processed_image2)
 			mask[processed_image2 == colony_num + 1] = 1
 			contour = measure.find_contours(mask, level = 0.5, fully_connected = 'low', positive_orientation = 'low')
-			print len(contour)
-
+			if len(contour) == 1:
+				contour_data = Point_set2D(contour[0])
+				E = (4 * math.pi * contour_data.shoelace()) / ((contour_data.perimeter()) ** 2)
+				radius = np.sqrt(contour_data.shoelace() / math.pi)
+				results.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(img_file[1],
+															colony_num,
+															contour_data.perimeter(),
+															contour_data.shoelace(),
+															E,
+															radius))
+		save_figure(processed_image2, img_file[1] + "bin.png", read_directory)
+	results.close()
 
 
 
