@@ -51,7 +51,6 @@ def stack_viewer(image):
 	plt.show()
 
 
-
 ## 2d Stuff below here
 def view_2d_img(img, save = False):
 	'''
@@ -175,10 +174,6 @@ def px_hist_stats_n0(image):
 	data = image.flatten()
 	f_data = [s for s in data if s != 0]
 	return np.mean(f_data), np.std(f_data)
-
-
-
-
 
 
 if __name__ == "__main__":
