@@ -49,6 +49,6 @@ def filepath2name(filepath):
 	return filepath
 
 
-def channel_separator(multichannel_img_path):
-	image = skimage.io.imread(multichannel_img_path)
-	print image.shape
+# def channel_separator(multichannel_img_path):
+# 	image = skimage.io.imread(multichannel_img_path)
+# 	print image.shape
