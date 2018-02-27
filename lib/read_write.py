@@ -56,6 +56,9 @@ def save_figure(fig, name, write_directory):
 
 
 def filepath2name(filepath):
+	'''
+	Turns a filename into just the string part
+	'''
 	if filepath[0] == ".":
 		filepath = list(filepath	)
 		filepath[0] = ""
