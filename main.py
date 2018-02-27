@@ -2,7 +2,7 @@
 import sys
 sys.path.insert(0, '.\\lib')
 sys.path.insert(0, '.\\lines')
-import os
+import os, errno
 import cell_line
 import mito_line
 from render import *
@@ -24,11 +24,11 @@ def enablePrint():
 def get_args(args):
 	parser = argparse.ArgumentParser(description = 'Script for analyzing mitochondria skeletonization')
 	parser.add_argument('-r', dest = 'read_dir', help = 'Raw data read directory', required = True)
-	parser.add_argument('-c', dest = 'save_dir', help = 'Save directory for segmentation and skeletonization data', required = True)
+	parser.add_argument('-w', dest = 'save_dir', help = 'Save directory for segmentation and skeletonization data', required = True)
 
 	options = vars(parser.parse_args())
 	return options
-	
+
 def main(args):
 	os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -51,7 +51,14 @@ def main(args):
 	print "> Parent Read Directory : {}\n".format(root_read_dir)
 	print "> Save Directory : {}\n".format(save_dir)
 
-	sys.exit()
+	save_dir_cell = os.path.join(save_dir, 'cell')
+	save_dir_mito = os.path.join(save_dir, 'mito')
+	save_dir_anal = os.path.join(save_dir, 'analysis')
+
+	mkdir_check(save_dir_cell)
+	mkdir_check(save_dir_mito)
+	mkdir_check(save_dir_anal)
+
 
 
 	start = time.time()
@@ -63,11 +70,11 @@ def main(args):
 
 	mito_stats = []
 	cell_stats = []
-	ID_data_file_loc = os.path.dirname(save_dir_CELL)
-	print "> Processing IDs saved here: {}\n".format(ID_data_file_loc)
+
+	print "> Processing IDs saved here: {}\n".format(save_dir)
 
 
-	file_list_ID = open(os.path.join(ID_data_file_loc, "filename_list.txt"),'w')
+	file_list_ID = open(os.path.join(save_dir, "filename_list.txt"),'w')
 	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
 		file_list_ID.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(UID, img_name, img_fname, path_diff, img_loc, img_path))
 	file_list_ID.close()
@@ -84,7 +91,7 @@ def main(args):
 			print "> Image ID: 1488 - Cell TD\n"
 			# blockPrint()
 			start = time.time()
-			cell_line.analyze(UID, img_path, save_dir_CELL)
+			cell_line.analyze(UID, img_path, save_dir_cell)
 			end = time.time()
 			# enablePrint()
 			print "> Time to Compete: {}".format(end - start)
@@ -95,7 +102,7 @@ def main(args):
 			print "> Image ID: 2561 - Mitochondria\n"
 			# blockPrint()
 			start = time.time()
-			mito_line.analyze(UID, img_path, save_dir_MITO)
+			mito_line.analyze(UID, img_path, save_dir_mito)
 			end = time.time()
 			# enablePrint()
 			print "> Time to Compete: {}".format(end - start)
@@ -106,8 +113,8 @@ def main(args):
 
 	print "> ==========================================================================================\n"
 	print "> Prelim Analysis completed"
-	save_data(mito_stats, "mito_processing_RT", ID_data_file_loc)
-	save_data(cell_stats, "cell_processing_RT",  ID_data_file_loc)
+	save_data(mito_stats, "mito_processing_RT", save_dir)
+	save_data(cell_stats, "cell_processing_RT",  save_dir)
 
 	# cell = ".\\data\\hs\\P11B3_2_w1488 Laser.TIF"
 	# mito = ".\\data\\hs\\P11B3_2_w2561 Laser.TIF"
