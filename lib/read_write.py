@@ -1,4 +1,4 @@
-import os
+import os, errno
 import re
 import scipy.io
 import scipy.misc
@@ -48,6 +48,14 @@ def filepath2name(filepath):
 	filepath = filepath.replace(" ","-")
 	return filepath
 
+
+def mkdir_check(directory):
+	if not os.path.exists(directory):
+		try:
+			os.makedirs(directory)
+		except OSError as e:
+			if e.errno != errno.EEXIST:
+				raise
 
 # def channel_separator(multichannel_img_path):
 # 	image = skimage.io.imread(multichannel_img_path)
