@@ -66,6 +66,9 @@ def filepath2name(filepath):
 
 
 def mkdir_check(directory):
+	'''
+	Check to see if a directory exists, and if not, make the directory
+	'''
 	if not os.path.exists(directory):
 		try:
 			os.makedirs(directory)
