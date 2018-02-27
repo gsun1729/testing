@@ -34,12 +34,10 @@ def get_args(args):
 	options = vars(parser.parse_args())
 	return options
 
+
 def main(args):
 	os.system('cls' if os.name == 'nt' else 'clear')
-
-
 	options = get_args(args)
-
 	root_read_dir = options['read_dir']
 	save_dir = options['save_dir']
 
@@ -54,19 +52,16 @@ def main(args):
 	mkdir_check(save_dir_mito)
 	mkdir_check(save_dir_anal)
 
-
 	start = time.time()
 	filenames = get_img_filenames(root_read_dir)
 	num_images = len(filenames)
 	end = time.time()
 	print "> {} images detected, time taken: {}".format(num_images, end - start)
 
-
 	mito_stats = []
 	cell_stats = []
 
 	print "> Processing IDs saved here: {}\n".format(save_dir)
-
 
 	file_list_ID = open(os.path.join(save_dir, "UUID_LUT.txt"),'w')
 	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
@@ -103,25 +98,18 @@ def main(args):
 			cell_stats.append(end - start)
 			img_num += 1
 
-
-
 	print "> ==========================================================================================\n"
 	print "> Prelim Analysis completed"
 	save_data(mito_stats, "mito_processing_RT", save_dir)
 	save_data(cell_stats, "cell_processing_RT",  save_dir)
 
-
 	# Start merge of MC_analyzer
-	cell_filelist = get_img_filenames(save_dir_cell)
-	mito_filelist = get_img_filenames(save_dir_mito)
+	cell_filelist = get_data_filenames(save_dir_cell, suffix = '.mat')
+	mito_filelist = get_data_filenames(save_dir_mito, suffix = '.mat')
 	UUID_datatable = read_UUID_file(os.path.join(save_dir, "UUID_LUT.txt"))
-	print UUID_datatable
-	print "a======================"
+
 	C_M_UUID_pairs = create_pairTable(cell_filelist, UUID_datatable)
 	UUID_pairs = create_densepairTable(cell_filelist, UUID_datatable)
-
-	print UUID_pairs
-	sys.exit()
 
 	filename_pairs = []
 	for cell_UUID, mito_UUID in UUID_pairs:
