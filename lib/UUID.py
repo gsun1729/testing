@@ -93,17 +93,11 @@ def create_pairTable(filelist, lookupTable):
 	:return: list of UUID pairs with the partner information
 	'''
 	UUID_pairs = []
+	UUID_pairs_no_info = []
 	for row in filelist:
 		input_info = filename2info(row, lookupTable)
 		partner_info = get_partner(row, lookupTable)
 		UUID_pairs.append([input_info[0], partner_info[0], input_info[2], partner_info[2], input_info[-2]])
-	return UUID_pairs
+		UUID_pairs_no_info.append([input_info[0], partner_info[0]])
 
-
-def create_densepairTable(filelist, lookupTable):
-	UUID_pairs = []
-	for row in filelist:
-		input_info = filename2info(row, lookupTable)
-		partner_info = get_partner(row, lookupTable)
-		UUID_pairs.append([input_info[0], partner_info[0]])
-	return UUID_pairs
+	return UUID_pairs, UUID_pairs_no_info
