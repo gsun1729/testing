@@ -9,13 +9,13 @@ import uuid
 img_suffix = ".tif"
 
 
-def get_img_filenames(root_directory):
+def get_img_filenames(root_directory, suffix = '.TIF'):
 	img_filelist = []
 	for current_location, sub_directories, files in os.walk(root_directory):
 		if files:
 			for img_file in files:
-				if ('.TIF' in img_file or '.tif' in img_file) and '_thumb_' not in img_file:
-					img_filename = img_file.replace('.TIF','')
+				if (suffix.lower() in img_file.lower()) and '_thumb_' not in img_file:
+					img_filename = img_file.replace(suffix, '')
 					unique_ID = str(uuid.uuid4().hex)
 					path_difference = os.path.relpath(current_location, root_directory)
 					img_filelist.append((unique_ID,
