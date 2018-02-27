@@ -27,6 +27,22 @@ def get_img_filenames(root_directory, suffix = '.TIF'):
 	return img_filelist
 
 
+def get_just_filenames(root_directory, suffix = '.mat'):
+	'''
+	Given directory with datafiles, get just imagefilenames
+	:param root_directory: root search directory.  Note this should be the only directory, with no subdirectories for analysis to work
+	:param suffix: type of file to search for
+	:return: <list> of filenames
+	'''
+	img_filelist = []
+	for current_location, sub_directories, files in os.walk(root_directory):
+		if files:
+			for img_file in files:
+				if (suffix.lower() in img_file.lower()) and '_thumb_' not in img_file:
+					img_filelist.append(img_file)
+	return img_filelist
+
+
 def save_data(data, filename, write_directory):
 	save_dir = os.path.join(write_directory, filename)
 	scipy.io.savemat(save_dir, mdict={'data': data})
@@ -57,6 +73,17 @@ def mkdir_check(directory):
 			if e.errno != errno.EEXIST:
 				raise
 
-# def channel_separator(multichannel_img_path):
-# 	image = skimage.io.imread(multichannel_img_path)
-# 	print image.shape
+
+def write_list_txt(location, filename, array):
+	'''
+	Given an array, write data to filename at location.
+	:param location: save directory for output file
+	:param filename: name of the output file
+	:param array: data to be saved to file.
+	'''
+	writefile = open(os.path.join(location, filename), 'w')
+	for row in array:
+		for row_ele in xrange(len(row)):
+			writefile.write(row[row_ele]+"\t")
+		writefile.write("\n")
+	writefile.close()
