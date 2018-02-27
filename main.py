@@ -54,6 +54,7 @@ def main(args):
 	mkdir_check(save_dir_mito)
 	mkdir_check(save_dir_anal)
 
+
 	start = time.time()
 	filenames = get_img_filenames(root_read_dir)
 	num_images = len(filenames)
@@ -114,9 +115,13 @@ def main(args):
 	cell_filelist = get_img_filenames(save_dir_cell)
 	mito_filelist = get_img_filenames(save_dir_mito)
 	UUID_datatable = read_UUID_file(os.path.join(save_dir, "UUID_LUT.txt"))
-
+	print UUID_datatable
+	print "a======================"
 	C_M_UUID_pairs = create_pairTable(cell_filelist, UUID_datatable)
 	UUID_pairs = create_densepairTable(cell_filelist, UUID_datatable)
+
+	print UUID_pairs
+	sys.exit()
 
 	filename_pairs = []
 	for cell_UUID, mito_UUID in UUID_pairs:
