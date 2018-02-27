@@ -5,9 +5,7 @@ from read_write import *
 from math_funcs import *
 from UUID import *
 import scipy.io
-# from analysis_f import *
 from processing import *
-from skimage.morphology import skeletonize_3d
 
 def main():
 	options = sys.argv
