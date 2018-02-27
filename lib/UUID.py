@@ -1,5 +1,5 @@
 import os
-global lookupTable
+
 
 def get_UUID(filename):
 	'''
@@ -43,25 +43,7 @@ def read_UUID_file(location):
 	file_object = open(location, 'r')
 	content = file_object.readlines()
 	file_object.close()
-	lookupTable = [x.strip('\n').split('\t') for x in content]
-	return lookupTable
-
-# Replaced by filename2info
-# def uuid_present(UUID, lookupTable):
-# 	'''
-# 	Determines whether or not a UUID is present in the lookupTable
-# 	:param UUID: UUID query
-# 	:param lookupTable: Table to look for UUID in, list of lists
-# 	:return: <int> index where the UUID was found (-1) if unfound, and <bool> if UUID was found
-# 	'''
-# 	UUID_index = -1
-# 	UUID_found = False
-# 	for row_index, row in enumerate(lookupTable):
-# 		if row[0] == UUID:
-# 			UUID_found = True
-# 			UUID_index = row_index
-# 			break
-# 	return UUID_index, UUID_found
+	return [x.strip('\n').split('\t') for x in content]
 
 
 def filename2info(filename, lookupTable):
@@ -105,7 +87,10 @@ def get_partner(filename, lookupTable):
 
 def create_pairTable(filelist, lookupTable):
 	'''
-
+	given a list of files, create a pairing between M and C file counterparts based on data from lookupTable
+	:param filelist: list of files with their locations and filenames
+	:param lookupTable: LUT to be queried to find matches
+	:return: list of UUID pairs with the partner information
 	'''
 	UUID_pairs = []
 	for row in filelist:
@@ -122,18 +107,3 @@ def create_densepairTable(filelist, lookupTable):
 		partner_info = get_partner(row, lookupTable)
 		UUID_pairs.append([input_info[0], partner_info[0]])
 	return UUID_pairs
-
-
-def write_list_txt(location, filename, array):
-	'''
-	Given an array, write data to filename at location.
-	:param location: save directory for output file
-	:param filename: name of the output file
-	:param array: data to be saved to file.
-	'''
-	writefile = open(os.path.join(location, filename), 'w')
-	for row in array:
-		for row_ele in xrange(len(row)):
-			writefile.write(row[row_ele]+"\t")
-		writefile.write("\n")
-	writefile.close()
