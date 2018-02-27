@@ -10,6 +10,7 @@ from read_write import *
 from skimage import io
 from processing import *
 import time, string, uuid
+import argparse
 
 
 def blockPrint():
@@ -20,22 +21,38 @@ def enablePrint():
 	sys.stdout = sys.__stdout__
 
 
-def main():
+def get_args(args):
+	parser = argparse.ArgumentParser(description = 'Script for analyzing mitochondria skeletonization')
+	parser.add_argument('-r', dest = 'read_dir', help = 'Raw data read directory', required = True)
+	parser.add_argument('-c', dest = 'save_dir', help = 'Save directory for segmentation and skeletonization data', required = True)
 
+	options = vars(parser.parse_args())
+	return options
+	
+def main(args):
 	os.system('cls' if os.name == 'nt' else 'clear')
-	options = sys.argv
-	if len(options) != 4:
-		print "> Wrong # of arguments, please provide input in the form \n> python main.py read_directory write_directory\n"
-		for num, item in enumerate(options):
-			print "> \tArg{}: {}\n".format(num, item)
-		sys.exit()
-	else:
-		root_read_dir = options[-3]
-		save_dir_CELL = options[-2]
-		save_dir_MITO = options[-1]
-		print "> Parent Read Directory : {}\n".format(root_read_dir)
-		print "> CELL Save Directory : {}\n".format(save_dir_CELL)
-		print "> MITO Save Directory : {}\n".format(save_dir_MITO)
+
+
+	options = get_args(args)
+	# if len(options) != 4:
+	# 	print "> Wrong # of arguments, please provide input in the form \n> python main.py read_directory write_directory\n"
+	# 	for num, item in enumerate(options):
+	# 		print "> \tArg{}: {}\n".format(num, item)
+	# 	sys.exit()
+	# else:
+	print options
+	root_read_dir = options['read_dir']
+	save_dir = options['save_dir']
+	# save_dir_CELL = options[-2]
+	# save_dir_MITO = options[-1]
+	# 	print "> Parent Read Directory : {}\n".format(root_read_dir)
+	# 	print "> CELL Save Directory : {}\n".format(save_dir_CELL)
+	# 	print "> MITO Save Directory : {}\n".format(save_dir_MITO)
+	print "> Parent Read Directory : {}\n".format(root_read_dir)
+	print "> Save Directory : {}\n".format(save_dir)
+
+	sys.exit()
+
 
 	start = time.time()
 	filenames = get_img_filenames(root_read_dir)
@@ -111,4 +128,4 @@ def main():
 	# sys.exit()
 
 if __name__ == "__main__":
-	main()
+	main(sys.argv)
