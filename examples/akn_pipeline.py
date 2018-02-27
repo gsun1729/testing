@@ -10,12 +10,7 @@ import numpy as np
 # 	prin
 
 def single(image_path):
-	# image = io.imread(image_path)
-	# channel_separator(image_path)
-
-	i = Image.open(image_path)
-	i.load()
-	i.show()
+	image = io.imread(image_path)
 
 
 	sys.exit()
