@@ -34,7 +34,7 @@ def analyze(UID, read_path, write_path):
 	a10 = binary_fill_holes(a9).astype(int)
 	a11 = label_and_correct(a10, a8, min_px_radius = 10)
 	a12 = improved_watershed(a11, a8, expected_separation = 10)
-	a13 = rm_eccentric(a12, min_eccentricity = 0.6, max_area = 1600)
+	a13 = rm_eccentric(a12, min_eccentricity = 0.4, max_area = 1600)
 	# montage_n_x((a11, a12,a13))
 
 	# montage_n_x((a11,a12,a1))
