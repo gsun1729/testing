@@ -1,10 +1,26 @@
 from lib.render import *
 import scipy.io
+import sys
+import argparse
 
-def main():
-	mito_binary = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\ooga\\mito\\M_336b6da548994c08acd5912b7f6ae2a0_bin.mat")['data']
-	mito_skel = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\ooga\\mito\\M_336b6da548994c08acd5912b7f6ae2a0_skel.mat")['data']
-	cell_binary = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\ooga\\cell\\C_7b45e26a204f40dca88aa19ce7b93463_dat.mat")['data']
-	view_2d_img(cell_binary)
+def get_args(args):
+	parser = argparse.ArgumentParser(description = 'Script for image visualization')
+	parser.add_argument('-i', dest = 'image', help = 'Image path', required = True)
+	options = vars(parser.parse_args())
+	return options
+
+
+def main(args):
+	options = get_args(args)
+	path = options['image']
+	image = scipy.io.loadmat(path)['data']
+	if len(image.shape) == 2:
+		view_2d_img(image)
+	elif len(image.shape) == 3:
+		stack_viewer(image)
+	else:
+		print "Too many dimensions to resolve"
+
+
 if __name__ == "__main__":
-	main()
+	main(sys.argv)
