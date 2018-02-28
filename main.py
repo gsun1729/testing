@@ -28,10 +28,11 @@ def enablePrint():
 
 def get_args(args):
 	parser = argparse.ArgumentParser(description = 'Script for analyzing mitochondria skeletonization')
-	parser.add_argument('-r', dest = 'read_dir', help = 'Raw data read directory', required = True)
-	parser.add_argument('-w', dest = 'save_dir', help = 'Save directory for segmentation and skeletonization data', required = True)
+	parser.add_argument('-r', dest = 'read_dir', help = 'Raw data read directory', required = True, default = ".\\data\\hs")
+	parser.add_argument('-w', dest = 'save_dir', help = 'Save directory for segmentation and skeletonization data', required = True, default = ".\\ooga")
 
 	options = vars(parser.parse_args())
+
 	return options
 
 
