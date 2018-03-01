@@ -18,7 +18,7 @@ def properties(image):
 	print ">Image Properties"
 	print "Dimensions: {}".format(image.shape)
 	print "Format: {}".format(image.dtype.name)
-	print "Global Max: {}\nGlobal Min: {}".format(global_max(image), global_min(image))
+	print "Global Max: {}\tGlobal Min: {}".format(global_max(image), global_min(image))
 
 
 if __name__ == "__main__":
