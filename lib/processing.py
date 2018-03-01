@@ -172,6 +172,29 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 	return image
 
 
+def smooth_tripleD(image, smoothing_px = 0.5, stdevs = 1):
+	"""
+	Gaussian smoothing of the image
+	Borrowed from Andrei's Imagepipe
+
+	:param image: Input image
+	:param smoothing_px: size of smoothing pixel
+	:param threshold: threshold to filter image intensity
+	:return:
+	"""
+	# print "> Filtering image with Gaussian filter"
+	if len(image.shape) > 2:
+		for i in range(0, image.shape[0]):
+			image[i, :, :] = gaussian_filter(image[i, :, :],
+											 smoothing_px, mode='constant')
+			image[image < mean + stdev * stdevs] = 0
+	else:
+		image = gaussian_filter(image, smoothing_px, mode='constant')
+		mean, stdev = px_hist_stats_n0(image)
+		image[image < mean + stdev * stdevs] = 0
+	return image
+
+
 def fft_ifft(image, struct_element):
 	'''
 	Performs a fast fourier transform, removes certain frequencies highlighted by
