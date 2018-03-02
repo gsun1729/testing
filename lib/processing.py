@@ -312,6 +312,7 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 	selem2 = disk(feature_size)
 	print '> Performing Local Otsu'
 	local_otsu = rank.otsu(base_image, selem2)
+	# view_2d_img(local_otsu)
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
 	print "> Performing Random Walker Binarization"
@@ -449,7 +450,7 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 	:param mean_diff: minimal (multiplicative) difference from the background
 	:return:
 	"""
-	labeled_field, object_no = ndi.label(binary_channel, structure=np.ones((3, 3)))
+	labeled_field, object_no = ndi.label(binary_channel, structure = np.ones((3, 3)))
 	background_mean = np.mean(pre_binary[labeled_field == 0])
 	# print background_mean
 	#
@@ -526,7 +527,40 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 	return label_and_correct(output, input_img)
 
 
-def rm_eccentric(input_img, min_eccentricity = 0.3, max_area = 2000):
+def euclid_dist_nD(p0, p1):
+	return np.sum((p1 - p0) ** 2)
+
+
+class Point_set2D(object):
+	def __init__(self, point_list):
+		self.point_list = np.array([[float(coordinate) for coordinate in point] for point in point_list])
+
+
+	def num_pts(self):
+		return len(self.point_list)
+
+
+	def center_mass(self):
+		return np.sum(self.point_list, 0) / self.num_pts()
+
+
+	def perimeter(self):
+		peri_distance = 0
+		for pt_indx in xrange(self.num_pts()):
+			peri_distance += euclid_dist_nD(self.point_list[pt_indx],
+											self.point_list[pt_indx - 1])
+		return peri_distance
+
+
+	def shoelace(self):
+		area = 0
+		for pt in xrange(len(self.point_list)):
+			area += self.point_list[pt - 1][0] * self.point_list[pt][1]
+			area -= self.point_list[pt - 1][1] * self.point_list[pt][0]
+		return abs(area) / 2.0
+
+
+def rm_eccentric(input_img, min_eccentricity = 0.99, max_area = 2000):
 	'''
 	Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
 	Also chucks any cells that have an area larger than max_area
@@ -541,10 +575,18 @@ def rm_eccentric(input_img, min_eccentricity = 0.3, max_area = 2000):
 		mask = np.zeros_like(input_img)
 		mask[input_img == x + 1] = 1
 		area = sum(mask.flatten())
-		# print area
-		contours = measure.find_contours(mask, level = 0.8, fully_connected = 'low', positive_orientation = 'low')
-		eccentricity = (4 * math.pi * area) / (len(contours[0]) ** 2)
-		if eccentricity < min_eccentricity or area > max_area:
+
+		contours = measure.find_contours(mask,
+											level = 0.5,
+											fully_connected = 'low',
+											positive_orientation = 'low')
+		Point_set = Point_set2D(contours[0])
+		print "{}=============".format(x)
+		print area, Point_set.shoelace(), "\t", len(contours[0]), Point_set.perimeter()
+
+		eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
+		print eccentricity
+		if eccentricity < min_eccentricity or Point_set.shoelace() > max_area:
 			input_img[input_img == x + 1] = 0
 	return input_img
 
@@ -577,22 +619,27 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	:return:
 	"""
 	print "> Performing Improved Watershed"
-	sel_elem = disk(2)
+	# sel_elem = disk(2)
+	#
+	# # changed variable name for "labels"
+	# post_closing_labels = closing(binary_base, sel_elem)
 
-	# changed variable name for "labels"
-	post_closing_labels = closing(binary_base, sel_elem)
-
-	distance = ndi.distance_transform_edt(post_closing_labels)
+	distance = ndi.distance_transform_edt(binary_base)
 	local_maxi = peak_local_max(distance,
 								indices = False,  # we want the image mask, not peak position
 								min_distance = expected_separation,  # about half of a bud with our size
 								threshold_abs = 10,  # allows to clear the noise
-								labels = post_closing_labels)
+								labels = binary_base)
 	# we fuse the labels that are close together that escaped the min distance in local_maxi
 	local_maxi = ndi.convolve(local_maxi, np.ones((5, 5)), mode = 'constant', cval = 0.0)
 	# finish the watershed
-	expanded_maxi_markers = ndi.label(local_maxi, structure = np.ones((3, 3)))[0]
-	segmented_cells_labels = watershed(-distance, expanded_maxi_markers, mask = post_closing_labels)
+	struct = np.ones((3, 3))
+	struct[0,0] = 0
+	struct[0,2] = 0
+	struct[2,0] = 0
+	struct[2,2] = 0
+	expanded_maxi_markers = ndi.label(local_maxi, structure = struct)[0]
+	segmented_cells_labels = watershed(-distance, expanded_maxi_markers, mask = binary_base)
 
 	unique_segmented_cells_labels = np.unique(segmented_cells_labels)
 	unique_segmented_cells_labels = unique_segmented_cells_labels[1:]
