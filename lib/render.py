@@ -176,6 +176,11 @@ def px_hist_stats_n0(image):
 	return np.mean(f_data), np.std(f_data)
 
 
+def px_stats(image):
+	data = image.flatten()
+	return np.mean(data), np.std(data)
+
+
 if __name__ == "__main__":
 	test_image = binary_blobs(length = 200,
 								blob_size_fraction = 0.1,
