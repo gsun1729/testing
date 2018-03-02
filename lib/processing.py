@@ -650,12 +650,52 @@ def get_contour_details(input_img):
 	eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
 	return radius, Point_set.shoelace(), Point_set.perimeter, eccentricity
 
-def write_stats(before_image, after_image):
-	before_mask = np.zeros_like(before_image)
-	after_mask = np.zeros_like(after_image)
-	before_mask[before_image > 0] = 1
-	after_mask[after_image > 0] = 1
-	montage_n_x((before_mask, after_mask, before_mask - after_mask))
+def write_stats(before_image, after_image, UID, filename, read_path, write_path):
+	'''
+
+	'''
+	write_file = open(os.path.join(write_path, filename))
+
+	deletion = True
+	before_cells = np.amax(before_image.flatten())
+	after_cells = np.amax(after_image.flatten())
+	if after_cells > before_cells:
+		deletion = False
+	for cell_index in xrange(np.maximum(before_cells, after_cells)):
+
+		current_label = cell_index + 1
+		after_label = current_label
+		if deletion:
+			mask = np.zeros_like(before_image)
+			mask[before_image == current_label] = current_label
+		else:
+			mask = np.zeros_like(after_image)
+			mask[after_image == current_label] = current_label
+		radius, area, perimeter, E = get_contour_details(mask)
+		cell_isolation = after_cells * mask
+		if np.amax(cell_isolation.flatten()) != current_label:
+			if np.amax(cell_isolation.flatten()) == 0:
+				after_label = 0
+			else:
+				after_label = int(np.amax(cell_isolation.flatten()) / current_label)
+				deletion = False
+		write_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n").format(UID,
+																		current_label,
+																		after_label,
+																		deletion,
+																		radius,
+																		area,
+																		perimeter,
+																		E,
+																		read_path)
+
+
+	#
+	# before_mask = np.zeros_like(before_image)
+	# after_mask = np.zeros_like(after_image)
+	# before_mask[before_image > 0] = 1
+	# after_mask[after_image > 0] = 1
+	# montage_n_x((before_mask, after_mask, before_mask - after_mask))
 	# view_2d_img(before_mask)
 	# view_2d_img(after_mask)
 	# writefile = open(os.path.join(save_location, filename), 'w')
