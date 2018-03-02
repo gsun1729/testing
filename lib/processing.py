@@ -560,7 +560,7 @@ class Point_set2D(object):
 		return abs(area) / 2.0
 
 
-def rm_eccentric(input_img, min_eccentricity = 0.99, max_area = 2000):
+def rm_eccentric(input_img, min_eccentricity = 0.955, max_area = 2500):
 	'''
 	Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
 	Also chucks any cells that have an area larger than max_area
@@ -574,18 +574,14 @@ def rm_eccentric(input_img, min_eccentricity = 0.99, max_area = 2000):
 	for x in xrange(max_cells):
 		mask = np.zeros_like(input_img)
 		mask[input_img == x + 1] = 1
-		area = sum(mask.flatten())
 
 		contours = measure.find_contours(mask,
 											level = 0.5,
 											fully_connected = 'low',
 											positive_orientation = 'low')
 		Point_set = Point_set2D(contours[0])
-		print "{}=============".format(x)
-		print area, Point_set.shoelace(), "\t", len(contours[0]), Point_set.perimeter()
 
 		eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
-		print eccentricity
 		if eccentricity < min_eccentricity or Point_set.shoelace() > max_area:
 			input_img[input_img == x + 1] = 0
 	return input_img
@@ -660,6 +656,32 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	return segmented_cells_labels
 
 
+def write_stats(image, filename, UID, save_location, img_src_path, eccentricity):
+	writefile = open(os.path.join(save_location, filename), 'w')
+	writefile.write("cell_num\tUID\tArea\tPerimeter\tEccentricity\tH_radius\tDeleted\tread_path\n")
+	num_cells = np.amax(image.flatten())
+
+	for cell_num in xrange(num_cells):
+		mask = np.zeros_like(input_img)
+		mask[input_img == x + 1] = 1
+		contours = measure.find_contours(mask,
+											level = 0.5,
+											fully_connected = 'low',
+											positive_orientation = 'low')
+		Point_set = Point_set2D(contours[0])
+		E = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
+		deleted = False
+		if E < eccentricity:
+			deleted = True
+		writefile.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n").format(cell_num + 1,
+																		UID,
+																		Point_set.shoelace(),
+																		Point_set.perimeter(),
+																		E,
+																		(Point_set.shoelace() / math.pi) ** 0.5,
+																		deleted,
+																		img_src_path)
+	writefile.close()
 # Function is broken as fuck DO NOT USE
 # def smooth_contours(binary_group_img):
 # 	'''
