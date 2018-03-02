@@ -656,31 +656,38 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	return segmented_cells_labels
 
 
-def write_stats(image, filename, UID, save_location, img_src_path, eccentricity):
-	writefile = open(os.path.join(save_location, filename), 'w')
-	writefile.write("cell_num\tUID\tArea\tPerimeter\tEccentricity\tH_radius\tDeleted\tread_path\n")
-	num_cells = np.amax(image.flatten())
-
-	for cell_num in xrange(num_cells):
-		mask = np.zeros_like(input_img)
-		mask[input_img == x + 1] = 1
-		contours = measure.find_contours(mask,
-											level = 0.5,
-											fully_connected = 'low',
-											positive_orientation = 'low')
-		Point_set = Point_set2D(contours[0])
-		E = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
-		deleted = False
-		if E < eccentricity:
-			deleted = True
-		writefile.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n").format(cell_num + 1,
-																		UID,
-																		Point_set.shoelace(),
-																		Point_set.perimeter(),
-																		E,
-																		(Point_set.shoelace() / math.pi) ** 0.5,
-																		deleted,
-																		img_src_path)
+def write_stats(before_image, after_image):
+# filename, UID, save_location, img_src_path, eccentricity = 0.955)
+	before_mask = np.zeros_like(before_image)
+	after_mask = np.zeros_like(after_image)
+	before_mask[before_image > 0] = 1
+	after_mask[after_image > 0] = 1
+	view_2d_img(before_mask)
+	view_2d_img(after_mask)
+	# writefile = open(os.path.join(save_location, filename), 'w')
+	# writefile.write("cell_num\tUID\tArea\tPerimeter\tEccentricity\tH_radius\tDeleted\tread_path\n")
+	#
+	#
+	# for cell_num in xrange(num_cells):
+	# 	mask = np.zeros_like(input_img)
+	# 	mask[input_img == x + 1] = 1
+	# 	contours = measure.find_contours(mask,
+	# 										level = 0.5,
+	# 										fully_connected = 'low',
+	# 										positive_orientation = 'low')
+	# 	Point_set = Point_set2D(contours[0])
+	# 	E = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
+	# 	deleted = False
+	# 	if E < eccentricity:
+	# 		deleted = True
+	# 	writefile.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n").format(cell_num + 1,
+	# 																	UID,
+	# 																	Point_set.shoelace(),
+	# 																	Point_set.perimeter(),
+	# 																	E,
+	# 																	(Point_set.shoelace() / math.pi) ** 0.5,
+	# 																	deleted,
+	# 																	img_src_path)
 	writefile.close()
 # Function is broken as fuck DO NOT USE
 # def smooth_contours(binary_group_img):
