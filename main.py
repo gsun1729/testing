@@ -31,8 +31,8 @@ def get_args(args):
 	parser.add_argument('-r',
 						dest = 'read_dir',
 						help = 'Raw data read directory',
-						required = False, 
-						default = ".\\data\\hs")
+						required = False,
+						default = ".\\data")
 	parser.add_argument('-w',
 						dest = 'save_dir',
 						help = 'Save directory for segmentation and skeletonization data',
@@ -95,16 +95,16 @@ def main(args):
 			mito_stats.append(end - start)
 			img_num += 1
 
-		elif '2561' in img_name:
-			print "> Image ID: 2561 - Mitochondria\n"
-			# blockPrint()
-			start = time.time()
-			mito_line.analyze(UID, img_path, save_dir_mito)
-			end = time.time()
-			# enablePrint()
-			print "> Time to Compete: {}".format(end - start)
-			cell_stats.append(end - start)
-			img_num += 1
+		# elif '2561' in img_name:
+		# 	print "> Image ID: 2561 - Mitochondria\n"
+		# 	# blockPrint()
+		# 	start = time.time()
+		# 	mito_line.analyze(UID, img_path, save_dir_mito)
+		# 	end = time.time()
+		# 	# enablePrint()
+		# 	print "> Time to Compete: {}".format(end - start)
+		# 	cell_stats.append(end - start)
+		# 	img_num += 1
 
 	print "> ==========================================================================================\n"
 	print "> Prelim Analysis completed"
