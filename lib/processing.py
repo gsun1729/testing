@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import math
+import copy
 from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
@@ -569,38 +570,18 @@ def rm_eccentric(input_img, min_eccentricity = 0.955, max_area = 2500):
 	:param min_eccentricity: minimum acceptable eccentricity
 	:param max_area: maximum area acceptable for a cell
 	'''
+
 	max_cells = np.amax(input_img.flatten())
-	# print max_cel/ls
+	output_img = copy.deepcopy(input_img)
 	for x in xrange(max_cells):
 		mask = np.zeros_like(input_img)
-		mask[input_img == x + 1] = 1
+		mask[output_img == x + 1] = 1
 
-		contours = measure.find_contours(mask,
-											level = 0.5,
-											fully_connected = 'low',
-											positive_orientation = 'low')
-		Point_set = Point_set2D(contours[0])
+		_, area, _, eccentricity = get_contour_details(mask)
 
-		eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
-		if eccentricity < min_eccentricity or Point_set.shoelace() > max_area:
-			input_img[input_img == x + 1] = 0
-	return input_img
-
- #
- # contour_list,  eccentricity = 0.3):
-	# for contour_indx, contour in enumerate(contour_list):
-	# 	tlx, tly, brx, bry = location(contour)
-	# 	contour_len = contour.shape[0]
-	# 	contour_img = binary_fill_holes(points2img(contour)).astype(int)
-	# 	contour_inv = 1 - contour_img
-	# 	contour_area = sum(contour_img.flatten())
-	# 	contour_roundness = (4 * math.pi * contour_area) / (contour_len ** 2)
-	# 	# view_2d_img(contour_inv)
-	# 	if contour_roundness < eccentricity:
-	# 		for x in xrange(tlx, brx + 1):
-	# 			for y in xrange(tly, bry + 1):
-	# 				input_img[y, x] = input_img[y, x] * contour_inv[y - tly, x - tlx]
-	# return input_img
+		if eccentricity < min_eccentricity or area > max_area:
+			output_img[output_img == x + 1] = 0
+	return output_img
 
 
 def improved_watershed(binary_base, intensity, expected_separation = 10):
@@ -656,14 +637,27 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	return segmented_cells_labels
 
 
+def get_contour_details(input_img):
+	'''
+	Input image must have only one cell in it with one countour
+	'''
+	contours = measure.find_contours(input_img,
+										level = 0.5,
+										fully_connected = 'low',
+										positive_orientation = 'low')
+	Point_set = Point_set2D(contours[0])
+	radius = (Point_set.shoelace() / math.pi) ** 0.5
+	eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
+	return radius, Point_set.shoelace(), Point_set.perimeter, eccentricity
+
 def write_stats(before_image, after_image):
-# filename, UID, save_location, img_src_path, eccentricity = 0.955)
 	before_mask = np.zeros_like(before_image)
 	after_mask = np.zeros_like(after_image)
 	before_mask[before_image > 0] = 1
 	after_mask[after_image > 0] = 1
-	view_2d_img(before_mask)
-	view_2d_img(after_mask)
+	montage_n_x((before_mask, after_mask, before_mask - after_mask))
+	# view_2d_img(before_mask)
+	# view_2d_img(after_mask)
 	# writefile = open(os.path.join(save_location, filename), 'w')
 	# writefile.write("cell_num\tUID\tArea\tPerimeter\tEccentricity\tH_radius\tDeleted\tread_path\n")
 	#
@@ -688,7 +682,7 @@ def write_stats(before_image, after_image):
 	# 																	(Point_set.shoelace() / math.pi) ** 0.5,
 	# 																	deleted,
 	# 																	img_src_path)
-	writefile.close()
+	# writefile.close()
 # Function is broken as fuck DO NOT USE
 # def smooth_contours(binary_group_img):
 # 	'''
