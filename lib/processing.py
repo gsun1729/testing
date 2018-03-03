@@ -622,7 +622,7 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path,
 	:param write_path: location of the datafile containing data
 	'''
 	write_file = open(os.path.join(write_path, filename),'a')
-	# write_file.write("UID\tcell_num\tcell_updated_num\tdeleted\tRadius\tArea\tPerimeter\tEccentricity\tread_path\n")
+	# write_file.write("cell\tUID\tcell_num\tcell_updated_num\tdeleted\tRadius\tArea\tPerimeter\tEccentricity\tread_path\n")
 	deletion = True
 	before_cells = np.amax(before_image.flatten())
 	after_cells = np.amax(after_image.flatten())
