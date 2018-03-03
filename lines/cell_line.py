@@ -22,22 +22,25 @@ def analyze(UID, read_path, write_path):
 	a2 = gamma_stabilize(a1,
 							alpha_clean = 1.3)
 	# Remove noise
-	a3 = smooth(a2)
+	a3 = smooth(a2,
+					smoothing_px = 0.5,
+					threshold = 1)
 	noise_disk = disk(1)
-	d1 = img_type_2uint8(a3,
-							func = 'floor')
+	d1 = img_type_2uint8(a3, func = 'floor')
 	d2 = median(d1, noise_disk)
 	d3 = erosion(d2, noise_disk)
 	d4 = median(d3, noise_disk)
+	# Simple Thresholding
 	mean, stdev = px_stats(d4)
 	d4[d4 < mean + stdev] = 0
 	d5 = img_type_2uint8(d4, func = 'floor')
-	# view_2d_img(disk(2))
+
 	d6 = binarize_image(d5,
 							_dilation = 0,
 							feature_size = 25)
 	d7 = binary_opening(d6, structure = disk(3).astype(np.int))
 	d8 = binary_opening(d7).astype(np.int)
+	# Recovery from earlier erosion
 	d9 = dilation(d8, noise_disk)
 	d10 = binary_opening(d9).astype(np.int)
 	d11 = label_and_correct(d10, d5,
@@ -51,6 +54,11 @@ def analyze(UID, read_path, write_path):
 						min_eccentricity = 0.955,
 						max_area = 2500)
 
+	write_stats(d12, d13, UID,
+					"single_cell_stats.txt",
+					read_path,
+					write_path)
+
 	save_data(a1, cell_prefix + UID + "_avgP" + data_suffix, write_path)
 	save_data(a13, cell_prefix + UID + data_suffix, write_path)
 	# return a16
@@ -58,5 +66,4 @@ def analyze(UID, read_path, write_path):
 
 if __name__ == "__main__":
 	arguments = sys.argv
-
-	analyze(arguments[-1])
+	analyze(_, arguments[-2], arguments[-1])
