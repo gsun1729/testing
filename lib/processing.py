@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import copy
+from point import *
 from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
@@ -510,56 +511,9 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 				for x in xrange(tlx, brx + 1):
 					for y in xrange(tly, bry + 1):
 						output[y, x] = output[y, x] * (1- specific_mask[y - tly, x - tlx])
-				# output[tly - 1:bry + 1, tlx - 1:brx + 1] = output[tly - 1:bry + 1, tlx - 1:brx + 1] * (1 - specific_mask)
-				# montage_n_x((output,output[tly-1:bry+1,tlx-1:brx+1],d_contour_img, contour_img, split_cells_mask, specific_mask, output[tly-1:bry+1,tlx-1:brx+1] *(1 - specific_mask)))
-			# print tlx, tly, brx, bry
-			# print split_cells_mask.shape, output[tly-1:bry+1,tlx-1:brx+1].shape
-			# new_mask =  split_cells_mask + output[tly-1:bry+1,tlx-1:brx+1]
-			# new_mask[new_mask != 0] = 1
-			# new_mask -= split_cells_mask
-			# new_mask -= output[tly-1:bry+1,tlx-1:brx+1]
-			# new_mask[new_mask < 0] = 0
-			# new_mask[new_mask!]
-			# specific_mask = split_cells_mask + d_contour_img
-			# specific_mask[specific_mask < 2] = 0
-			# specific_mask[specific_mask >= 2] =1
-
 
 
 	return label_and_correct(output, input_img)
-
-
-def euclid_dist_nD(p0, p1):
-	return np.sum((p1 - p0) ** 2)
-
-
-class Point_set2D(object):
-	def __init__(self, point_list):
-		self.point_list = np.array([[float(coordinate) for coordinate in point] for point in point_list])
-
-
-	def num_pts(self):
-		return len(self.point_list)
-
-
-	def center_mass(self):
-		return np.sum(self.point_list, 0) / self.num_pts()
-
-
-	def perimeter(self):
-		peri_distance = 0
-		for pt_indx in xrange(self.num_pts()):
-			peri_distance += euclid_dist_nD(self.point_list[pt_indx],
-											self.point_list[pt_indx - 1])
-		return peri_distance
-
-
-	def shoelace(self):
-		area = 0
-		for pt in xrange(len(self.point_list)):
-			area += self.point_list[pt - 1][0] * self.point_list[pt][1]
-			area -= self.point_list[pt - 1][1] * self.point_list[pt][0]
-		return abs(area) / 2.0
 
 
 def rm_eccentric(input_img, min_eccentricity = 0.955, max_area = 2500):
@@ -640,7 +594,12 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 
 def get_contour_details(input_img):
 	'''
-	Input image must have only one cell in it with one countour
+	Input image must have only one cell in it with one contour, function extracts
+	area, perimeter, radius, eccentricity from a given cell. radius is an
+	approximation, assuming the cell is circular
+	:param input_img: input image (binary) of just a single cell. Cannot contain
+						multiple cells or multiple contours
+	:return: radius, area, perimeter, and eccentricity in that order
 	'''
 	contours = measure.find_contours(input_img,
 										level = 0.5,
@@ -651,9 +610,16 @@ def get_contour_details(input_img):
 	eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
 	return radius, Point_set.shoelace(), Point_set.perimeter(), eccentricity
 
+
 def write_stats(before_image, after_image, UID, filename, read_path, write_path):
 	'''
-	Given two segmented binary images, determine the difference between the cells present on both images and save differences and cell stats to a file
+	Given two segmented binary images, determine the difference between the
+	cells present on both images and save differences and cell stats to a file
+	:param before_image: Image before cell deletion or addition
+	:param after_image: Image after cell deletion or addition
+	:param UID: unique UID for the image, should be the same between the two Images
+	:param filename: name of the datafile to be written to
+	:param write_path: location of the datafile containing data
 	'''
 	write_file = open(os.path.join(write_path, filename),'a')
 	# write_file.write("UID\tcell_num\tcell_updated_num\tdeleted\tRadius\tArea\tPerimeter\tEccentricity\tread_path\n")
@@ -692,55 +658,3 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path)
 																		E,
 																		read_path))
 	write_file.close()
-
-	#
-	# before_mask = np.zeros_like(before_image)
-	# after_mask = np.zeros_like(after_image)
-	# before_mask[before_image > 0] = 1
-	# after_mask[after_image > 0] = 1
-	# montage_n_x((before_mask, after_mask, before_mask - after_mask))
-	# view_2d_img(before_mask)
-	# view_2d_img(after_mask)
-	# writefile = open(os.path.join(save_location, filename), 'w')
-
-	#
-	#
-	# for cell_num in xrange(num_cells):
-	# 	mask = np.zeros_like(input_img)
-	# 	mask[input_img == x + 1] = 1
-	# 	contours = measure.find_contours(mask,
-	# 										level = 0.5,
-	# 										fully_connected = 'low',
-	# 										positive_orientation = 'low')
-	# 	Point_set = Point_set2D(contours[0])
-	# 	E = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
-	# 	deleted = False
-	# 	if E < eccentricity:
-	# 		deleted = True
-	# 	writefile.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n").format(cell_num + 1,
-	# 																	UID,
-	# 																	Point_set.shoelace(),
-	# 																	Point_set.perimeter(),
-	# 																	E,
-	# 																	(Point_set.shoelace() / math.pi) ** 0.5,
-	# 																	deleted,
-	# 																	img_src_path)
-	# writefile.close()
-# Function is broken as fuck DO NOT USE
-# def smooth_contours(binary_group_img):
-# 	'''
-# 	Function is broken as fuck DO NOT USE
-# 	Given a binary image with edges = 1, attempts to smooth out the contours of the individual elements in the image
-# 	'''
-# 	boundary = obtain_border(binary_group_img)
-# 	init = points2img(boundary)
-#
-# 	snake = active_contour(binary_group_img, boundary, alpha = 0.015, beta = 10, gamma = 0.001)
-#
-# 	fig, ax = plt.subplots(figsize=(7, 7))
-# 	ax.imshow(binary_group_img, cmap=plt.cm.gray)
-# 	ax.plot(boundary[:, 0], boundary[:, 1], '--r', lw=3)
-# 	ax.plot(snake[:, 0], snake[:, 1], '-b', lw=3)
-# 	ax.set_xticks([]), ax.set_yticks([])
-# 	ax.axis([0, binary_group_img.shape[1], binary_group_img.shape[0], 0])
-# 	plt.show()
