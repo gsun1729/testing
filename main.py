@@ -12,7 +12,7 @@ from lib.UUID import *
 from lib.render import *
 from lib.read_write import *
 from lib.processing import *
-
+import shutil
 import lines.cell_line as cell_line
 import lines.mito_line as mito_line
 
@@ -37,9 +37,12 @@ def get_args(args):
 						dest = 'save_dir',
 						help = 'Save directory for segmentation and skeletonization data',
 						required = False,
-						default = ".\\ooga")
+						default = ".\\test_run")
 
 	options = vars(parser.parse_args())
+	if os.path.exists(options['save_dir']):
+		if options['save_dir'] == ".\\test_run":
+			shutil.rmtree(options['save_dir'])
 	return options
 
 
@@ -77,7 +80,6 @@ def main(args):
 	file_list_ID.close()
 
 
-
 	img_num = 1
 	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
 		print "> ==========================================================================================\n"
@@ -86,25 +88,25 @@ def main(args):
 		print "> \tImage/Total Number of Images: {}/{}\n".format(img_num, num_images)
 		if '1488' in img_name:
 			print "> Image ID: 1488 - Cell TD\n"
+			# # blockPrint()
+			# start = time.time()
+			# cell_line.analyze(UID, img_path, save_dir_cell)
+			# end = time.time()
+			# # enablePrint()
+			# print "> Time to Compete: {}".format(end - start)
+			# mito_stats.append(end - start)
+			# img_num += 1
+
+		elif '2561' in img_name:
+			print "> Image ID: 2561 - Mitochondria\n"
 			# blockPrint()
 			start = time.time()
-			cell_line.analyze(UID, img_path, save_dir_cell)
+			mito_line.analyze(UID, img_path, save_dir_mito)
 			end = time.time()
 			# enablePrint()
 			print "> Time to Compete: {}".format(end - start)
-			mito_stats.append(end - start)
+			cell_stats.append(end - start)
 			img_num += 1
-
-		# elif '2561' in img_name:
-		# 	print "> Image ID: 2561 - Mitochondria\n"
-		# 	# blockPrint()
-		# 	start = time.time()
-		# 	mito_line.analyze(UID, img_path, save_dir_mito)
-		# 	end = time.time()
-		# 	# enablePrint()
-		# 	print "> Time to Compete: {}".format(end - start)
-		# 	cell_stats.append(end - start)
-		# 	img_num += 1
 
 	print "> ==========================================================================================\n"
 	print "> Prelim Analysis completed"
@@ -112,7 +114,7 @@ def main(args):
 	save_data(cell_stats, "cell_processing_RT",  save_dir)
 
 	# Start merge of MC_analyzer
-	cell_filelist = get_just_filenames(save_dir_cell, suffix = '.mat')
+	cell_filelist = get_just_filenames(save_dir_cell, suffix = '_dat.mat')
 	mito_filelist = get_just_filenames(save_dir_mito, suffix = '.mat')
 	UUID_datatable = read_UUID_file(os.path.join(save_dir, "UUID_LUT.txt"))
 
