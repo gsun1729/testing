@@ -81,7 +81,7 @@ def main(args):
 
 
 	img_num = 1
-	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
+	for UID, img_name, _, _, _, img_path in filenames:
 		print "> ==========================================================================================\n"
 		print "\n> Currently Processing : {}\n".format(img_name)
 		print "> \tImage Unique ID: {}\n".format(UID)
