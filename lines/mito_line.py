@@ -27,13 +27,16 @@ def analyze(UID, read_path, write_path):
 	for layer in xrange(z):
 		sel_elem = disk(1)
 		layer_data = mito[layer,:,:]
-		output1 = gamma_stabilize(layer_data, alpha_clean = 0.05)
-		output2 = smooth(output1)
-		m4 = median(output2, sel_elem)
-		# m5 = erosion(m4, selem = disk(1))
-		# m6 = median(m5, sel_elem)
-		# a7 = dilation(m6, selem = disk(1))
-		d = disk_hole(m4, 1, pinhole = True)
+		output1 = gamma_stabilize(layer_data,
+									alpha_clean = 0.05,
+									floor_method = 'min')
+		output2 = smooth(output1,
+							smoothing_px = 0.5,
+							threshold = 1)
+		m4 = median(output1, sel_elem)
+		d = disk_hole(m4,
+						radius = 2,
+						pinhole = True)
 
 		# USE ONLY FOR MITOS
 		a8 = fft_ifft(m4, d)
@@ -42,22 +45,25 @@ def analyze(UID, read_path, write_path):
 
 		asdf = median(a9, sel_elem)
 		# Simple threshold
-		scale_ratio = 10
-		threshold = np.mean(asdf.flatten()) * scale_ratio
+		scale_ratio = 2.5
+		threshold = np.mean(asdf.flatten()) + np.std(asdf.flatten()) * scale_ratio
 		# print "> Simple Thresholding threshold: {}".format(threshold)
 		asdf[asdf <= threshold] = 0
 		asdf[asdf > 0] = 1
 
-		wow = label_and_correct(asdf, a9, min_px_radius = 3)
+		wow = label_and_correct(asdf, a9,
+									min_px_radius = 2,
+									max_px_radius = 100,
+									min_intensity = 0,
+									mean_diff = 10)
 		wow[wow > 0] = 1
-		# montage_n_x((a9, wow))
-		binary[layer, :, :] = wow
-		# montage_n_x((q, a10))
-		# montage_n_x((layer_data, output1, output2),(m4, a8, a9, asdf))
-	# stack_viewer(binary)
-	spooky = skeletonize_3d(binary)
 
+		binary[layer, :, :] = wow
+
+	spooky = skeletonize_3d(binary)
+	binary_projection = max_projection(binary)
 	save_figure(max_P_d, mito_prefix + UID + "_maxP" + figure_suffix, write_path)
+	save_figure(binary_projection, mito_prefix + UID + "_maxPB" + figure_suffix, write_path)
 	save_data(spooky, mito_prefix + UID + skeleton_suffix, write_path)
 	save_data(binary, mito_prefix + UID + binary_suffix, write_path)
 	# return binary, spooky
@@ -65,5 +71,3 @@ def analyze(UID, read_path, write_path):
 if __name__ == "__main__":
 	arguments = sys.argv
 	analyze(arguments[-1])
-	# q = gen_a(1,5)
-	# print mix(multiply(*a),q)
