@@ -611,7 +611,7 @@ def get_contour_details(input_img):
 	return radius, Point_set.shoelace(), Point_set.perimeter(), eccentricity
 
 
-def write_stats(before_image, after_image, UID, filename, read_path, write_path):
+def write_stats(before_image, after_image, UID, filename, read_path, write_path, img_type = "cell"):
 	'''
 	Given two segmented binary images, determine the difference between the
 	cells present on both images and save differences and cell stats to a file
@@ -648,13 +648,14 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path)
 				cell_delete = True
 			else:
 				after_label = int(np.amax(cell_isolation.flatten()) / current_label)
-		write_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(UID,
-																		current_label,
-																		after_label,
-																		cell_delete,
-																		radius,
-																		area,
-																		perimeter,
-																		E,
-																		read_path))
+		write_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(img_type,
+																			UID,
+																			current_label,
+																			after_label,
+																			cell_delete,
+																			radius,
+																			area,
+																			perimeter,
+																			E,
+																			read_path))
 	write_file.close()
