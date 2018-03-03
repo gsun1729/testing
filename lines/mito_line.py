@@ -45,7 +45,7 @@ def analyze(UID, read_path, write_path):
 
 		asdf = median(a9, sel_elem)
 		# Simple threshold
-		scale_ratio = 2.5
+		scale_ratio = 3
 		threshold = np.mean(asdf.flatten()) + np.std(asdf.flatten()) * scale_ratio
 		# print "> Simple Thresholding threshold: {}".format(threshold)
 		asdf[asdf <= threshold] = 0
@@ -62,6 +62,7 @@ def analyze(UID, read_path, write_path):
 
 	spooky = skeletonize_3d(binary)
 	binary_projection = max_projection(binary)
+	montage_n_x((binary_projection, max_P_d))
 	save_figure(max_P_d, mito_prefix + UID + "_maxP" + figure_suffix, write_path)
 	save_figure(binary_projection, mito_prefix + UID + "_maxPB" + figure_suffix, write_path)
 	save_data(spooky, mito_prefix + UID + skeleton_suffix, write_path)
