@@ -1,4 +1,5 @@
 import numpy as np
+import os
 import sys
 import math
 import copy
@@ -648,21 +649,21 @@ def get_contour_details(input_img):
 	Point_set = Point_set2D(contours[0])
 	radius = (Point_set.shoelace() / math.pi) ** 0.5
 	eccentricity = (4 * math.pi * Point_set.shoelace()) / (Point_set.perimeter() ** 2)
-	return radius, Point_set.shoelace(), Point_set.perimeter, eccentricity
+	return radius, Point_set.shoelace(), Point_set.perimeter(), eccentricity
 
 def write_stats(before_image, after_image, UID, filename, read_path, write_path):
 	'''
-
+	Given two segmented binary images, determine the difference between the cells present on both images and save differences and cell stats to a file
 	'''
-	write_file = open(os.path.join(write_path, filename))
-
+	write_file = open(os.path.join(write_path, filename),'a')
+	# write_file.write("UID\tcell_num\tcell_updated_num\tdeleted\tRadius\tArea\tPerimeter\tEccentricity\tread_path\n")
 	deletion = True
 	before_cells = np.amax(before_image.flatten())
 	after_cells = np.amax(after_image.flatten())
 	if after_cells > before_cells:
 		deletion = False
-	for cell_index in xrange(np.maximum(before_cells, after_cells)):
-
+	max_cells = np.maximum(before_cells, after_cells)
+	for cell_index in xrange(max_cells):
 		current_label = cell_index + 1
 		after_label = current_label
 		if deletion:
@@ -672,23 +673,25 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path)
 			mask = np.zeros_like(after_image)
 			mask[after_image == current_label] = current_label
 		radius, area, perimeter, E = get_contour_details(mask)
-		cell_isolation = after_cells * mask
+		cell_isolation = after_image * mask
+
+		cell_delete = False
 		if np.amax(cell_isolation.flatten()) != current_label:
 			if np.amax(cell_isolation.flatten()) == 0:
 				after_label = 0
+				cell_delete = True
 			else:
 				after_label = int(np.amax(cell_isolation.flatten()) / current_label)
-				deletion = False
-		write_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n").format(UID,
+		write_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(UID,
 																		current_label,
 																		after_label,
-																		deletion,
+																		cell_delete,
 																		radius,
 																		area,
 																		perimeter,
 																		E,
-																		read_path)
-
+																		read_path))
+	write_file.close()
 
 	#
 	# before_mask = np.zeros_like(before_image)
@@ -699,7 +702,7 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path)
 	# view_2d_img(before_mask)
 	# view_2d_img(after_mask)
 	# writefile = open(os.path.join(save_location, filename), 'w')
-	# writefile.write("cell_num\tUID\tArea\tPerimeter\tEccentricity\tH_radius\tDeleted\tread_path\n")
+
 	#
 	#
 	# for cell_num in xrange(num_cells):
