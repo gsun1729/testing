@@ -13,7 +13,7 @@ from skimage.morphology import (disk, dilation, watershed,
 import matplotlib.pyplot as plt
 cell_prefix = "C_"
 data_suffix = "_dat"
-fig_suffix = "_fig.png"
+projection_suffix = "_avgP"
 
 def analyze(UID, read_path, write_path):
 	cell = io.imread(read_path)
@@ -59,8 +59,8 @@ def analyze(UID, read_path, write_path):
 					read_path,
 					write_path)
 
-	save_data(a1, cell_prefix + UID + "_avgP" + data_suffix, write_path)
-	save_data(a13, cell_prefix + UID + data_suffix, write_path)
+	save_data(a1, cell_prefix + UID + projection_suffix, write_path)
+	save_data(d13, cell_prefix + UID + data_suffix, write_path)
 	# return a16
 
 
