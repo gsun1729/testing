@@ -88,14 +88,14 @@ def main(args):
 		print "> \tImage/Total Number of Images: {}/{}\n".format(img_num, num_images)
 		if '1488' in img_name:
 			print "> Image ID: 1488 - Cell TD\n"
-			# # blockPrint()
-			# start = time.time()
-			# cell_line.analyze(UID, img_path, save_dir_cell)
-			# end = time.time()
-			# # enablePrint()
-			# print "> Time to Compete: {}".format(end - start)
-			# mito_stats.append(end - start)
-			# img_num += 1
+			# blockPrint()
+			start = time.time()
+			cell_line.analyze(UID, img_path, save_dir_cell)
+			end = time.time()
+			# enablePrint()
+			print "> Time to Compete: {}".format(end - start)
+			mito_stats.append(end - start)
+			img_num += 1
 
 		elif '2561' in img_name:
 			print "> Image ID: 2561 - Mitochondria\n"
