@@ -1,4 +1,5 @@
 from lib.render import *
+import numpy as np
 import scipy.io
 import sys
 import argparse
@@ -25,6 +26,33 @@ def main(args):
 	# 	view_2d_img(labeled_field)
 
 
+def get_neighbors(kernel_result):
+	'''
+	Helper function for layer_comparator function
+	Retrieves the neighbors and self in a given kernel
+	'''
+	zdim, xdim, ydim = kernel_result.shape
+	neighbors = np.zeros(zdim * xdim * ydim)
+	if zdim == xdim and xdim == ydim and ydim == zdim:
+		return kernel_result.flatten()
+	else:
+		assert "Dimension mismatch"
+
+class Kernel(object):
+	def __init__(self, kernel):
+		self.kernel = kernel
+		self.flatten_kernel = get_neighbors(self.kernel)
+	def get_POI(self):
+		return self.flatten_kernel[-1]
+	def get_3U_neighbor(self):
+		return self.flatten_kernel[0]
+	def get_2U_neighbor(self):
+		return list(self.flatten_kernel[[3, 5, 6]])
+	def get_1U_neighbor(self):
+		return list(self.flatten_kernel[[1, 2, 4]])
+	def return_flat(self):
+		return self.flatten_kernel
+
 
 def layer_comparator(image3D):
 	equivalency_table = []
@@ -36,22 +64,14 @@ def layer_comparator(image3D):
 		for x in xrange(1, xdim):
 			for y in xrange(1, ydim):
 				print z,x,y
-				kernel = image3D[z - kernel_dim + 1:z + 1,
-									x - kernel_dim + 1:x + 1,
-									y - kernel_dim + 1:y + 1]
-				POI = kernel[1, 1, 1]
-				if POI == 0:
+				Query = Kernel(image3D[z - kernel_dim + 1:z + 1,
+										x - kernel_dim + 1:x + 1,
+										y - kernel_dim + 1:y + 1])
+				if Query.get_POI() == 0:
 					pass
 				else:
-					neighbors_1U = [kernel[0, 1, 1],
-									kernel[1, 0, 1],
-									kernel[1, 1, 0]]
-					neighbors_2U = [kernel[0, 0, 1],
-									kernel[0, 1, 0],
-									kernel[1, 0, 0]]
-					neighbors_3U = kernel[0, 0, 0]
-					if any(neighbor != 0 for neighbor in neighbors_1U):
-						print "asdf"
+
+				# return
 
 
 				#
@@ -94,19 +114,42 @@ if __name__ == "__main__":
 	b = np.zeros((10,10))
 	a[3:8,4:7] = 1
 	a[0,0] = 1
-	a[0,1] = 1
-
+	a[0,1] = 2
+	a[1,0] = 4
+	a[1,1] = 3
 	a2[5:9,6:9] = 1
 	b[5:9,6:9] = 1
+	a2[0,0] = 21
+	a2[0,1] = 22
+	a2[1,0] = 24
+	a2[1,1] = 23
 
+	# a[0,0] = 0
+	# a[0,1] = 0
+	# a[1,0] = 0
+	# a[1,1] = 0
+	# a2[0,0] = 0
+	# a2[0,1] = 0
+	# a2[1,0] = 0
+	# a2[1,1] = 0
 	stack = np.array([a,a2,b])
 	print stack.shape
 	print stack
-	# print b
-	neighbors = [0 ,2 ,1]
-	print any(v == 0 for v in neighbors)
-	q = [i for i in neighbors if i != 0]
+	# print b [[[2,2],[3,0]],[[0 ,2],[0,1]]]
+	neighbors = stack[0:2,0:2,0:2]
+	q = np.array([1,4,3,5,6,7])
 	print q
+	print list(q[[1,2,3]])
+
+	print neighbors
+	test = Kernel(neighbors)
+	print test.return_flat()
+	print test.get_1U_neighbor()
+	print test.get_2U_neighbor()
+	print test.get_3U_neighbor()
+	print test.get_POI()
+	# q = [i for i in neighbors if i != 0]
+
 	# layer_comparator(stack)
 	# print [a[item]==0 for item in a]
 	# q = all(v == 0 for v in row for row in a)
