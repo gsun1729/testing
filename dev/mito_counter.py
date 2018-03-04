@@ -53,6 +53,17 @@ class Kernel(object):
 	def return_flat(self):
 		return self.flatten_kernel
 
+paths = np.arry([[1, 1, 1, 0, 1, 0, 0, 0],
+				 [1, 1, 0, 1, 0, 1, 0, 0],
+				 [1, 0, 1, 1, 0, 0, 1, 0],
+				 [0, 1, 1, 1, 0, 0, 0, 1],
+				 [1, 0, 0, 0, 1, 1, 1, 0],
+				 [0, 1, 0, 0, 1, 1, 0, 1],
+				 [0, 0, 1, 0, 1, 0, 1, 1],
+				 [0, 0, 0, 1, 0, 1, 1, 1]])
+
+
+
 
 def layer_comparator(image3D):
 	equivalency_table = []
@@ -70,7 +81,7 @@ def layer_comparator(image3D):
 				if Query.get_POI() == 0:
 					pass
 				else:
-
+					print "ok"
 				# return
 
 
@@ -148,6 +159,15 @@ if __name__ == "__main__":
 	print test.get_2U_neighbor()
 	print test.get_3U_neighbor()
 	print test.get_POI()
+	paths = np.arry([[1, 1, 1, 0, 1, 0, 0, 0],
+					 [1, 1, 0, 1, 0, 1, 0, 0],
+					 [1, 0, 1, 1, 0, 0, 1, 0],
+					 [0, 1, 1, 1, 0, 0, 0, 1],
+					 [1, 0, 0, 0, 1, 1, 1, 0],
+					 [0, 1, 0, 0, 1, 1, 0, 1],
+					 [0, 0, 1, 0, 1, 0, 1, 1],
+					 [0, 0, 0, 1, 0, 1, 1, 1]])
+	view_2d_img(paths)
 	# q = [i for i in neighbors if i != 0]
 
 	# layer_comparator(stack)
