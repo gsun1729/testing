@@ -26,15 +26,56 @@ def main(args):
 
 
 
-def layer_comparator(layer0, layer1):
+def layer_comparator(image3D):
 	equivalency_table = []
-	xdim, ydim = layer0.shape
+	zdim, xdim, ydim = image3D.shape
 	kernel_dim = 2
-	for x in xrange(xdim - kernel_dim + 1):
-		for y in xrange(ydim - kernel_dim + 1):
-			L0 = layer0[x:x + kernel_dim, y:y + kernel_dim]
-			L1 = layer1[x:x + kernel_dim, y:y + kernel_dim]
-			print L0
+	last_used_label = 0
+	kernel = np.zeros((2,2,2))
+	for z in range(1, zdim):
+		for x in xrange(1, xdim):
+			for y in xrange(1, ydim):
+				print z,x,y
+				kernel = image3D[z - kernel_dim + 1:z + 1,
+									x - kernel_dim + 1:x + 1,
+									y - kernel_dim + 1:y + 1]
+				POI = kernel[1, 1, 1]
+				if POI == 0:
+					pass
+				else:
+					neighbors_1U = [kernel[0, 1, 1],
+									kernel[1, 0, 1],
+									kernel[1, 1, 0]]
+					neighbors_2U = [kernel[0, 0, 1],
+									kernel[0, 1, 0],
+									kernel[1, 0, 0]]
+					neighbors_3U = kernel[0, 0, 0]
+					if any(neighbor != 0 for neighbor in neighbors_1U):
+						print "asdf"
+
+
+				#
+				# print POI
+			# L0 = layer0[x:x + kernel_dim, y:y + kernel_dim]
+			# L1 = layer1[x:x + kernel_dim, y:y + kernel_dim]
+			# KERNEL = np.concatenate((L0, L1))
+			# return KERNEL
+			# immediate_Right = L0[x, y + 1]
+			# immediate_Bott = L0[x + 1, y]
+			# immediate_Diag = L0[x + 1, y + 1]
+			# top = L1[x, y]
+			# top_right = L1[x, y + 1]
+			# top_bot = L1[x + 1, y]
+			# top_diag = L1[x + 1, y + 1]
+			# if POI = 0:
+			# 	pass
+			# else:
+			# 	if POI
+
+	#
+	# 		print POI
+	# 		print L0
+	# 		return
 			# sys.exit()
 			# L0 = layer0[x:]
 			# L0_p1 = layer0(x, y)
@@ -50,15 +91,24 @@ def layer_comparator(layer0, layer1):
 if __name__ == "__main__":
 	a = np.zeros((10,10))
 	a2 = np.zeros((10,10))
+	b = np.zeros((10,10))
 	a[3:8,4:7] = 1
 	a[0,0] = 1
+	a[0,1] = 1
+
 	a2[5:9,6:9] = 1
-	b = np.zeros((3,10))
-	print a
-	print a2
-	print b
-	a = [0,1,2,3,0,4,5]
-	print [a[item]==0 for item in a]
+	b[5:9,6:9] = 1
+
+	stack = np.array([a,a2,b])
+	print stack.shape
+	print stack
+	# print b
+	neighbors = [0 ,2 ,1]
+	print any(v == 0 for v in neighbors)
+	q = [i for i in neighbors if i != 0]
+	print q
+	# layer_comparator(stack)
+	# print [a[item]==0 for item in a]
 	# q = all(v == 0 for v in row for row in a)
-	# layer_comparator(a,a2)
-	# main(sys.argv)
+
+	# print any(0 in sublist for sublist in q)
