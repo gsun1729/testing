@@ -5,7 +5,7 @@ import image_scroll
 
 
 def main(image):
-    
+
 
 # sys.exit()
 skeleton3d = skeletonize_3d(image)
