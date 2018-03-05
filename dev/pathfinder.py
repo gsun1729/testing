@@ -54,10 +54,11 @@ class Graph:
 
 		x_dim, y_dim = connection_table.shape
 		exists = np.outer(exist_list, exist_list.T)
-		# print exists * connection_table
+		connection_table = exists * connection_table
+		print connection_table
 		for x in xrange(x_dim):
 			for y in xrange(y_dim):
-				if connection_table[x, y] == 1 and exists[x, y] == 1:
+				if connection_table[x, y] == 1:
 					self.addEdge(x, y, bidirectional = connection_direction[x, y])
 				else:
 					pass
@@ -67,39 +68,52 @@ class Graph:
 		'''
 		Function to print a BFS(Breadth First Traversal) of graph
 		'''
+		connections = []
+		# If element is not even in graph, there is no way to start from it
+		if not s in self.graph:
+			return connections
 		# Mark all the vertices as not visited
 		visited = [False]*(len(self.graph))
+		print visited
+		print list(self.graph.keys())
 		# Create a queue for BFS
 		queue = []
-		connections = []
+
 		# Mark the source node as visited and enqueue it
-		queue.append(s)
-		visited[s] = True
-		# print queue
-		while queue:
-			# Dequeue a vertex from queue and print it
-			s = queue.pop(0)
-			# print s,
-			connections.append(s)
-			# Get all adjacent vertices of the dequeued
-			# vertex s. If a adjacent has not been visited,
-			# then mark it visited and enqueue it
-			for i in self.graph[s]:
-				if visited[i] == False:
-					queue.append(i)
-					visited[i] = True
-		return connections
+		# queue.append(s)
+		# visited[s] = True
+		# # print queue
+		# while queue:
+		# 	# Dequeue a vertex from queue and print it
+		# 	s = queue.pop(0)
+		# 	# print s,
+		# 	connections.append(s)
+		# 	# Get all adjacent vertices of the dequeued
+		# 	# vertex s. If a adjacent has not been visited,
+		# 	# then mark it visited and enqueue it
+		# 	for i in self.graph[s]:
+		# 		if visited[i] == False:
+		# 			queue.append(i)
+		# 			visited[i] = True
+		# return connections
 
 
 	def path_exists(self, start, end):
 		'''
 		Given a start point and an end point, determine whether if the two points are connected by any path.
 		'''
-		connections = self.BFS(start)
-		if any(connection == end for connection in connections):
-			return True
-		else:
+		if not start in self.graph or not end in self.graph:
 			return False
+		else:
+			if start == end:
+				return True
+			else:
+				connections = self.BFS(start)
+				print connections
+		# if any(connection == end and connection != start for connection in connections):
+		# 	return True
+		# else:
+		# 	return False
 
 
 	def get_self(self):
@@ -110,24 +124,17 @@ class Graph:
 # Driver code
 # Create a graph given in the above diagram
 g = Graph()
-print paths
 
 g.connections2graph(paths, path_direction, np.array([0,0,1,0,0,1,1,1]))
-print g.get_self()
-# print np.outer(np.array([0,0,1,0,0,1,1,1]), np.array([0,0,1,0,0,1,1,1]).T)
-# g.get_self()
-# print g.BFS(2)
-# print g.path_exists(2, 5)
-
-sys.exit()
-print "Following is Breadth First Traversal (starting from vertex 2)"
-g.BFS(0)
-print "\n"
-g.BFS(1)
-print "\n"
-g.BFS(2)
-print "\n"
-print g.BFS(0)
-
-
-# This code is contributed by Neelam Yadav
+g.get_self()
+print g.BFS(2)
+#
+# g.path_exists(0,2)
+# g.path_exists(1,2)
+# g.path_exists(2,2)
+# g.path_exists(3,2)
+# g.path_exists(4,2)
+# g.path_exists(5,2)
+# g.path_exists(6,2)
+# g.path_exists(7,2)
+# g.path_exists(8,2)
