@@ -58,27 +58,48 @@ def layer_comparator(image3D):
 				# Create graph of connections
 				g = dev.pathfinder.Graph()
 				g.connections2graph(kernel2D_connections, path_direction, queryk_exists)
-				# Remove self from list of connections (any node is connected to itself in this context)
-				# also get a list of locations of neighbors
-				connections2Query = [connection for connection in g.BFS(query_ID) if connection != query_ID]
-				print "map", g.get_self()
-				print "neighbor locations", connections2Query
-				# If a query is connected to something
-				if connections2Query:
-					# get a list of the neighbor values
-					neighbor_vals = Query_kernel[connections2Query]
-					lowest_neighbor = np.min(neighbor_vals)
 
-					equivalencies = [(x, y) for x in neighbor_vals for y in neighbor_vals]
-					for rule in equivalencies:
-						if rule not in equivalency_table:
-							equivalency_table.append(rule)
-					print "neighboar vals", neighbor_vals
-					print "dumb neighbor", lowest_neighbor
+				# print "query val\t", Query_kernel[query_ID]
+				# print "c2q\t\t", connections2Query
+				# print "map", g.get_self()
+				# print "neighbor locations", connections2Query
+				# If a query has something there
+				if Query_kernel[query_ID] == 0:
+					pass
 				else:
-					last_used_label += 1
-					image3D[z, x, y] = last_used_label
-				return
+					print "query present"
+					# Remove self from list of connections (any node is connected to itself in this context)
+					# also get a list of locations of neighbors
+					connections2Query = [connection for connection in g.BFS(query_ID) if connection != query_ID]
+					neighbor_vals = Query_kernel[connections2Query]
+
+
+
+				# 		# get a list of the neighbor values
+				#
+				# 		lowest_neighbor = np.min(neighbor_vals)
+				#
+				# 		# generate a comprehensive list of equivalencies
+				# 		equivalencies = [(n1, n2) for n1 in neighbor_vals for n2 in neighbor_vals]
+				# 		# if the rule does not exist, add it to the complete equivalency_table
+				# 		for rule in equivalencies:
+				# 			if rule in equivalency_table or tuple(reversed(rule)) in equivalency_table or rule[0] == rule[1]:
+				# 				pass
+				# 			else:
+				# 				equivalency_table.append(rule)
+				#
+				# 		print "neighboar vals", neighbor_vals
+				# 		print "dumb neighbor", lowest_neighbor
+				# 		last_used_label += 1
+				# 		image3D[z, x, y] = last_used_label
+				# 	else:
+				# 		last_used_label += 1
+				# 		image3D[z, x, y] = last_used_label
+				# print "last used label\t",last_used_label
+
+			# print
+
+	return equivalency_table, image3D
 
 
 if __name__ == "__main__":
@@ -86,16 +107,20 @@ if __name__ == "__main__":
 	a2 = np.zeros((10,10))
 	b = np.zeros((10,10))
 	a[3:8,4:7] = 1
-	a[0,0] = 0
-	a[0,1] = 0
-	a[1,0] = 2
-	a[1,1] = 8
+	a[0,0] = 1
+	a[0,1] = 1
+	a[1,0] = 1
+	a[1,1] = 1
 	a2[5:9,6:9] = 1
 	b[5:9,6:9] = 1
-	a2[0,0] = 0
-	a2[0,1] = 0
-	a2[1,0] = 0
+	a2[0,0] = 1
+	a2[0,1] = 1
+	a2[1,0] = 1
 	a2[1,1] = 1
+	a2[7:9,0:2] =1
+	b[7:9,0:2] =1
+
+	a[0:2,7:9] = 1
 
 	# a[0,0] = 0
 	# a[0,1] = 0
@@ -126,7 +151,15 @@ if __name__ == "__main__":
 
 	# q = [i for i in neighbors if i != 0]
 
-	layer_comparator(stack)
+	a,b = layer_comparator(stack)
+	print a
+	print b
+	# a = [(2,2),(1,2),(9,9),(5,3)]
+	# b = [(1,2),(2,1), (2,3)]
+	# print "================"
+	# for r in b:
+	# 	print r in a or tuple(reversed(r)) in a
+
 	# print [a[item]==0 for item in a]
 	# q = all(v == 0 for v in row for row in a)
 
