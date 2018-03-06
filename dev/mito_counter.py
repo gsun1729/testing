@@ -46,14 +46,38 @@ def layer_comparator(image3D):
 		for x in xrange(1, xdim):
 			for y in xrange(1, ydim):
 				print z,x,y
-				Query = image3D[z - kernel_dim + 1:z + 1,
+				Query_kernel = image3D[z - kernel_dim + 1:z + 1,
 								x - kernel_dim + 1:x + 1,
 								y - kernel_dim + 1:y + 1].flatten()
+				print Query_kernel
+				query_ID = 7
+				# Normalize query existance to binary
+				queryk_exists = np.zeros_like(Query_kernel)
+				queryk_exists[Query_kernel>0] = 1
+				print queryk_exists
+				# Create graph of connections
 				g = dev.pathfinder.Graph()
-				g.connections2graph(kernel2D_connections, path_direction, Query)
-				
-				print Query
+				g.connections2graph(kernel2D_connections, path_direction, queryk_exists)
+				# Remove self from list of connections (any node is connected to itself in this context)
+				# also get a list of locations of neighbors
+				connections2Query = [connection for connection in g.BFS(query_ID) if connection != query_ID]
+				print "map", g.get_self()
+				print "neighbor locations", connections2Query
+				# If a query is connected to something
+				if connections2Query:
+					# get a list of the neighbor values
+					neighbor_vals = Query_kernel[connections2Query]
+					lowest_neighbor = np.min(neighbor_vals)
 
+					equivalencies = [(x, y) for x in neighbor_vals for y in neighbor_vals]
+					for rule in equivalencies:
+						if rule not in equivalency_table:
+							equivalency_table.append(rule)
+					print "neighboar vals", neighbor_vals
+					print "dumb neighbor", lowest_neighbor
+				else:
+					last_used_label += 1
+					image3D[z, x, y] = last_used_label
 				return
 
 
@@ -62,16 +86,16 @@ if __name__ == "__main__":
 	a2 = np.zeros((10,10))
 	b = np.zeros((10,10))
 	a[3:8,4:7] = 1
-	a[0,0] = 1
-	a[0,1] = 2
-	a[1,0] = 4
-	a[1,1] = 3
+	a[0,0] = 0
+	a[0,1] = 0
+	a[1,0] = 2
+	a[1,1] = 8
 	a2[5:9,6:9] = 1
 	b[5:9,6:9] = 1
-	a2[0,0] = 21
-	a2[0,1] = 22
-	a2[1,0] = 24
-	a2[1,1] = 23
+	a2[0,0] = 0
+	a2[0,1] = 0
+	a2[1,0] = 0
+	a2[1,1] = 1
 
 	# a[0,0] = 0
 	# a[0,1] = 0
@@ -85,11 +109,11 @@ if __name__ == "__main__":
 	# print stack.shape
 	print stack
 	# print b [[[2,2],[3,0]],[[0 ,2],[0,1]]]
-	neighbors = stack[0:2,0:2,0:2]
+	# neighbors = stack[0:2,0:2,0:2]
 	# q = np.array([1,4,3,5,6,7])
 	# print q
 	# print list(q[[1,2,3]])
-	print kernel2D_connections
+	# print kernel2D_connections
 
 	# print test.return_flat()
 	# print test.get_1U_neighbor()

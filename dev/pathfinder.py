@@ -56,7 +56,7 @@ class Graph:
 		x_dim, y_dim = connection_table.shape
 		exists = np.outer(exist_list, exist_list.T)
 		connection_table = exists * connection_table
-		print connection_table
+		# print connection_table
 		for x in xrange(x_dim):
 			for y in xrange(y_dim):
 				if connection_table[x, y] == 1:
