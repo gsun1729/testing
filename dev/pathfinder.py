@@ -123,19 +123,19 @@ class Graph:
 
 # Driver code
 # Create a graph given in the above diagram
-# g = Graph()
+g = Graph()
 #
-# g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
-# g.get_self()
-# # print g.BFS(5)/
-# #
-# print g.path_exists(2,12)
-# print g.path_exists(1,2)
-# print g.path_exists(2,2)
-# print g.path_exists(3,2)
-# print g.path_exists(4,2)
-# print g.path_exists(5,2)
-# print g.path_exists(6,2)
-# print g.path_exists(7,2)
-# print g.path_exists(8,2)
-# print g.path_exists(8,8)
+g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
+print g.get_self()
+# print g.BFS(5)/
+#
+print g.path_exists(2,12)
+print g.path_exists(1,2)
+print g.path_exists(2,2)
+print g.path_exists(3,2)
+print g.path_exists(4,2)
+print g.path_exists(5,2)
+print g.path_exists(6,2)
+print g.path_exists(7,2)
+print g.path_exists(8,2)
+print g.path_exists(8,8)

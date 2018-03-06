@@ -5,7 +5,7 @@ import scipy.io
 import sys
 import argparse
 from scipy import ndimage as ndi
-from apgl.graph import DenseGraph
+# from apgl.graph import DenseGraph
 from lib.math_funcs import *
 
 kernel2D_connections = np.array([[1, 1, 1, 0, 1, 0, 0, 0],
@@ -212,9 +212,13 @@ def imglattice2graph(input_binary):
 	for z in xrange(zdim):
 		for x in xrange(xdim):
 			for y in xrange(ydim):
+				query_ID = item_id[z, x, y]
 				neighbor_locations = get_3d_neighbor_coords((z, x, y), input_binary.shape)
 				for neighbor in neighbor_locations:
 					neighbor_ID = item_id[neighbor]
+					neighbor_val = input_binary[neighbor]
+					if neighbor_val:
+						g.addEdge(origin = query_ID, destination = neighbor_ID, bidirectional = False, self_connect = True)
 
 
 
