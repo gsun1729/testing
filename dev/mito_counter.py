@@ -5,6 +5,8 @@ import scipy.io
 import sys
 import argparse
 from scipy import ndimage as ndi
+from apgl.graph import DenseGraph
+from lib.math_funcs import *
 
 kernel2D_connections = np.array([[1, 1, 1, 0, 1, 0, 0, 0],
 								 [1, 1, 0, 1, 0, 1, 0, 0],
@@ -36,146 +38,186 @@ def main(args):
 	# 	view_2d_img(labeled_field)
 
 
-def corner_locations(dimension_tuple):
-	'''
-	Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
-
-	:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
-	:return: list of lists with sublists containing coordinates of the corner space
-	'''
-	corners = []
-	for x in xrange(2 ** len(dimension_tuple)):
-		binary = str(np.binary_repr(x))
-		if len(binary) < len(dimension_tuple):
-			binary = str(0) * (len(dimension_tuple) - len(binary)) + binary
-		empty_corner = list(np.zeros(len(binary), dtype = int))
-		for coord in xrange(len(binary)):
-			empty_corner[coord] = int(binary[coord], 2) * int(dimension_tuple[coord] - 1)
-		corners.append(tuple(empty_corner))
-	return corners
+class rect_prism(object):
+	def __init__(self, matrix):
+		self.dimension_tuple = matrix.shape
 
 
-def edge_locations(dimension_tuple):
-	'''
-	Hardcoded edge detection
-	num edge elements in an ndimensional element = (4 * (np.sum(dimension_tuple) - (2 * len(dimension_tuple)))):
-	Can only interpret edges in a 2d or 3d volume.
+	def corner_locations(self):
+		'''
+		Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
 
-	:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
-	:return: list of lists with sublists containing coordinates of the edges
-	'''
-	edges = []
-	if len(dimension_tuple) == 2:
-		x_dim, y_dim = dimension_tuple
-		for x in xrange(x_dim):
-			for y in xrange(y_dim):
-				if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
-					edges.append((x, y))
+		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
+		:return: list of lists with sublists containing coordinates of the corner space
+		'''
+		corners = []
+		for x in xrange(2 ** len(self.dimension_tuple)):
+			binary = str(np.binary_repr(x))
+			if len(binary) < len(self.dimension_tuple):
+				binary = str(0) * (len(self.dimension_tuple) - len(binary)) + binary
+			empty_corner = list(np.zeros(len(binary), dtype = int))
+			for coord in xrange(len(binary)):
+				empty_corner[coord] = int(binary[coord], 2) * int(self.dimension_tuple[coord] - 1)
+			corners.append(tuple(empty_corner))
+		return corners
 
-	elif len(dimension_tuple) == 3:
-		z_dim, x_dim, y_dim = dimension_tuple
-		for z in xrange(z_dim):
+
+	def edge_locations(self):
+		'''
+		Hardcoded edge detection
+		num edge elements in an ndimensional element = (4 * (np.sum(dimension_tuple) - (2 * len(dimension_tuple)))):
+		Can only interpret edges in a 2d or 3d volume.
+
+		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
+		:return: list of lists with sublists containing coordinates of the edges
+		'''
+		edges = []
+		if len(self.dimension_tuple) == 2:
+			x_dim, y_dim = self.dimension_tuple
 			for x in xrange(x_dim):
 				for y in xrange(y_dim):
-					if (x == 0 or x == x_dim - 1):
+					if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
+						edges.append((x, y))
+
+		elif len(self.dimension_tuple) == 3:
+			z_dim, x_dim, y_dim = self.dimension_tuple
+			for z in xrange(z_dim):
+				for x in xrange(x_dim):
+					for y in xrange(y_dim):
+						if (x == 0 or x == x_dim - 1):
+							if (y == 0 or y == y_dim - 1):
+								edges.append((z, x, y))
+						if (x == 0 or x == x_dim - 1):
+							if (z == 0 or z == z_dim - 1):
+								edges.append((z, x, y))
 						if (y == 0 or y == y_dim - 1):
-							edges.append((z, x, y))
-					if (x == 0 or x == x_dim - 1):
-						if (z == 0 or z == z_dim - 1):
-							edges.append((z, x, y))
-					if (y == 0 or y == y_dim - 1):
-						if (z == 0 or z == z_dim - 1):
-							edges.append((z, x, y))
-	corners = corner_locations(dimension_tuple)
-	edges = [edge for edge in edges if edge not in corners]
-	return edges
+							if (z == 0 or z == z_dim - 1):
+								edges.append((z, x, y))
+		corners = self.corner_locations()
+		edges = [edge for edge in edges if edge not in corners]
+		return edges
 
 
-def face_locations(dimension_tuple):
-	faces = []
-	if len(dimension_tuple) == 2:
-		print "Faces don't exist for 2D geometries"
+	def face_locations(self):
+		'''
+		Hardcoded face detection
+		Can only interpret faces in a 2d or 3d volume.
+
+		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
+		:return: list of lists with sublists containing coordinates of the faces
+		'''
+		faces = []
+		if len(self.dimension_tuple) == 2:
+			print "Faces don't exist for 2D geometries"
+			return faces
+		elif len(self.dimension_tuple) == 3:
+			z_dim, x_dim, y_dim = self.dimension_tuple
+			for z in xrange(z_dim):
+				for x in xrange(x_dim):
+					for y in xrange(y_dim):
+						if (z == 0 or z == z_dim - 1):
+							faces.append((z, x, y))
+						if (x == 0 or x == x_dim - 1):
+							faces.append((z, x, y))
+						if (y == 0 or y == y_dim - 1):
+							faces.append((z, x, y))
+		corners = self.corner_locations()
+		edges = self.edge_locations()
+		faces = [face for face in faces if face not in corners and face not in edges]
 		return faces
-	elif len(dimension_tuple) == 3:
-		z_dim, x_dim, y_dim = dimension_tuple
-		for z in xrange(z_dim):
+
+
+	def core_locations(self):
+		'''
+		Hardcoded core detection
+		Can only interpret faces in a 2d or 3d volume.
+
+		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
+		:return: list of lists with sublists containing coordinates of the cores
+		'''
+		cores = []
+		if len(self.dimension_tuple) == 2:
+			x_dim, y_dim = self.dimension_tuple
 			for x in xrange(x_dim):
 				for y in xrange(y_dim):
-					if (z == 0 or z == z_dim - 1):
-						faces.append((z, x, y))
-					if (x == 0 or x == x_dim - 1):
-						faces.append((z, x, y))
-					if (y == 0 or y == y_dim - 1):
-						faces.append((z, x, y))
-	corners = corner_locations(dimension_tuple)
-	edges = edge_locations(dimension_tuple)
-	faces = [face for face in faces if face not in corners and face not in edges]
-	return faces
-
-
-
-def core_locations(dimension_tuple):
-	cores = []
-	if len(dimension_tuple) == 2:
-		x_dim, y_dim = dimension_tuple
-		for x in xrange(x_dim):
-			for y in xrange(y_dim):
-				if (x != 0 or x != x_dim - 1) or (y != 0 or y != y_dim - 1):
 					cores.append((x, y))
 
-	elif len(dimension_tuple) == 3:
-		z_dim, x_dim, y_dim = dimension_tuple
-		for z in xrange(z_dim):
-			for x in xrange(x_dim):
-				for y in xrange(y_dim):
-					if (x != 0 or x != x_dim - 1) :
-						if (y != 0 or y != y_dim - 1):
-							cores.append((z, x, y))
-					if (x != 0 or x != x_dim - 1) :
-						if (z != 0 or z != z_dim - 1):
-							cores.append((z, x, y))
-					if (y != 0 or y != y_dim - 1) :
-						if (z != 0 or z != z_dim - 1):
-							cores.append((z, x, y))
-	corners = corner_locations(dimension_tuple)
-	edges = edge_locations(dimension_tuple)
-	faces = face_locations(dimension_tuple)
-	cores = [core for core in cores if core not in corners and core not in edges and core not in faces]
-	return cores
+		elif len(self.dimension_tuple) == 3:
+			z_dim, x_dim, y_dim = self.dimension_tuple
+			for z in xrange(z_dim):
+				for x in xrange(x_dim):
+					for y in xrange(y_dim):
+						cores.append((z, x, y))
+		corners = self.corner_locations()
+		edges = self.edge_locations()
+		faces = self.face_locations()
+		cores = [core for core in cores if core not in corners and core not in edges and core not in faces]
+		return cores
+
+
+	def is_core(self, query):
+		if query not in self.core_locations():
+			return False
+		else:
+			return True
+
+
+	def is_corner(self, query):
+		if query not in self.corner_locations():
+			return False
+		else:
+			return True
+
+
+	def is_face(self, query):
+		if query not in self.face_locations():
+			return False
+		else:
+			return True
+
+
+	def is_edge(self, query):
+		if query not in self.edge_locations():
+			return False
+		else:
+			return True
+
+
+def get_3d_neighbor_coords(tuple_location, size):
+	neighbors = []
+	z, x, y = tuple_location
+	zdim, xdim, ydim = size
+
+	top = (z + 1, x, y)
+	bottom = (z - 1, x, y)
+	front = (z, x + 1, y)
+	back = (z, x - 1, y)
+	left = (z, x, y - 1)
+	right = (z, x, y + 1)
+
+	neighbors = [top, bottom, front, back, left, right]
+	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
+
+	return neighbors
+
+
+def imglattice2graph(input_binary):
+	zdim, xdim, ydim = input_binary.shape
+
+	container = rect_prism(input_binary)
+
+	g = dev.pathfinder.Graph()
+	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
+	print item_id
+	for z in xrange(zdim):
+		for x in xrange(xdim):
+			for y in xrange(ydim):
+				neighbor_locations = get_3d_neighbor_coords((z, x, y), input_binary.shape)
+				for neighbor in neighbor_locations:
+					neighbor_ID = item_id[neighbor]
 
 
 
-
-def lattice2graph(input_binary):
-	dimensions = input_binary.shape
-	elements = np.arange(np.prod(dimensions))
-	elements = [str(index) for index in elements]
-	for x, index in enumerate(elements):
-		if len(index) < 3:
-			elements[x] = "0" * (3 - len(index)) + index
-
-
-	if len(dimensions) == 2:
-		xdim, ydim = dimensions
-		print "2d"
-	elif len(dimensions) == 3:
-		zdim, xdim, ydim = dimensions
-		print "3d"
-		test = np.zeros_like(input_binary)
-
-		print test
-		n = 0
-		print elements
-		for z in xrange(zdim):
-			for x in xrange(xdim):
-				for y in xrange(ydim):
-					# Corner Cases
-					pass
-					# if x == 0 and y == 0 and z == 0:
-
-
-	else:
-		print "Dimensions > 3"
 
 def layer_comparator(image3D):
 	equivalency_table = []
@@ -304,20 +346,51 @@ if __name__ == "__main__":
 	# a2[1,0] = 0
 	# a2[1,1] = 0
 	stack = np.array([a,a2,b])
-	# print stack.shape
-	# print stack
-	# lattice2graph(stack)
-	test_stack = np.zeros((6, 4, 7))
-	# print test_stack.shape
+	# # print stack.shape
+	# # print stack
+	# # lattice2graph(stack)
+	test_stack = np.zeros((6, 4,3))
+	# # print test_stack.shape
+	# # print test_stack
+	prism = rect_prism(test_stack)
+	# for item in prism.core_locations():
+	# 	test_stack[item] = 1
+	# 	# test_stack[item[0],item[1]] = 1
 	# print test_stack
-	edges = edge_locations(test_stack.shape)
-	corners = corner_locations(test_stack.shape)
-	cores = core_locations(test_stack.shape)
-	faces = face_locations(test_stack.shape)
-	for item in faces:
-		test_stack[item] = 1
-		# test_stack[item[0],item[1]] = 1
-	print test_stack
+
+	test_stack
+	zdim, xdim , ydim = test_stack.shape
+	print stack
+	imglattice2graph(stack)
+
+	# q = np.array(range(0,27))
+	# # print q
+	# q2 = q.reshape(3,3,3)
+	# # print q2
+	# zd, xd, yd = q2.shape
+	# n = 0
+	# for z in xrange(zd):
+	# 	for x in xrange(xd):
+	# 		for y in xrange(yd):
+	# 			if len(get_3d_neighbor_coords((z,x,y), q2.shape)) == 6:
+	#
+	# print n
+
+	# graph = DenseGraph(int(np.sum(stack.flatten())))
+	# print range(0, zdim * xdim * ydim)
+	# print stack.flatten()
+	# for z in xrange(zdim):
+	# 	for x in xrange(xdim):
+	# 		for y in xrange(ydim):
+	# 			if (z,x,y) in prism.corner_locations():
+	# 				test_stack[z,x,y] = 1
+	#
+	#
+	# print test_stack
+
+
+	# Create graph
+
 
 	# core_locations(test_stack.shape)
 	# print "asdfasdf"
