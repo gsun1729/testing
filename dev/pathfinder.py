@@ -103,35 +103,38 @@ class Graph:
 		Given a start point and an end point, determine whether if the two points are connected by any path.
 		'''
 		if not start in self.graph or not end in self.graph:
-			print False
+			return False
 		else:
 			if start == end:
-				print [start]
+				return True
 			else:
 				connections = self.BFS(start)
-				print connections
-				
+				if any(v == end for v in connections):
+					return True
+				else:
+					return False
+
 
 	def get_self(self):
-		print self.graph
+		return self.graph
 
 
 
 # Driver code
 # Create a graph given in the above diagram
-g = Graph()
-
-g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
-g.get_self()
-# print g.BFS(5)/
+# g = Graph()
 #
-g.path_exists(0,2)
-g.path_exists(1,2)
-g.path_exists(2,2)
-g.path_exists(3,2)
-g.path_exists(4,2)
-g.path_exists(5,2)
-g.path_exists(6,2)
-g.path_exists(7,2)
-g.path_exists(8,2)
-g.path_exists(8,8)
+# g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
+# g.get_self()
+# # print g.BFS(5)/
+# #
+# print g.path_exists(2,12)
+# print g.path_exists(1,2)
+# print g.path_exists(2,2)
+# print g.path_exists(3,2)
+# print g.path_exists(4,2)
+# print g.path_exists(5,2)
+# print g.path_exists(6,2)
+# print g.path_exists(7,2)
+# print g.path_exists(8,2)
+# print g.path_exists(8,8)
