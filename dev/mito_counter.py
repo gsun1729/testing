@@ -39,6 +39,7 @@ def main(args):
 def corner_locations(dimension_tuple):
 	'''
 	Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
+
 	:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
 	:return: list of lists with sublists containing coordinates of the corner space
 	'''
@@ -50,7 +51,7 @@ def corner_locations(dimension_tuple):
 		empty_corner = list(np.zeros(len(binary), dtype = int))
 		for coord in xrange(len(binary)):
 			empty_corner[coord] = int(binary[coord], 2) * int(dimension_tuple[coord] - 1)
-		corners.append(empty_corner)
+		corners.append(tuple(empty_corner))
 	return corners
 
 
@@ -59,39 +60,88 @@ def edge_locations(dimension_tuple):
 	Hardcoded edge detection
 	num edge elements in an ndimensional element = (4 * (np.sum(dimension_tuple) - (2 * len(dimension_tuple)))):
 	Can only interpret edges in a 2d or 3d volume.
+
 	:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
 	:return: list of lists with sublists containing coordinates of the edges
 	'''
 	edges = []
-	print len(dimension_tuple)
 	if len(dimension_tuple) == 2:
 		x_dim, y_dim = dimension_tuple
 		for x in xrange(x_dim):
 			for y in xrange(y_dim):
 				if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
-					edges.append([x, y])
+					edges.append((x, y))
 
 	elif len(dimension_tuple) == 3:
 		z_dim, x_dim, y_dim = dimension_tuple
 		for z in xrange(z_dim):
 			for x in xrange(x_dim):
 				for y in xrange(y_dim):
-					if (x == 0 or x == x_dim - 1) :
+					if (x == 0 or x == x_dim - 1):
 						if (y == 0 or y == y_dim - 1):
-							edges.append([z, x, y])
-					if (x == 0 or x == x_dim - 1) :
+							edges.append((z, x, y))
+					if (x == 0 or x == x_dim - 1):
 						if (z == 0 or z == z_dim - 1):
-							edges.append([z, x, y])
-					if (y == 0 or y == y_dim - 1) :
+							edges.append((z, x, y))
+					if (y == 0 or y == y_dim - 1):
 						if (z == 0 or z == z_dim - 1):
-							edges.append([z, x, y])
+							edges.append((z, x, y))
 	corners = corner_locations(dimension_tuple)
 	edges = [edge for edge in edges if edge not in corners]
 	return edges
 
 
+def face_locations(dimension_tuple):
+	faces = []
+	if len(dimension_tuple) == 2:
+		print "Faces don't exist for 2D geometries"
+		return faces
+	elif len(dimension_tuple) == 3:
+		z_dim, x_dim, y_dim = dimension_tuple
+		for z in xrange(z_dim):
+			for x in xrange(x_dim):
+				for y in xrange(y_dim):
+					if (z == 0 or z == z_dim - 1):
+						faces.append((z, x, y))
+					if (x == 0 or x == x_dim - 1):
+						faces.append((z, x, y))
+					if (y == 0 or y == y_dim - 1):
+						faces.append((z, x, y))
+	corners = corner_locations(dimension_tuple)
+	edges = edge_locations(dimension_tuple)
+	faces = [face for face in faces if face not in corners and face not in edges]
+	return faces
 
 
+
+def core_locations(dimension_tuple):
+	cores = []
+	if len(dimension_tuple) == 2:
+		x_dim, y_dim = dimension_tuple
+		for x in xrange(x_dim):
+			for y in xrange(y_dim):
+				if (x != 0 or x != x_dim - 1) or (y != 0 or y != y_dim - 1):
+					cores.append((x, y))
+
+	elif len(dimension_tuple) == 3:
+		z_dim, x_dim, y_dim = dimension_tuple
+		for z in xrange(z_dim):
+			for x in xrange(x_dim):
+				for y in xrange(y_dim):
+					if (x != 0 or x != x_dim - 1) :
+						if (y != 0 or y != y_dim - 1):
+							cores.append((z, x, y))
+					if (x != 0 or x != x_dim - 1) :
+						if (z != 0 or z != z_dim - 1):
+							cores.append((z, x, y))
+					if (y != 0 or y != y_dim - 1) :
+						if (z != 0 or z != z_dim - 1):
+							cores.append((z, x, y))
+	corners = corner_locations(dimension_tuple)
+	edges = edge_locations(dimension_tuple)
+	faces = face_locations(dimension_tuple)
+	cores = [core for core in cores if core not in corners and core not in edges and core not in faces]
+	return cores
 
 
 
@@ -257,17 +307,19 @@ if __name__ == "__main__":
 	# print stack.shape
 	# print stack
 	# lattice2graph(stack)
-	test_stack = np.zeros((5,6))
-	print test_stack.shape
-	print test_stack
+	test_stack = np.zeros((6, 4, 7))
+	# print test_stack.shape
+	# print test_stack
 	edges = edge_locations(test_stack.shape)
 	corners = corner_locations(test_stack.shape)
-
-	for item in edges:
-		print item
-
-		test_stack[item[0],item[1]] = 1
+	cores = core_locations(test_stack.shape)
+	faces = face_locations(test_stack.shape)
+	for item in faces:
+		test_stack[item] = 1
+		# test_stack[item[0],item[1]] = 1
 	print test_stack
+
+	# core_locations(test_stack.shape)
 	# print "asdfasdf"
 	# neighbors = stack[0:2,0:2,0:2]
 	# n  = np.array([[[2,2],[3,0]],[[7 ,2],[9,1]]])
