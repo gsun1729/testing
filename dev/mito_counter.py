@@ -203,122 +203,58 @@ def get_3d_neighbor_coords(tuple_location, size):
 
 def imglattice2graph(input_binary):
 	zdim, xdim, ydim = input_binary.shape
-
-	container = rect_prism(input_binary)
-
-	g = dev.pathfinder.Graph()
+	# Instantiate graph
+	graph_map = dev.pathfinder.Graph()
+	# Create an array of IDs
 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
-	print item_id
+	# Traverse input binary image
 	for z in xrange(zdim):
 		for x in xrange(xdim):
 			for y in xrange(ydim):
+				# Get Query ID Node #
 				query_ID = item_id[z, x, y]
+				# Get neighbors to Query
 				neighbor_locations = get_3d_neighbor_coords((z, x, y), input_binary.shape)
+				# For each neighbor
 				for neighbor in neighbor_locations:
+					# Get Neighbor ID
 					neighbor_ID = item_id[neighbor]
-					neighbor_val = input_binary[neighbor]
-					if neighbor_val:
-						g.addEdge(origin = query_ID, destination = neighbor_ID, bidirectional = False, self_connect = True)
-
-
+					# If query exists and neighbor exists, branch query and neighbor.
+					# If only Query exists, branch query to itself.
+					if input_binary[z, x, y]:
+						if input_binary[neighbor]:
+							graph_map.addEdge(origin = query_ID,
+												destination = neighbor_ID,
+												bidirectional = False,
+												self_connect = True)
+						else:
+							graph_map.addEdge(origin = query_ID,
+												destination = query_ID,
+												bidirectional = False,
+												self_connect = True)
+					else:
+						pass
+	return item_id, graph_map
 
 
 def layer_comparator(image3D):
-	equivalency_table = []
-	zdim, xdim, ydim = image3D.shape
-	kernel_dim = 2
+	ID_map, graph = imglattice2graph(image3D)
+	graph_dict = graph.get_self()
+	# for key in sorted(graph_dict.iterkeys()):
+	# 	print "%s: %s" % (key, graph_dict[key])
+	network_element_list = []
+	for key in sorted(graph_dict.iterkeys()):
+		network = graph.BFS(key)
+		if network:
+			if sorted(network) not in network_element_list:
+				network_element_list.append(sorted(network))
 	last_used_label = 1
-	kernel = np.zeros((kernel_dim, kernel_dim, kernel_dim))
-	kernel_IDs = range(0, kernel_dim ** 3)
-	for z in xrange(1, zdim):
-		for x in xrange(1, xdim):
-			for y in xrange(1, ydim):
-				print z,x,y
-				Query_kernel = image3D[z - kernel_dim + 1:z + 1,
-								x - kernel_dim + 1:x + 1,
-								y - kernel_dim + 1:y + 1].flatten()
-				print Query_kernel
+	for network in network_element_list:
 
-				if any(item != 0  for item in Query_kernel):
-					print "ITEM PRESENT IN KERNEL"
-					queryk_exists = np.zeros_like(Query_kernel)
-					queryk_exists[Query_kernel > 0] = 1
-					kernel_graph = dev.pathfinder.Graph()
-					kernel_graph.connections2graph(kernel2D_connections, path_direction, queryk_exists)
-					network_element_list = []
-					# Determine the number of independent paths within a network
-					for ID in kernel_IDs:
-						network = kernel_graph.BFS(ID)
-						if network:
-							if sorted(network) not in network_element_list:
-								network_element_list.append(sorted(network))
-					# For each independent path, get labels
-					for network in network_element_list:
-						print network
-				else:
-					pass
-
-
-
-				# Normalize query existance to binary
-
-				# print queryk_exists
-				# Create graph of connections
-
-				# If a query has nothing there:
-
-				# if Query_kernel[query_ID] == 0:
-				# 	connections2Query = [connection for connection in g.BFS(query_ID) if connection != query_ID]
-				# 	# If the query still has neighbors
-				# 	if connections2Query:
-				#
-				# else:
-				# 	print "query present"
-				# 	# Remove self from list of connections (any node is connected to itself in this context)
-				# 	# also get a list of locations of neighbors
-				# 	connections2Query = [connection for connection in g.BFS(query_ID) if connection != query_ID]
-				# 	neighbor_vals = Query_kernel[connections2Query]
-				# 	last_used_label += 1
-				# 	# print connections2Query
-				# 	# print neighbor_vals
-				# 	# print last_used_label
-				# 	neighbor_vals = [last_used_label for element in neighbor_vals]
-				# 	# print neighbor_vals
-				# 	Query_kernel[connections2Query] = neighbor_vals
-				# 	# print Query_kernel
-				# 	Query_kernel[query_ID] = last_used_label
-				# 	print Query_kernel.reshape(2,2,2)
-				# 	image3D[z - kernel_dim + 1:z + 1,
-				# 					x - kernel_dim + 1:x + 1,
-				# 					y - kernel_dim + 1:y + 1] = Query_kernel.reshape(2,2,2)
-					# print image3D
-
-
-				# 		# get a list of the neighbor values
-				#
-				# 		lowest_neighbor = np.min(neighbor_vals)
-				#
-				# 		# generate a comprehensive list of equivalencies
-				# 		equivalencies = [(n1, n2) for n1 in neighbor_vals for n2 in neighbor_vals]
-				# 		# if the rule does not exist, add it to the complete equivalency_table
-				# 		for rule in equivalencies:
-				# 			if rule in equivalency_table or tuple(reversed(rule)) in equivalency_table or rule[0] == rule[1]:
-				# 				pass
-				# 			else:
-				# 				equivalency_table.append(rule)
-				#
-				# 		print "neighboar vals", neighbor_vals
-				# 		print "dumb neighbor", lowest_neighbor
-				# 		last_used_label += 1
-				# 		image3D[z, x, y] = last_used_label
-				# 	else:
-				# 		last_used_label += 1
-				# 		image3D[z, x, y] = last_used_label
-				# print "last used label\t",last_used_label
-
-			# print
-
-				return
+		for element in network:
+			image3D[np.where(ID_map == element)] = last_used_label
+		last_used_label += 1
+	return image3D
 
 
 if __name__ == "__main__":
@@ -327,8 +263,8 @@ if __name__ == "__main__":
 	b = np.zeros((10,10))
 	a[3:8,4:7] = 1
 	a[0,0] = 1
-	a[0,1] = 0
-	a[1,0] = 0
+	a[0,1] = 1
+	a[1,0] = 1
 	a[1,1] = 1
 	a2[5:9,6:9] = 1
 	b[5:9,6:9] = 1
@@ -340,6 +276,7 @@ if __name__ == "__main__":
 	b[7:9,0:2] =1
 
 	a[0:2,7:9] = 1
+	b[9,9] = 1
 
 	# a[0,0] = 0
 	# a[0,1] = 0
@@ -362,10 +299,10 @@ if __name__ == "__main__":
 	# 	# test_stack[item[0],item[1]] = 1
 	# print test_stack
 
-	test_stack
+
 	zdim, xdim , ydim = test_stack.shape
-	print stack
-	imglattice2graph(stack)
+	# print stack
+	layer_comparator(stack)
 
 	# q = np.array(range(0,27))
 	# # print q
