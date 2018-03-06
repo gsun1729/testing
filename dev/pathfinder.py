@@ -24,7 +24,7 @@ class Graph:
 		self.graph = defaultdict(list)
 
 
-	def addEdge(self, origin, destination, bidirectional = False):
+	def addEdge(self, origin, destination, bidirectional = False, self_connect = True):
 		'''
 		Function to add an edge to graph, can be set to bidirectional if desired
 		Manual entry of each element
@@ -32,7 +32,8 @@ class Graph:
 		# Append edge to dictionary of for point
 		self.graph[origin].append(destination)
 		# Append origin node edge to itself
-		self.graph[origin].append(origin)
+		if self_connect:
+			self.graph[origin].append(origin)
 		# Append node edge to itself
 		self.graph[destination].append(destination)
 		# Append reverse direction if bidirectional
