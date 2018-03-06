@@ -74,28 +74,28 @@ class Graph:
 			return connections
 		# Mark all the vertices as not visited
 		visited = [False]*(len(self.graph))
-		print visited
-		print list(self.graph.keys())
+		dict_visted = dict(zip(self.graph.keys(), visited))
+		# print dict_visted
 		# Create a queue for BFS
 		queue = []
 
 		# Mark the source node as visited and enqueue it
-		# queue.append(s)
-		# visited[s] = True
+		queue.append(s)
+		dict_visted[s] = True
 		# # print queue
-		# while queue:
+		while queue:
 		# 	# Dequeue a vertex from queue and print it
-		# 	s = queue.pop(0)
-		# 	# print s,
-		# 	connections.append(s)
-		# 	# Get all adjacent vertices of the dequeued
-		# 	# vertex s. If a adjacent has not been visited,
-		# 	# then mark it visited and enqueue it
-		# 	for i in self.graph[s]:
-		# 		if visited[i] == False:
-		# 			queue.append(i)
-		# 			visited[i] = True
-		# return connections
+			s = queue.pop(0)
+			# print s,
+			connections.append(s)
+			# Get all adjacent vertices of the dequeued
+			# vertex s. If a adjacent has not been visited,
+			# then mark it visited and enqueue it
+			for i in self.graph[s]:
+				if dict_visted[i] == False:
+					queue.append(i)
+					dict_visted[i] = True
+		return connections
 
 
 	def path_exists(self, start, end):
@@ -103,18 +103,14 @@ class Graph:
 		Given a start point and an end point, determine whether if the two points are connected by any path.
 		'''
 		if not start in self.graph or not end in self.graph:
-			return False
+			print False
 		else:
 			if start == end:
-				return True
+				print [start]
 			else:
 				connections = self.BFS(start)
 				print connections
-		# if any(connection == end and connection != start for connection in connections):
-		# 	return True
-		# else:
-		# 	return False
-
+				
 
 	def get_self(self):
 		print self.graph
@@ -125,16 +121,17 @@ class Graph:
 # Create a graph given in the above diagram
 g = Graph()
 
-g.connections2graph(paths, path_direction, np.array([0,0,1,0,0,1,1,1]))
+g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
 g.get_self()
-print g.BFS(2)
+# print g.BFS(5)/
 #
-# g.path_exists(0,2)
-# g.path_exists(1,2)
-# g.path_exists(2,2)
-# g.path_exists(3,2)
-# g.path_exists(4,2)
-# g.path_exists(5,2)
-# g.path_exists(6,2)
-# g.path_exists(7,2)
-# g.path_exists(8,2)
+g.path_exists(0,2)
+g.path_exists(1,2)
+g.path_exists(2,2)
+g.path_exists(3,2)
+g.path_exists(4,2)
+g.path_exists(5,2)
+g.path_exists(6,2)
+g.path_exists(7,2)
+g.path_exists(8,2)
+g.path_exists(8,8)
