@@ -36,6 +36,97 @@ def main(args):
 	# 	view_2d_img(labeled_field)
 
 
+def corner_locations(dimension_tuple):
+	'''
+	Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
+	:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
+	:return: list of lists with sublists containing coordinates of the corner space
+	'''
+	corners = []
+	for x in xrange(2 ** len(dimension_tuple)):
+		binary = str(np.binary_repr(x))
+		if len(binary) < len(dimension_tuple):
+			binary = str(0) * (len(dimension_tuple) - len(binary)) + binary
+		empty_corner = list(np.zeros(len(binary), dtype = int))
+		for coord in xrange(len(binary)):
+			empty_corner[coord] = int(binary[coord], 2) * int(dimension_tuple[coord] - 1)
+		corners.append(empty_corner)
+	return corners
+
+
+def edge_locations(dimension_tuple):
+	'''
+	Hardcoded edge detection
+	num edge elements in an ndimensional element = (4 * (np.sum(dimension_tuple) - (2 * len(dimension_tuple)))):
+	Can only interpret edges in a 2d or 3d volume.
+	:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
+	:return: list of lists with sublists containing coordinates of the edges
+	'''
+	edges = []
+	print len(dimension_tuple)
+	if len(dimension_tuple) == 2:
+		x_dim, y_dim = dimension_tuple
+		for x in xrange(x_dim):
+			for y in xrange(y_dim):
+				if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
+					edges.append([x, y])
+
+	elif len(dimension_tuple) == 3:
+		z_dim, x_dim, y_dim = dimension_tuple
+		for z in xrange(z_dim):
+			for x in xrange(x_dim):
+				for y in xrange(y_dim):
+					if (x == 0 or x == x_dim - 1) :
+						if (y == 0 or y == y_dim - 1):
+							edges.append([z, x, y])
+					if (x == 0 or x == x_dim - 1) :
+						if (z == 0 or z == z_dim - 1):
+							edges.append([z, x, y])
+					if (y == 0 or y == y_dim - 1) :
+						if (z == 0 or z == z_dim - 1):
+							edges.append([z, x, y])
+	corners = corner_locations(dimension_tuple)
+	edges = [edge for edge in edges if edge not in corners]
+	return edges
+
+
+
+
+
+
+
+
+def lattice2graph(input_binary):
+	dimensions = input_binary.shape
+	elements = np.arange(np.prod(dimensions))
+	elements = [str(index) for index in elements]
+	for x, index in enumerate(elements):
+		if len(index) < 3:
+			elements[x] = "0" * (3 - len(index)) + index
+
+
+	if len(dimensions) == 2:
+		xdim, ydim = dimensions
+		print "2d"
+	elif len(dimensions) == 3:
+		zdim, xdim, ydim = dimensions
+		print "3d"
+		test = np.zeros_like(input_binary)
+
+		print test
+		n = 0
+		print elements
+		for z in xrange(zdim):
+			for x in xrange(xdim):
+				for y in xrange(ydim):
+					# Corner Cases
+					pass
+					# if x == 0 and y == 0 and z == 0:
+
+
+	else:
+		print "Dimensions > 3"
+
 def layer_comparator(image3D):
 	equivalency_table = []
 	zdim, xdim, ydim = image3D.shape
@@ -47,8 +138,6 @@ def layer_comparator(image3D):
 		for x in xrange(1, xdim):
 			for y in xrange(1, ydim):
 				print z,x,y
-				top_query_ID = 7
-				bot_query_ID = 3
 				Query_kernel = image3D[z - kernel_dim + 1:z + 1,
 								x - kernel_dim + 1:x + 1,
 								y - kernel_dim + 1:y + 1].flatten()
@@ -58,16 +147,18 @@ def layer_comparator(image3D):
 					print "ITEM PRESENT IN KERNEL"
 					queryk_exists = np.zeros_like(Query_kernel)
 					queryk_exists[Query_kernel > 0] = 1
-					g = dev.pathfinder.Graph()
-					g.connections2graph(kernel2D_connections, path_direction, queryk_exists)
+					kernel_graph = dev.pathfinder.Graph()
+					kernel_graph.connections2graph(kernel2D_connections, path_direction, queryk_exists)
 					network_element_list = []
 					# Determine the number of independent paths within a network
 					for ID in kernel_IDs:
-						network = g.BFS(ID)
+						network = kernel_graph.BFS(ID)
 						if network:
 							if sorted(network) not in network_element_list:
 								network_element_list.append(sorted(network))
-					print network_element_list
+					# For each independent path, get labels
+					for network in network_element_list:
+						print network
 				else:
 					pass
 
@@ -164,7 +255,20 @@ if __name__ == "__main__":
 	# a2[1,1] = 0
 	stack = np.array([a,a2,b])
 	# print stack.shape
-	print stack
+	# print stack
+	# lattice2graph(stack)
+	test_stack = np.zeros((5,6))
+	print test_stack.shape
+	print test_stack
+	edges = edge_locations(test_stack.shape)
+	corners = corner_locations(test_stack.shape)
+
+	for item in edges:
+		print item
+
+		test_stack[item[0],item[1]] = 1
+	print test_stack
+	# print "asdfasdf"
 	# neighbors = stack[0:2,0:2,0:2]
 	# n  = np.array([[[2,2],[3,0]],[[7 ,2],[9,1]]])
 	# print n
@@ -186,7 +290,7 @@ if __name__ == "__main__":
 
 	# q = [i for i in neighbors if i != 0]
 
-	print layer_comparator(stack)
+	# print layer_comparator(stack)
 	# print a
 	# print b
 	# a = [(2,2),(1,2),(9,9),(5,3)]
