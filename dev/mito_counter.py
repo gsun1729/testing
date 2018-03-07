@@ -4,38 +4,12 @@ import numpy as np
 import scipy.io
 import sys
 import argparse
+from lib.point import *
 from scipy import ndimage as ndi
-# from apgl.graph import DenseGraph
+from skimage import measure
 from lib.math_funcs import *
-
-kernel2D_connections = np.array([[1, 1, 1, 0, 1, 0, 0, 0],
-								 [1, 1, 0, 1, 0, 1, 0, 0],
-								 [1, 0, 1, 1, 0, 0, 1, 0],
-								 [0, 1, 1, 1, 0, 0, 0, 1],
-								 [1, 0, 0, 0, 1, 1, 1, 0],
-								 [0, 1, 0, 0, 1, 1, 0, 1],
-								 [0, 0, 1, 0, 1, 0, 1, 1],
-								 [0, 0, 0, 1, 0, 1, 1, 1]])
-path_direction = np.zeros((8, 8), dtype = bool)
-
-def get_args(args):
-	parser = argparse.ArgumentParser(description = 'Script for image visualization')
-	parser.add_argument('-i', dest = 'image', help = 'Image path', required = True)
-	options = vars(parser.parse_args())
-	return options
-
-
-def main(args):
-	options = get_args(args)
-	path = options['image']
-	image = scipy.io.loadmat(path)['data']
-
-	z, x, y = image.shape
-	image[image > 0] = 1
-	stack_viewer(image)
-	# for stack_index in xrange(z - 1):
-	# 	labeled_stack, object_no = ndi.label(image[stack_index, :,:], structure = np.ones((3, 3)))
-	# 	view_2d_img(labeled_field)
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from lib.read_write import *
 
 
 class rect_prism(object):
@@ -208,6 +182,7 @@ def imglattice2graph(input_binary):
 	# Create an array of IDs
 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
 	# Traverse input binary image
+	print "\tSlices Analyzed: ",
 	for z in xrange(zdim):
 		for x in xrange(xdim):
 			for y in xrange(ydim):
@@ -221,6 +196,7 @@ def imglattice2graph(input_binary):
 					neighbor_ID = item_id[neighbor]
 					# If query exists and neighbor exists, branch query and neighbor.
 					# If only Query exists, branch query to itself.
+
 					if input_binary[z, x, y]:
 						if input_binary[neighbor]:
 							graph_map.addEdge(origin = query_ID,
@@ -234,28 +210,150 @@ def imglattice2graph(input_binary):
 												self_connect = True)
 					else:
 						pass
+		print z,
+	print "\n"
 	return item_id, graph_map
 
 
 def layer_comparator(image3D):
+	print "> Generating lattice"
 	ID_map, graph = imglattice2graph(image3D)
 	graph_dict = graph.get_self()
 	# for key in sorted(graph_dict.iterkeys()):
 	# 	print "%s: %s" % (key, graph_dict[key])
 	network_element_list = []
-	for key in sorted(graph_dict.iterkeys()):
-		network = graph.BFS(key)
-		if network:
-			if sorted(network) not in network_element_list:
-				network_element_list.append(sorted(network))
+	print "> Network size: ", len(graph_dict)
+	# print graph_dict
+	print "> Pruning Redundancies"
+	for key in graph_dict.iterkeys():
+		network = sorted(graph.BFS(key))
+		# print key,
+		if network not in network_element_list:
+			network_element_list.append(network)
+	print "> Unique Paths: ", len(network_element_list)
 	last_used_label = 1
+	print "> Labeling Network"
 	for network in network_element_list:
-
 		for element in network:
 			image3D[np.where(ID_map == element)] = last_used_label
 		last_used_label += 1
 	return image3D
 
 
+def euclid_dist_nD(p0, p1):
+	return np.sum((p1 - p0) ** 2) ** 0.5
+
+
+class Point_set(object):
+	def __init__(self, point_list):
+		self.point_list = np.array([[float(coordinate) for coordinate in point] for point in point_list])
+		self.num_pts = len(self.point_list)
+
+
+	def perimeter(self):
+		peri_distance = 0
+		for pt_indx in xrange(self.num_pts):
+			peri_distance += euclid_dist_nD(self.point_list[pt_indx],
+											self.point_list[pt_indx - 1])
+		return peri_distance
+
+
+	def side_lengths(self):
+		side_len = []
+		for pt_indx in xrange(self.num_pts):
+			side_len.append(euclid_dist_nD(self.point_list[pt_indx],
+											self.point_list[pt_indx - 1]))
+		return np.array(side_len)
+
+
+	def heron_area(self):
+		semi_peri = self.perimeter() / 2
+		prod = semi_peri
+		for side in self.side_lengths():
+			prod *= semi_peri - side
+		return np.sqrt(prod)
+
+
+class Surface(object):
+	def __init__(self, triangle_collection):
+		self.triangle_collection = triangle_collection
+		self.num_triangles = len(triangle_collection)
+		self.SA = self.get_SA()
+
+
+	def get_SA(self):
+		total = 0
+		for triangle in self.triangle_collection:
+			triangle_set = Point_set(triangle)
+			total += triangle_set.heron_area()
+		return total
+
+
+	def get_stats(self):
+		return self.num_triangles, self.SA
+
+
+def get_attributes(masked_image, stack_height = 1.0):
+	masked_image[masked_image > 0] = 1
+	volume = np.sum(masked_image) * stack_height
+
+	masked_image = masked_image.astype(bool)
+	print "> Computing surface..."
+	verts, faces, normals, values = measure.marching_cubes_lewiner(masked_image,
+																	level = None,
+																	spacing = (stack_height, 1.0, 1.0),
+																	gradient_direction = 'descent',
+																	step_size = 1,
+																	allow_degenerate = True,
+																	use_classic = False)
+	triangle_collection = verts[faces]
+	print "> Computing Surface Area..."
+	triangle_Surface = Surface(triangle_collection)
+	nTriangles, surfaceArea = triangle_Surface.get_stats()
+	return volume, nTriangles, surfaceArea
+
+
+def main(read_path):
+	image = scipy.io.loadmat(read_path)['data']
+
+	z, x, y = image.shape
+	image[image > 0] = 1
+	stack_viewer(image)
+
+
 if __name__ == "__main__":
-	main(sys.argv)
+	# stack = np.zeros((30,30,30))
+	# stack[10:20,10:20,10:20] = 1
+	# labeled = layer_comparator(stack)
+	# print stack
+	# print labeled
+	# # print type(labeled)
+	# # print type(labeled[0,0,0])
+	image = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run\\analysis\\CM_1ca89836c92b49ae8aa2d76515f25bf6_bin.mat")['data']
+	print set(image.flatten())
+	image[image != 8] = 0
+	# stack_viewer(image)
+	# layer_comparator(image)
+	# stack_viewer(image)
+	print get_attributes(image, stack_height = 0.5)
+	# print np.sum(image)
+	#
+	# verts = np.array([[1,2,3], [2,2,2], [3,3,3], [1,2,2], [4,5,3], [5,5,5]])
+	# faces = np.array([[1,2,3], [1,2,4], [0,2,3]])
+	# print verts
+	# print faces
+	# triangles =  verts[faces]
+	# print "===="
+	# print triangles
+	# print "==="
+	# for triangle in triangles:
+	# 	print triangle
+	#
+	# print "======="
+	# WOW = Surface(triangles)
+	# print WOW.get_stats()
+	# print WOW.ge
+	# labeled[labeled !=3] = 0
+	# print labeled
+
+	# get_attributes(image)
