@@ -60,7 +60,7 @@ def filename2info(filename, lookupTable):
 			found = True
 			return row
 	if found == False:
-		assert "UUID ({}, {}) not found in LUT".format(UUID, filename)
+		print "UUID ({}, {}) not found in LUT".format(UUID, filename)
 
 
 def get_partner(filename, lookupTable):
@@ -85,7 +85,7 @@ def get_partner(filename, lookupTable):
 				return row
 
 
-def create_pairTable(filelist, lookupTable):
+def create_pairTable(filelist, lookupTable, save_dir):
 	'''
 	given a list of files, create a pairing between M and C file counterparts based on data from lookupTable
 	:param filelist: list of files with their locations and filenames
@@ -95,9 +95,15 @@ def create_pairTable(filelist, lookupTable):
 	UUID_pairs = []
 	UUID_pairs_no_info = []
 	for row in filelist:
-		input_info = filename2info(row, lookupTable)
-		partner_info = get_partner(row, lookupTable)
-		UUID_pairs.append([input_info[0], partner_info[0], input_info[2], partner_info[2], input_info[-2]])
-		UUID_pairs_no_info.append([input_info[0], partner_info[0]])
-
+		try:
+			input_info = filename2info(row, lookupTable)
+			partner_info = get_partner(row, lookupTable)
+			UUID_pairs.append([input_info[0], partner_info[0], input_info[2], partner_info[2], input_info[-2]])
+			UUID_pairs_no_info.append([input_info[0], partner_info[0]])
+		except:
+			print "> Data not found in LUT"
+			print row
+			unfounds = open(os.path.join(save_dir,"Unfound_Imgs.txt"), 'a')
+			unfounds.write(row+"\n")
+			unfounds.close()
 	return UUID_pairs, UUID_pairs_no_info
