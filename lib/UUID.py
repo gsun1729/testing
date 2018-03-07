@@ -34,18 +34,6 @@ def get_M_C(filename):
 	return split_filename[0]
 
 
-def read_UUID_file(location):
-	'''
-	Reads the lookuptable generated from the main part of the algorithm, strips any new lines and tabs
-	:param location: directory LUT is located in, .txt file
-	:return: <list> of <lists> which includes data from the LUT file.
-	'''
-	file_object = open(location, 'r')
-	content = file_object.readlines()
-	file_object.close()
-	return [x.strip('\n').split('\t') for x in content]
-
-
 def filename2info(filename, lookupTable):
 	'''
 	Given a filename (MC_UUID_TYPE), retrieve the UUID and look for its presence in the LUT

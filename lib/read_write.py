@@ -93,3 +93,16 @@ def write_list_txt(location, filename, array):
 			writefile.write(row[row_ele]+"\t")
 		writefile.write("\n")
 	writefile.close()
+
+
+def read_txt_file(location):
+	'''
+	Reads the lookuptable generated from the main part of the algorithm, strips any new lines and tabs
+	Used for reading LUT tables and cell mito UUID pairs
+	:param location: directory txt file is located in, .txt file
+	:return: <list> of <lists> which includes data from the txt file.
+	'''
+	file_object = open(location, 'r')
+	content = file_object.readlines()
+	file_object.close()
+	return [x.strip('\n').split('\t') for x in content]
