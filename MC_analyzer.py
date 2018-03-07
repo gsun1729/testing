@@ -1,11 +1,11 @@
 import sys
 sys.path.insert(0, '.\\lib')
-from render import *
-from read_write import *
-from math_funcs import *
-from UUID import *
+from lib.render import *
+from lib.read_write import *
+from lib.math_funcs import *
+from lib.UUID import *
 import scipy.io
-from processing import *
+from lib.processing import *
 
 def main():
 	options = sys.argv
@@ -22,12 +22,13 @@ def main():
 	cell_data_dir = os.path.join(root_read_dir, "cell")
 	mito_data_dir = os.path.join(root_read_dir, "mito")
 
-	cell_filelist = get_img_filenames(cell_data_dir)
-	mito_filelist = get_img_filenames(mito_data_dir)
+	cell_filelist = get_just_filenames(cell_data_dir, suffix = '_dat.mat')
+	mito_filelist = get_just_filenames(mito_data_dir, suffix = '.mat')
 	UUID_datatable = read_UUID_file(UID_file_loc)
 
-	C_M_UUID_pairs = create_pairTable(cell_filelist, UUID_datatable)
-	UUID_pairs = create_densepairTable(cell_filelist, UUID_datatable)
+
+	C_M_UUID_pairs, UUID_pairs = create_pairTable(cell_filelist, UUID_datatable)
+	# UUID_pairs = create_densepairTable(cell_filelist, UUID_datatable)
 
 	filename_pairs = []
 	for cell_UUID, mito_UUID in UUID_pairs:
