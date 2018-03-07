@@ -110,15 +110,15 @@ def main(args):
 
 	print "> ==========================================================================================\n"
 	print "> Prelim Analysis completed"
-	save_data(mito_stats, "mito_processing_RT", save_dir)
-	save_data(cell_stats, "cell_processing_RT",  save_dir)
+	# save_data(mito_stats, "mito_processing_RT", save_dir)
+	# save_data(cell_stats, "cell_processing_RT",  save_dir)
 
 	# Start merge of MC_analyzer
 	cell_filelist = get_just_filenames(save_dir_cell, suffix = '_dat.mat')
 	mito_filelist = get_just_filenames(save_dir_mito, suffix = '.mat')
 	UUID_datatable = read_UUID_file(os.path.join(save_dir, "UUID_LUT.txt"))
 
-	C_M_UUID_pairs, UUID_pairs = create_pairTable(cell_filelist, UUID_datatable)
+	C_M_UUID_pairs, UUID_pairs = create_pairTable(cell_filelist, UUID_datatable, save_dir)
 
 	filename_pairs = []
 	for cell_UUID, mito_UUID in UUID_pairs:
