@@ -1,7 +1,7 @@
 import numpy as np
 
 def euclid_dist_nD(p0, p1):
-	return np.sum((p1 - p0) ** 2)
+	return np.sum((p1 - p0) ** 2) ** 0.5
 
 
 class Point_set2D(object):
