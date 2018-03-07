@@ -516,7 +516,7 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 	return label_and_correct(output, input_img)
 
 
-def rm_eccentric(input_img, min_eccentricity = 0.955, max_area = 2500):
+def rm_eccentric(input_img, min_eccentricity = 0.7, max_area = 2500):
 	'''
 	Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
 	Also chucks any cells that have an area larger than max_area

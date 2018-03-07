@@ -51,9 +51,9 @@ def analyze(UID, read_path, write_path):
 	d12 = improved_watershed(d11, d5,
 								expected_separation = 2)
 	d13 = rm_eccentric(d12,
-						min_eccentricity = 0.955,
+						min_eccentricity = 0.7,
 						max_area = 2500)
-
+	montage_n_x((d12,d13))
 	write_stats(d12, d13, UID,
 					"single_cell_stats.txt",
 					read_path,
