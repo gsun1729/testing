@@ -45,7 +45,7 @@ def analyze(UID, read_path, write_path):
 
 		asdf = median(a9, sel_elem)
 		# Simple threshold
-		scale_ratio = 3
+		scale_ratio = 2
 		threshold = np.mean(asdf.flatten()) + np.std(asdf.flatten()) * scale_ratio
 		# print "> Simple Thresholding threshold: {}".format(threshold)
 		asdf[asdf <= threshold] = 0
