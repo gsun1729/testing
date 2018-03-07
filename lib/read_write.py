@@ -45,8 +45,8 @@ def get_just_filenames(root_directory, suffix = '.mat'):
 
 def save_data(data, filename, write_directory):
 	save_dir = os.path.join(write_directory, filename)
-	scipy.io.savemat(save_dir, mdict={'data': data})
-	# scipy.io.savemat(write_directory,)
+	scipy.io.savemat(save_dir, mdict = {'data': data})
+	print filename, write_directory
 	print "> Image Data '{}' saved to '{}'".format(filename, write_directory)
 
 
