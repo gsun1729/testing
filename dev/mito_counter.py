@@ -177,47 +177,72 @@ def get_3d_neighbor_coords(tuple_location, size):
 
 def imglattice2graph(input_binary):
 	zdim, xdim, ydim = input_binary.shape
+	pre_ID_num = len(set(input_binary.flatten()))
 	# Instantiate graph
 	graph_map = dev.pathfinder.Graph()
 	# Create an array of IDs
 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
 	# Traverse input binary image
-	print "\tSlices Analyzed: ",
-	for z in xrange(zdim):
-		for x in xrange(xdim):
-			for y in xrange(ydim):
-				# Get Query ID Node #
-				query_ID = item_id[z, x, y]
-				# Get neighbors to Query
-				neighbor_locations = get_3d_neighbor_coords((z, x, y), input_binary.shape)
-				# For each neighbor
-				for neighbor in neighbor_locations:
-					# Get Neighbor ID
-					neighbor_ID = item_id[neighbor]
-					# If query exists and neighbor exists, branch query and neighbor.
-					# If only Query exists, branch query to itself.
-
-					if input_binary[z, x, y]:
-						if input_binary[neighbor]:
-							graph_map.addEdge(origin = query_ID,
-												destination = neighbor_ID,
-												bidirectional = False,
-												self_connect = True)
-						else:
-							graph_map.addEdge(origin = query_ID,
-												destination = query_ID,
-												bidirectional = False,
-												self_connect = True)
-					else:
-						pass
-		print z,
-	print "\n"
+	# print "\tSlices Analyzed: ",
+	for label in range(1, pre_ID_num):
+		label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
+		for location in label_locations:
+			# Get Query ID Node #
+			query_ID = item_id[location]
+			# Get neighbors to Query
+			neighbor_locations = get_3d_neighbor_coords(location, input_binary.shape)
+			# For each neighbor
+			for neighbor in neighbor_locations:
+				# Get Neighbor ID
+				neighbor_ID = item_id[neighbor]
+				# If query exists and neighbor exists, branch query and neighbor.
+				# If only Query exists, branch query to itself.
+				if input_binary[neighbor]:
+					graph_map.addEdge(origin = query_ID,
+										destination = neighbor_ID,
+										bidirectional = False,
+										self_connect = True)
+				else:
+					graph_map.addEdge(origin = query_ID,
+										destination = query_ID,
+										bidirectional = False,
+										self_connect = True)
+	# for z in xrange(zdim):
+	# 	for x in xrange(xdim):
+	# 		for y in xrange(ydim):
+	# 			# Get Query ID Node #
+	# 			query_ID = item_id[z, x, y]
+	# 			# Get neighbors to Query
+	# 			neighbor_locations = get_3d_neighbor_coords((z, x, y), input_binary.shape)
+	# 			# For each neighbor
+	# 			for neighbor in neighbor_locations:
+	# 				# Get Neighbor ID
+	# 				neighbor_ID = item_id[neighbor]
+	# 				# If query exists and neighbor exists, branch query and neighbor.
+	# 				# If only Query exists, branch query to itself.
+	#
+	# 				if input_binary[z, x, y]:
+	# 					if input_binary[neighbor]:
+	# 						graph_map.addEdge(origin = query_ID,
+	# 											destination = neighbor_ID,
+	# 											bidirectional = False,
+	# 											self_connect = True)
+	# 					else:
+	# 						graph_map.addEdge(origin = query_ID,
+	# 											destination = query_ID,
+	# 											bidirectional = False,
+	# 											self_connect = True)
+	# 				else:
+	# 					pass
+	# 	print z,
+	# print "\n"
 	return item_id, graph_map
 
 
 def layer_comparator(image3D):
 	print "> Generating lattice"
 	ID_map, graph = imglattice2graph(image3D)
+
 	graph_dict = graph.get_self()
 	# for key in sorted(graph_dict.iterkeys()):
 	# 	print "%s: %s" % (key, graph_dict[key])
@@ -225,19 +250,27 @@ def layer_comparator(image3D):
 	print "> Network size: ", len(graph_dict)
 	# print graph_dict
 	print "> Pruning Redundancies"
-	for key in graph_dict.iterkeys():
-		network = sorted(graph.BFS(key))
-		# print key,
-		if network not in network_element_list:
-			network_element_list.append(network)
-	print "> Unique Paths: ", len(network_element_list)
+	for key in graph_dict.keys():
+		try:
+			network = sorted(graph.BFS(key))
+			for connected_key in network:
+				graph_dict.pop(connected_key, None)
+			if network not in network_element_list:
+				network_element_list.append(network)
+		except:
+			pass
+	print "> Unique Paths + Background [1]: ", len(network_element_list)
+
+	img_dimensions = ID_map.shape
+	output = np.zeros_like(ID_map).flatten()
+
 	last_used_label = 1
 	print "> Labeling Network"
 	for network in network_element_list:
 		for element in network:
-			image3D[np.where(ID_map == element)] = last_used_label
+			output[element] = last_used_label
 		last_used_label += 1
-	return image3D
+	return output.reshape(img_dimensions)
 
 
 def euclid_dist_nD(p0, p1):
@@ -322,20 +355,48 @@ def main(read_path):
 
 
 if __name__ == "__main__":
-	# stack = np.zeros((30,30,30))
-	# stack[10:20,10:20,10:20] = 1
-	# labeled = layer_comparator(stack)
-	# print stack
-	# print labeled
-	# # print type(labeled)
-	# # print type(labeled[0,0,0])
-	image = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run\\analysis\\CM_1ca89836c92b49ae8aa2d76515f25bf6_bin.mat")['data']
+	stack = np.zeros((30,30,30))
+	stack[10:20,10:20,10:20] = 1
+	stack[2:5,2:5,2:6] = 1
+	# stack_viewer(stack)
+	labeled = layer_comparator(stack)
+	stack_viewer(labeled)
+	print "===========>"
+	image = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run\\analysis\\CM_5f1701bd4f534712925c9b0739503215_bin.mat")['data']
+	n_element = len(set(image.flatten()))
 	print set(image.flatten())
-	image[image != 8] = 0
+	print n_element
+	test = [tuple(point) for point in np.argwhere(image == 1)]
+	print len(np.argwhere(image == 1))
+	print image.shape
+	post = layer_comparator(image)
+	stack_viewer(post)
+	print "====="
+	# my_dict = { 0 : [2,3,4],
+	# 			1 : [3,45,5],
+	# 			2 : [3,4,5],
+	# 			4 : [6,4,5],
+	# 			5 : [1,2,3],
+	# 			6 : [5,5,6,6],
+	# 			9 : [2,3,4]
+	# 			}
+	# print my_dict
+	# for key in my_dict.keys():
+	# 	try:
+	# 		for element in my_dict[key]:
+	# 			my_dict.pop(element, None)
+	# 	except:
+	# 		pass
+	# print my_dict
+	# print test
+	# for coord in test:
+	# 	print image[coord]
+
+	# image[image != 1] = 0
 	# stack_viewer(image)
 	# layer_comparator(image)
 	# stack_viewer(image)
-	print get_attributes(image, stack_height = 0.5)
+	# print get_attributes(image, stack_height = 0.5)
 	# print np.sum(image)
 	#
 	# verts = np.array([[1,2,3], [2,2,2], [3,3,3], [1,2,2], [4,5,3], [5,5,5]])
