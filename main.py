@@ -116,7 +116,7 @@ def main(args):
 	# Start merge of MC_analyzer
 	cell_filelist = get_just_filenames(save_dir_cell, suffix = '_dat.mat')
 	mito_filelist = get_just_filenames(save_dir_mito, suffix = '.mat')
-	UUID_datatable = read_UUID_file(os.path.join(save_dir, "UUID_LUT.txt"))
+	UUID_datatable = read_txt_file(os.path.join(save_dir, "UUID_LUT.txt"))
 
 	C_M_UUID_pairs, UUID_pairs = create_pairTable(cell_filelist, UUID_datatable, save_dir)
 
