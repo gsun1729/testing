@@ -357,7 +357,26 @@ def reverse_cantor_pair(z):
 	return int(w - z + t), int(z - t)
 
 
+def get_args(args):
+	parser = argparse.ArgumentParser(description = 'Script for 3d segmenting mitochondria')
+	parser.add_argument('-r',
+						dest = 'results_dir',
+						help = 'Main results directory',
+						required = False,
+						default = ".\\test_run")
+
+	options = vars(parser.parse_args())
+	return options
+
+
 def main(save_dir):
+	try:
+		options = get_args(sys.argv)
+		save_dir = options['results_dir']
+		print "> ==========================================================================================\n"
+		print "> Data Directory: {}\n".format(save_dir)
+	except:
+		sys.exit()
 	print "> ==========================================================================================\n"
 	print "> Starting 3D Segmentation and characterizing module\n"
 
@@ -402,7 +421,7 @@ def main(save_dir):
 	mito_stats.close()
 
 if __name__ == "__main__":
-	main("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run")
+	main(sys.argv)
 
 	# # stack_viewer(stack)
 	# labeled = layer_comparator(stack)
