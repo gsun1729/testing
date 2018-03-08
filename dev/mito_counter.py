@@ -355,6 +355,7 @@ def reverse_cantor_pair(z):
 	t = (w ** 2 + w) / 2
 	return int(w - z + t), int(z - t)
 
+
 def main(save_dir):
 	print "> ==========================================================================================\n"
 	print "> Starting 3D Segmentation and characterizing module\n"
@@ -367,12 +368,12 @@ def main(save_dir):
 
 	mito_stats = open(os.path.join(save_dir, "mitochondria_statistics.txt"), "w")
 
-	for Cell_FID, Mito_FID, cell_filename, mito_filename, origin_path, _ in cell_mito_data_pairs:
+	for Cell_UUID, Mito_UUID, cell_FID, mito_FID, origin_path, _ in cell_mito_data_pairs:
 		print "> ==========================================================================================\n"
-		print "> Query C: {}".format(Cell_FID)
-		print "> Query M: {}\n".format(Mito_FID)
-		CM_filename = "CM_" + Cell_FID + "_bin.mat"
-		CMS_filename = "CSM_" + Cell_FID + "_3DS.mat"
+		print "> Query C: {}".format(Cell_UUID)
+		print "> Query M: {}\n".format(Mito_UUID)
+		CM_filename = "CM_" + Cell_UUID + "_bin.mat"
+		CMS_filename = "CSM_" + Cell_UUID + "_3DS.mat"
 
 		cell_mitos = scipy.io.loadmat(os.path.join(save_dir_anal, CM_filename))['data']
 
@@ -384,22 +385,21 @@ def main(save_dir):
 		post_3d_element_num = len(set(labeled.flatten())) # includes background
 
 		print "> Pre: {}\tPost: {}\t segmentation bodies".format(prior_seg_element_num, post_3d_element_num)
-		n = 0
+
 		for element_num in set(labeled.flatten()):
 			cell_num, mito_num = reverse_cantor_pair(element_num)
-			# if element_num == 0:
-			# 	pass
-			# else:
-			# 	print element_num, list(labeled.flatten()).count(element_num),
-			# 	mask = np.zeros_like(labeled)
-			# 	mask[labeled == element_num] = element_num
-			#
-			# 	# stack_viewer(labeled)
-			# 	# print list(mask.flatten()).count(1)
-			# 	print get_attributes(mask, x = 1.0, y = 1.0, stack_height = 3.458)
-				# stack_viewer(mask)
-		print n
-		sys.exit()
+			if cell_num == 0 or mito_num == 0:
+				pass
+			else:
+				mask = np.zeros_like(labeled)
+				mask[labeled == element_num] = element_num
+				vol, nTriangle, SA = get_attributes(mask, x = 1.0, y = 1.0, stack_height = 3.458)
+				mito_stats.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(Cell_UUID, Mito_UUID, cell_FID, mito_FID, origin_path, cell_num, mito_num, vol, nTriangle, SA))
+
+		save_data(labeled, CMS_filename, save_dir_3D)
+	print "> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics.txt"))
+	mito_stats.close()
+
 if __name__ == "__main__":
 	main("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run")
 
