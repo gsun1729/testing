@@ -1,4 +1,5 @@
 from lib.render import *
+from lib.processing import *
 import dev.pathfinder
 import numpy as np
 import scipy.io
@@ -177,36 +178,38 @@ def get_3d_neighbor_coords(tuple_location, size):
 
 def imglattice2graph(input_binary):
 	zdim, xdim, ydim = input_binary.shape
-	pre_ID_num = len(set(input_binary.flatten()))
 	# Instantiate graph
 	graph_map = dev.pathfinder.Graph()
 	# Create an array of IDs
 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
 	# Traverse input binary image
 	# print "\tSlices Analyzed: ",
-	for label in range(1, pre_ID_num):
-		label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
-		for location in label_locations:
-			# Get Query ID Node #
-			query_ID = item_id[location]
-			# Get neighbors to Query
-			neighbor_locations = get_3d_neighbor_coords(location, input_binary.shape)
-			# For each neighbor
-			for neighbor in neighbor_locations:
-				# Get Neighbor ID
-				neighbor_ID = item_id[neighbor]
-				# If query exists and neighbor exists, branch query and neighbor.
-				# If only Query exists, branch query to itself.
-				if input_binary[neighbor]:
-					graph_map.addEdge(origin = query_ID,
-										destination = neighbor_ID,
-										bidirectional = False,
-										self_connect = True)
-				else:
-					graph_map.addEdge(origin = query_ID,
-										destination = query_ID,
-										bidirectional = False,
-										self_connect = True)
+	for label in set(input_binary.flatten()):
+		if label != 0:
+			label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
+			for location in label_locations:
+				# Get Query ID Node #
+				query_ID = item_id[location]
+				# Get neighbors to Query
+				neighbor_locations = get_3d_neighbor_coords(location, input_binary.shape)
+				# For each neighbor
+				for neighbor in neighbor_locations:
+					# Get Neighbor ID
+					neighbor_ID = item_id[neighbor]
+					# If query exists and neighbor exists, branch query and neighbor.
+					# If only Query exists, branch query to itself.
+					if input_binary[neighbor]:
+						graph_map.addEdge(origin = query_ID,
+											destination = neighbor_ID,
+											bidirectional = False,
+											self_connect = True)
+					else:
+						graph_map.addEdge(origin = query_ID,
+											destination = query_ID,
+											bidirectional = False,
+											self_connect = True)
+		else:
+			pass
 	# for z in xrange(zdim):
 	# 	for x in xrange(xdim):
 	# 		for y in xrange(ydim):
@@ -326,52 +329,96 @@ class Surface(object):
 		return self.num_triangles, self.SA
 
 
-def get_attributes(masked_image, stack_height = 1.0):
+def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
 	masked_image[masked_image > 0] = 1
 	volume = np.sum(masked_image) * stack_height
 
 	masked_image = masked_image.astype(bool)
-	print "> Computing surface..."
+	# print "> Computing surface..."
+
 	verts, faces, normals, values = measure.marching_cubes_lewiner(masked_image,
 																	level = None,
-																	spacing = (stack_height, 1.0, 1.0),
+																	spacing = (x, y, stack_height),
 																	gradient_direction = 'descent',
 																	step_size = 1,
 																	allow_degenerate = True,
 																	use_classic = False)
 	triangle_collection = verts[faces]
-	print "> Computing Surface Area..."
+	# print "> Computing attributes..."
 	triangle_Surface = Surface(triangle_collection)
 	nTriangles, surfaceArea = triangle_Surface.get_stats()
 	return volume, nTriangles, surfaceArea
 
 
-def main(read_path):
-	image = scipy.io.loadmat(read_path)['data']
+def reverse_cantor_pair(z):
+	w = np.floor((np.sqrt((8 * z) + 1) - 1) / 2)
+	t = (w ** 2 + w) / 2
+	return int(w - z + t), int(z - t)
 
-	z, x, y = image.shape
-	image[image > 0] = 1
-	stack_viewer(image)
+def main(save_dir):
+	print "> ==========================================================================================\n"
+	print "> Starting 3D Segmentation and characterizing module\n"
 
+	save_dir_anal = os.path.join(save_dir, 'analysis')
+	cell_mito_data_pairs = read_txt_file(os.path.join(save_dir_anal, "Cell_mito_UUID_Pairs.txt"))
 
+	save_dir_3D = os.path.join(save_dir, '3D_seg')
+	mkdir_check(save_dir_3D)
+
+	mito_stats = open(os.path.join(save_dir, "mitochondria_statistics.txt"), "w")
+
+	for Cell_FID, Mito_FID, cell_filename, mito_filename, origin_path, _ in cell_mito_data_pairs:
+		print "> ==========================================================================================\n"
+		print "> Query C: {}".format(Cell_FID)
+		print "> Query M: {}\n".format(Mito_FID)
+		CM_filename = "CM_" + Cell_FID + "_bin.mat"
+		CMS_filename = "CSM_" + Cell_FID + "_3DS.mat"
+
+		cell_mitos = scipy.io.loadmat(os.path.join(save_dir_anal, CM_filename))['data']
+
+		post_segmentation = layer_comparator(cell_mitos)
+
+		labeled = stack_cantor_multiplier(cell_mitos, post_segmentation)
+
+		prior_seg_element_num = len(set(cell_mitos.flatten()))
+		post_3d_element_num = len(set(labeled.flatten())) # includes background
+
+		print "> Pre: {}\tPost: {}\t segmentation bodies".format(prior_seg_element_num, post_3d_element_num)
+		n = 0
+		for element_num in set(labeled.flatten()):
+			cell_num, mito_num = reverse_cantor_pair(element_num)
+			# if element_num == 0:
+			# 	pass
+			# else:
+			# 	print element_num, list(labeled.flatten()).count(element_num),
+			# 	mask = np.zeros_like(labeled)
+			# 	mask[labeled == element_num] = element_num
+			#
+			# 	# stack_viewer(labeled)
+			# 	# print list(mask.flatten()).count(1)
+			# 	print get_attributes(mask, x = 1.0, y = 1.0, stack_height = 3.458)
+				# stack_viewer(mask)
+		print n
+		sys.exit()
 if __name__ == "__main__":
-	stack = np.zeros((30,30,30))
-	stack[10:20,10:20,10:20] = 1
-	stack[2:5,2:5,2:6] = 1
-	# stack_viewer(stack)
-	labeled = layer_comparator(stack)
-	stack_viewer(labeled)
-	print "===========>"
-	image = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run\\analysis\\CM_5f1701bd4f534712925c9b0739503215_bin.mat")['data']
-	n_element = len(set(image.flatten()))
-	print set(image.flatten())
-	print n_element
-	test = [tuple(point) for point in np.argwhere(image == 1)]
-	print len(np.argwhere(image == 1))
-	print image.shape
-	post = layer_comparator(image)
-	stack_viewer(post)
-	print "====="
+	main("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run")
+
+	# # stack_viewer(stack)
+	# labeled = layer_comparator(stack)
+	# stack_viewer(labeled)
+	# print "===========>"
+	# image = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run\\analysis\\CM_5f1701bd4f534712925c9b0739503215_bin.mat")['data']
+	# n_element = len(set(image.flatten()))
+	# print set(image.flatten())
+	# print n_element
+	# test = [tuple(point) for point in np.argwhere(image == 1)]
+	# print len(np.argwhere(image == 1))
+	# print image.shape
+	# post = layer_comparator(image)
+	# stack_viewer(post)
+	# print "====="
+
+
 	# my_dict = { 0 : [2,3,4],
 	# 			1 : [3,45,5],
 	# 			2 : [3,4,5],
