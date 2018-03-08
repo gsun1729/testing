@@ -1,16 +1,16 @@
-from lib.render import *
-from lib.processing import *
-import dev.pathfinder
+from render import *
+from processing import *
+import pathfinder
 import numpy as np
 import scipy.io
 import sys
 import argparse
-from lib.point import *
+# from point import *
 from scipy import ndimage as ndi
 from skimage import measure
-from lib.math_funcs import *
+from math_funcs import *
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from lib.read_write import *
+from read_write import *
 
 
 class rect_prism(object):

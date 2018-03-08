@@ -15,7 +15,7 @@ from lib.processing import *
 import shutil
 import lines.cell_line as cell_line
 import lines.mito_line as mito_line
-
+from lib import mito_counter
 import time, string
 
 def blockPrint():
@@ -110,8 +110,8 @@ def main(args):
 
 	print "> ==========================================================================================\n"
 	print "> Prelim Analysis completed"
-	# save_data(mito_stats, "mito_processing_RT", save_dir)
-	# save_data(cell_stats, "cell_processing_RT",  save_dir)
+	save_data(mito_stats, "mito_processing_RT", save_dir)
+	save_data(cell_stats, "cell_processing_RT",  save_dir)
 
 	# Start merge of MC_analyzer
 	cell_filelist = get_just_filenames(save_dir_cell, suffix = '_dat.mat')
@@ -141,5 +141,7 @@ def main(args):
 		save_data(labeled_mito_bin, "CM_" + save_fileID + "_bin", save_dir_anal)
 		save_data(labeled_mito_skel, "CM_" + save_fileID + "_skel", save_dir_anal)
 
+	# Start merge of mitocounter
+	mito_counter.main(save_dir)
 if __name__ == "__main__":
 	main(sys.argv)
