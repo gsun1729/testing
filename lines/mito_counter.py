@@ -1,16 +1,17 @@
-from render import *
-from processing import *
-import pathfinder
+import sys
+sys.path.insert(0, 'C:\\Users\\Gordon Sun\\Documents\\Github\\testing\\lib')
+from lib.render import *
+from lib.processing import *
+import lib.pathfinder as pathfinder
+from lib.read_write import *
+from lib.math_funcs import *
+
 import numpy as np
 import scipy.io
-import sys
 import argparse
-# from point import *
 from scipy import ndimage as ndi
 from skimage import measure
-from math_funcs import *
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from read_write import *
 
 
 class rect_prism(object):
@@ -179,7 +180,7 @@ def get_3d_neighbor_coords(tuple_location, size):
 def imglattice2graph(input_binary):
 	zdim, xdim, ydim = input_binary.shape
 	# Instantiate graph
-	graph_map = dev.pathfinder.Graph()
+	graph_map = pathfinder.Graph()
 	# Create an array of IDs
 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
 	# Traverse input binary image

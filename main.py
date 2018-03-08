@@ -2,21 +2,21 @@
 import sys
 import os, errno
 import argparse
+import shutil
 sys.path.insert(0, '.\\lib')
 sys.path.insert(0, '.\\lines')
 
 import scipy.io
 from skimage import io
+import time, string
 
 from lib.UUID import *
 from lib.render import *
 from lib.read_write import *
 from lib.processing import *
-import shutil
 import lines.cell_line as cell_line
 import lines.mito_line as mito_line
-from lib import mito_counter
-import time, string
+from lines import mito_counter
 
 def blockPrint():
 	sys.stdout = open(os.devnull, 'w')
