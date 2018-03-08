@@ -14,6 +14,17 @@ def distance_2d(p0, p1):
 	return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 
+def perimeter(ordered_points):
+	'''
+	Given a list of cartesian points describing a perimeter, measure the length of that perimeter
+	:param ordered_points: a list of points
+	'''
+	perimeter = 0
+	for pt in xrange(len(ordered_points)):
+		perimeter += distance_2d(ordered_points[pt], ordered_points[pt - 1])
+	return perimeter
+
+
 def crop_close(points, max_sep = 20):
 	'''
 	Given a list of 2d points, removes any possible duplicate points within a
@@ -197,74 +208,33 @@ def stack_multiplier(image, stack):
 	return composite
 
 
-def perimeter(ordered_points):
+def cantor_pairing_f(a, b):
 	'''
-	Given a list of cartesian points describing a perimeter, measure the length of that perimeter
+	pairing function for encoding 2 numbers a and b into a new number that can
+	only be achieved by a and b in the mentioned order
+
+	:param a: integer a
+	:param b: integer b
+	:return: cantor pairing value
 	'''
-	perimeter = 0
-	for pt in xrange(len(ordered_points)):
-		perimeter += distance_2d(ordered_points[pt], ordered_points[pt - 1])
-	return perimeter
+	return (0.5 * (a + b) * (a + b + 1)) + b
 
 
+def reverse_cantor_pair(z):
+	'''
+	determine the pair of numbers that resulted in the cantor pair # z
 
-'''
-Misc testing code
-'''
-# test = [(29, 14),
-# (-1, 14),
-# (29, 14),
-# (-1, 14),
-# (14, 29),
-# (14, 29),
-# (14, -1),
-# (14, -1),
-# (29, 15),
-# (-1, 15),
-# (29, 13),
-# (-1, 13),
-# (15, 29),
-# (13, 29),
-# (15, -1),
-# (13, -1),
-# (29, 16),
-# (-1, 16),
-# (29, 12),
-# (-1, 12),
-# (16, 29),
-# (12, 29),
-# (16, -1),
-# (12, -1),
-# (29, 17),
-# (-1, 17),
-# (29, 11),
-# (-1, 11),
-# (17, 29),
-# (11, 29),
-# (17, -1),
-# (11, -1),
-# (28, 18),
-# (0, 18),
-# (28, 10),
-# (0, 10),
-# (18, 28),
-# (10, 28),
-# (18, 0),
-# (10, 0),
-# (28, 19),
-# (0, 19),
-# (28, 9),
-# (0, 9),
-# (19, 28)]
-# print perimeter(test)
-#
+	:param z: cantor pair value
+	:return: ints a and b that made z
+	'''
+	w = np.floor((np.sqrt((8 * z) + 1) - 1) / 2)
+	t = (w ** 2 + w) / 2
+	return w - z + t, z - t
 
 
-# a = np.random.rand(5,5)
-# z = np.zeros_like(a)
-#
-# for x in xrange(0, 5):
-# 	for y in xrange(x + 1, 5):
-# 		z[x,y] = a[x,y]
-# print a
-# print z
+def stack_cantor_multiplier(stack1, stack2):
+	'''
+	takes 2 3d stack images and performs a cantor multiplication against it
+	'''
+	total = stack1 + stack2
+	return (0.5 * np.multiply(total, total + 1)) + stack2

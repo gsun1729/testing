@@ -32,7 +32,7 @@ def stack_viewer(image):
 			self.update()
 
 		def onscroll(self, event):
-			print("%s %s" % (event.button, event.step))
+			# print("%s %s" % (	event.button, event.step))
 			if event.button == 'up':
 				self.start_index = (self.start_index + 1) % self.slices
 			else:

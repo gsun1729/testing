@@ -17,7 +17,7 @@ data = binary_blobs(length=30, blob_size_fraction=0.2, n_dim=3, volume_fraction=
 print type(data[0,0,0])
 # sys.exit()
 # Use marching cubes to obtain the surface mesh of these ellipsoids
-verts, faces, normals, values = measure.marching_cubes_lewiner(data, level=None, spacing=(1.0, 1.0, 1.0), gradient_direction='descent', step_size=1, allow_degenerate=True, use_classic=False)
+verts, faces, normals, values = measure.marching_cubes_lewiner(data, level=None, spacing=(1, 1.0, 3.458), gradient_direction='descent', step_size=1, allow_degenerate=True, use_classic=False)
 # save_data(verts, "verts", ".\\")
 # save_data(faces, "faces", ".\\")
 # save_data(normals, "normals", ".\\")
@@ -39,7 +39,7 @@ ax.set_zlabel("z-axis: c = 16")
 
 ax.set_xlim(0, 30)  # a = 6 (times two for 2nd ellipsoid)
 ax.set_ylim(0, 30)  # b = 10
-ax.set_zlim(0, 30)  # c = 16
+ax.set_zlim(0, 90)  # c = 16
 
 plt.tight_layout()
 plt.show()
