@@ -1,5 +1,4 @@
 import sys
-sys.path.insert(0, 'C:\\Users\\Gordon Sun\\Documents\\Github\\testing\\lib')
 from render import *
 from processing import *
 from math_funcs import *

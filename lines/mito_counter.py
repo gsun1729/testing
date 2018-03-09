@@ -1,11 +1,11 @@
 import sys
-sys.path.insert(0, 'C:\\Users\\Gordon Sun\\Documents\\Github\\testing\\lib')
 from lib.render import *
 from lib.processing import *
 import lib.pathfinder as pathfinder
 from lib.read_write import *
 from lib.math_funcs import *
 
+import time
 import numpy as np
 import scipy.io
 import argparse
@@ -387,8 +387,9 @@ def main(save_dir):
 	mkdir_check(save_dir_3D)
 
 	mito_stats = open(os.path.join(save_dir, "mitochondria_statistics.txt"), "w")
-
+	processing_stats = open(os.path.join(save_dir, "3DS_processing_time.txt"), "w")
 	for Cell_UUID, Mito_UUID, cell_FID, mito_FID, origin_path, _ in cell_mito_data_pairs:
+		start = time.time()
 		print "> ==========================================================================================\n"
 		print "> Query C: {}".format(Cell_UUID)
 		print "> Query M: {}\n".format(Mito_UUID)
@@ -417,9 +418,11 @@ def main(save_dir):
 				mito_stats.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(Cell_UUID, Mito_UUID, cell_FID, mito_FID, origin_path, cell_num, mito_num, vol, nTriangle, SA))
 
 		save_data(labeled, CMS_filename, save_dir_3D)
+		end = time.time()
+		processing_stats.write(str(end-start) + "\n")
 	print "> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics.txt"))
 	mito_stats.close()
-
+	processing_stats.close()
 if __name__ == "__main__":
 	main(sys.argv)
 
