@@ -1,4 +1,5 @@
 import sys
+import argparse
 from render import *
 from processing import *
 from math_funcs import *
@@ -14,7 +15,34 @@ cell_prefix = "C_"
 data_suffix = "_dat"
 projection_suffix = "_avgP"
 
+def get_args(args):
+	parser = argparse.ArgumentParser(description = 'Script for 3d segmenting mitochondria')
+	parser.add_argument('-id',
+						dest = 'UUID',
+						help = 'Unique identifier (user generated)',
+						required = True)
+	parser.add_argument('-r',
+						dest = 'read_path',
+						help = 'read directory for data'
+						required = True)
+	parser.add_argument('-w',
+						dest = 'write_path',
+						help = 'write directory for results'
+						required = True)
+
+	options = vars(parser.parse_args())
+	return options
+
+
 def analyze(UID, read_path, write_path):
+	try:
+		options = get_args(sys.argv)
+		read_path = options['read_path']
+		write_path = options['write_path']
+		UID = options['UUID']
+	except:
+		sys.exit()
+
 	cell = io.imread(read_path)
 
 	a1 = avg_projection(cell)
@@ -64,5 +92,4 @@ def analyze(UID, read_path, write_path):
 
 
 if __name__ == "__main__":
-	arguments = sys.argv
-	analyze(_, arguments[-2], arguments[-1])
+	analyze(sys.argv)
