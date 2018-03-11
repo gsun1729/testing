@@ -177,6 +177,48 @@ def get_3d_neighbor_coords(tuple_location, size):
 	return neighbors
 
 
+def get_3d_neighbor_coords_3U(tuple_location, size):
+	neighbors = []
+	z, x, y = tuple_location
+	zdim, xdim, ydim = size
+
+	top = (z + 1, x, y)
+	bottom = (z - 1, x, y)
+	front = (z, x + 1, y)
+	back = (z, x - 1, y)
+	left = (z, x, y - 1)
+	right = (z, x, y + 1)
+
+	corner1 = (z - 1, x - 1, y - 1)
+	corner2 = (z - 1, x + 1, y - 1)
+	corner3 = (z - 1, x + 1, y + 1)
+	corner4 = (z - 1, x - 1, y + 1)
+	corner5 = (z + 1, x - 1, y - 1)
+	corner6 = (z + 1, x + 1, y - 1)
+	corner7 = (z + 1, x + 1, y + 1)
+	corner8 = (z + 1, x - 1, y + 1)
+
+	edge1 = (z - 1, x, y - 1)
+	edge2 = (z - 1, x + 1, y)
+	edge3 = (z - 1, x, y + 1)
+	edge4 = (z - 1, x - 1, y)
+	edge5 = (z, x - 1, y - 1)
+	edge6 = (z, x + 1, y - 1)
+	edge7 = (z, x + 1, y + 1)
+	edge8 = (z, x - 1, y + 1)
+	edge9 = (z + 1, x, y -1)
+	edge10 = (z + 1, x + 1, y)
+	edge11 = (z + 1, x, y + 1)
+	edge12 = (z + 1, x - 1, y)
+
+	neighbors = [top, bottom, front, back, left, right,
+					corner1, corner2, corner3, corner4, corner5, corner6, corner7, corner8,
+					edge1, edge2, edge3, edge4, edge5, edge6, edge7, edge8, edge9, edge10, edge11, edge12]
+
+	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
+
+	return neighbors
+
 def imglattice2graph(input_binary):
 	zdim, xdim, ydim = input_binary.shape
 	# Instantiate graph
