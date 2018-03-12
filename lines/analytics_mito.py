@@ -6,6 +6,13 @@ import lib.read_write as rw
 
 
 def column(matrix, i):
+    '''
+    Takes a matrix and turns its ith column into a column vector
+
+    :param matrix: dataframe to be read from
+    :param i: column to be extracted
+    :return: column vector of ith column
+    '''
     return [row[i] for row in matrix]
 
 '''

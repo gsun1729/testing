@@ -28,6 +28,11 @@ class Graph:
 		'''
 		Function to add an edge to graph, can be set to bidirectional if desired
 		Manual entry of each element
+		
+		:param origin: start node ID
+		:param destination: end node ID
+		:param bidirectional: bool indicating whether the connection is bidirectional
+		:param self_connect: indicate whether the origin node connects to itself.
 		'''
 		# Append edge to dictionary of for point
 		self.graph[origin].append(destination)

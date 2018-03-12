@@ -9,8 +9,13 @@ before_HS = ['beforehs', 'before hs']
 after_HS = ['hs', 'after hs', 'afterhs']
 recovery = ['rec100', 're100', 'after recovery', 'recovery']
 
-
 def extract_details(filename_path):
+	'''
+	Given a filename path, determines as much as possible what kinds of groups and genotypes were used in the image generated
+
+	:param filename_path: direct path to image
+	:return: Heat shock group, library group, plate number, well number
+	'''
 	HS_status_found = True
 
 	B_grp, H_grp, R_grp = False, False, False
@@ -94,6 +99,13 @@ def extract_details(filename_path):
 
 
 def column(matrix, i):
+	'''
+	Takes a matrix and turns its ith column into a column vector
+
+	:param matrix: dataframe to be read from
+	:param i: column to be extracted
+	:return: column vector of ith column
+	'''
     return [row[i] for row in matrix]
 
 
@@ -116,7 +128,7 @@ def main(save_dir):
 																			mitoUUID,
 																			cell_fname,
 																			mito_fname,
-																			group, 
+																			group,
 																			plate_type,
 																			plate_ID,
 																			well_ID,
@@ -158,14 +170,5 @@ def main(save_dir):
 																										read_path))
 	cell_stats_grouped.close()
 
-
-
 if __name__ == "__main__":
-	# test = "l:\\common\gordon jobs\\20180129 linhao tsdatabase\\p5g4\\before hs\\p111g41_1_w1488 laser.tif"
 	main("L:\\Users\\gordon\\00000004 - Running Projects\\20180126 Mito quantification for Gordon\\20180306_results")
-	# test2 = "L:\\Common\\Gordon Jobs\\20180129 Linhao Database\\2017-10-02 Magic plate 46\\After recovery\\_gTHIS IS ACTUAL G10_003_w1488 Laser.TIF"
-	# test3 = "L:\\Common\\Gordon Jobs\\20180129 Linhao Database\\07112017 ts plate new part 2\\D12\\BeforeHS\\D12_2_w2561 Laser.TIF"
-	# "L:\Common\Gordon Jobs\20180129 Linhao Database\p1 ts\A12\HS\\a12_4_w2561 Laser.TIF"
-	# test5 = "L:\\Common\\Gordon Jobs\\20180129 Linhao Database\\2017-09-27 MAGIC plate 44 and 47\\_b8_003_w2561 Laser.TIF"
-
-	# extract_details(test5)

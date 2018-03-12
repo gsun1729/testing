@@ -22,7 +22,7 @@ Consists of 6 columns
 
 > Unfound_Imgs.txt
 ============================================================
-This file contains image names that were not found 
+This file contains image names that were not found
 Created by function create_pairTable in UUID.py module for creating UUID pairs
 Will contain a list of cell images that were unable to be located in UUID_LUT
 Single column, with cell name and UUID
@@ -44,7 +44,7 @@ Columns:
 ============================================================
 Contains information on each mitochondria.
 Columns:
-[cell_UUID, mito_UUID, cell_filename, mito_filename, filepath, cell nubmer, mito number, volume, number of triangles to tesselate, surface area]
+[cell_UUID, mito_UUID, cell_filename, mito_filename, filepath, cell number, mito number, volume, number of triangles to tesselate, surface area]
 
 > Cell_mito_UUID_Pairs.txt
 ============================================================
@@ -58,3 +58,26 @@ Columns:
 elaboration on Cell_mito_UUID_Pairs.txt
 Columns:
 [cell_UUID, mito_UUID, cell imagename, mito imagename, heat shock group, library group, plate number, well number, shared filepath]
+
+> MASTER_RESULTS.txt
+============================================================
+Contains cell attribute data matched with mitochondria data.
+Columns:
+cell_UUID,
+mito_UUID,
+cell_filename,
+mito_filename,
+HS_group,
+lib_grp,
+plate_num,
+well_num,
+cell_num,
+cell_R,
+cell_area,
+cell_peri,
+cell_E,
+mito_num,
+volume,
+nTriangles,
+surface_area,
+filepath

@@ -235,6 +235,10 @@ def reverse_cantor_pair(z):
 def stack_cantor_multiplier(stack1, stack2):
 	'''
 	takes 2 3d stack images and performs a cantor multiplication against it
+
+	:param stack1: first 3d stack image
+	:param stack2: second 3d stack image
+	:return: 3d stack image in np.ndarray form
 	'''
 	total = stack1 + stack2
 	return (0.5 * np.multiply(total, total + 1)) + stack2
