@@ -112,7 +112,15 @@ def main(save_dir):
 	for cellUUID, mitoUUID, cell_fname, mito_fname, shared_path, _ in cell_pairs:
 		group, plate_type, plate_ID, well_ID = extract_details(os.path.join(shared_path, cell_fname))
 
-		cell_grouped.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cellUUID, mitoUUID, cell_fname, mito_fname, group, plate_type, plate_ID, well_ID, shared_path))
+		cell_grouped.write('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n'.format(cellUUID,
+																			mitoUUID,
+																			cell_fname,
+																			mito_fname,
+																			group, 
+																			plate_type,
+																			plate_ID,
+																			well_ID,
+																			shared_path))
 
 	cell_grouped.close()
 
