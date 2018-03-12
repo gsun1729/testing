@@ -10,6 +10,14 @@ img_suffix = ".tif"
 
 
 def get_img_filenames(root_directory, suffix = '.TIF'):
+	'''
+	Given a root directory, traverses all sub_directories and recovers any files with a given suffix.
+	Assigns a UUID to each of the files found
+
+	:param root_directory: location to search
+	:param suffix: type of image suffix to look for
+	:return: a list of image files and their corresponding properties
+	'''
 	img_filelist = []
 	for current_location, sub_directories, files in os.walk(root_directory):
 		if files:
@@ -44,6 +52,14 @@ def get_just_filenames(root_directory, suffix = '.mat'):
 
 
 def save_data(data, filename, write_directory):
+	'''
+	saves data to a filename in a write directory
+	Saves a .mat file
+
+	:param data: data to be saved
+	:param filename: file to be saved to
+	:param write_directory: directory file will be saved in
+	'''
 	save_dir = os.path.join(write_directory, filename)
 	scipy.io.savemat(save_dir, mdict = {'data': data})
 	# print filename, write_directory
@@ -51,6 +67,14 @@ def save_data(data, filename, write_directory):
 
 
 def save_figure(fig, name, write_directory):
+	'''
+	saves data to a filename in a write directory
+	Saves a PNG file
+
+	:param data: data to be saved
+	:param filename: file to be saved to
+	:param write_directory: directory file will be saved in
+	'''
 	imsave(os.path.join(write_directory,name), fig)
 	print "> Image Figure '{}' saved to '{}'".format(name, write_directory)
 
@@ -58,9 +82,14 @@ def save_figure(fig, name, write_directory):
 def filepath2name(filepath):
 	'''
 	Turns a filename into just the string part
+
+	Removes any OS identifiers
+
+	:param filepath: original filpath
+	:return: filepath concatenated
 	'''
 	if filepath[0] == ".":
-		filepath = list(filepath	)
+		filepath = list(filepath)
 		filepath[0] = ""
 		filepath = "".join(filepath)
 	filepath = filepath.replace("\\","_")
@@ -71,6 +100,8 @@ def filepath2name(filepath):
 def mkdir_check(directory):
 	'''
 	Check to see if a directory exists, and if not, make the directory
+
+	:param directory: location for the directory to be made
 	'''
 	if not os.path.exists(directory):
 		try:
@@ -83,6 +114,7 @@ def mkdir_check(directory):
 def write_list_txt(location, filename, array):
 	'''
 	Given an array, write data to filename at location.
+
 	:param location: save directory for output file
 	:param filename: name of the output file
 	:param array: data to be saved to file.
@@ -99,6 +131,7 @@ def read_txt_file(location):
 	'''
 	Reads the lookuptable generated from the main part of the algorithm, strips any new lines and tabs
 	Used for reading LUT tables and cell mito UUID pairs
+
 	:param location: directory txt file is located in, .txt file
 	:return: <list> of <lists> which includes data from the txt file.
 	'''

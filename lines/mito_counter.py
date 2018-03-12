@@ -132,6 +132,12 @@ class rect_prism(object):
 
 
 	def is_core(self, query):
+		'''
+		returns bool if the location of the index is a core location
+
+		:param query: location of the query in tuple form (3d)
+		:return: bool
+		'''
 		if query not in self.core_locations():
 			return False
 		else:
@@ -139,6 +145,12 @@ class rect_prism(object):
 
 
 	def is_corner(self, query):
+		'''
+		returns bool if the location of the index is a corner location
+
+		:param query: location of the query in tuple form (3d)
+		:return: bool
+		'''
 		if query not in self.corner_locations():
 			return False
 		else:
@@ -146,6 +158,12 @@ class rect_prism(object):
 
 
 	def is_face(self, query):
+		'''
+		returns bool if the location of the index is a face location
+
+		:param query: location of the query in tuple form (3d)
+		:return: bool
+		'''
 		if query not in self.face_locations():
 			return False
 		else:
@@ -153,6 +171,12 @@ class rect_prism(object):
 
 
 	def is_edge(self, query):
+		'''
+		returns bool if the location of the index is a edge location
+
+		:param query: location of the query in tuple form (3d)
+		:return: bool
+		'''
 		if query not in self.edge_locations():
 			return False
 		else:
@@ -160,6 +184,13 @@ class rect_prism(object):
 
 
 def get_3d_neighbor_coords(tuple_location, size):
+	'''
+	Gets neighbors directly adjacent to target voxel. 1U distance max
+
+	:param tuple_location: query location
+	:param size: size of the original image, to get rid of any points that exceed the boundaries of the rectangular prism space
+	:return: list of tuples indicating neighbor locations
+	'''
 	neighbors = []
 	z, x, y = tuple_location
 	zdim, xdim, ydim = size
@@ -178,6 +209,13 @@ def get_3d_neighbor_coords(tuple_location, size):
 
 
 def get_3d_neighbor_coords_3U(tuple_location, size):
+	'''
+	Gets neighbors all around target voxel. sqrt(3)U distance max
+
+	:param tuple_location: query location
+	:param size: size of the original image, to get rid of any points that exceed the boundaries of the rectangular prism space
+	:return: list of tuples indicating neighbor locations
+	'''
 	neighbors = []
 	z, x, y = tuple_location
 	zdim, xdim, ydim = size
@@ -219,7 +257,15 @@ def get_3d_neighbor_coords_3U(tuple_location, size):
 
 	return neighbors
 
+
 def imglattice2graph(input_binary):
+	'''
+	Converts a 3d image into a graph for segmentation
+
+	:param input_binary: complete binary image 3d
+	:return item_id: indicies of all elements in the lattice for identification
+	:return graph_map: graph object indicating which voxels are connected to which voxels
+	'''
 	zdim, xdim, ydim = input_binary.shape
 	# Instantiate graph
 	graph_map = pathfinder.Graph()
@@ -253,39 +299,16 @@ def imglattice2graph(input_binary):
 											self_connect = True)
 		else:
 			pass
-	# for z in xrange(zdim):
-	# 	for x in xrange(xdim):
-	# 		for y in xrange(ydim):
-	# 			# Get Query ID Node #
-	# 			query_ID = item_id[z, x, y]
-	# 			# Get neighbors to Query
-	# 			neighbor_locations = get_3d_neighbor_coords((z, x, y), input_binary.shape)
-	# 			# For each neighbor
-	# 			for neighbor in neighbor_locations:
-	# 				# Get Neighbor ID
-	# 				neighbor_ID = item_id[neighbor]
-	# 				# If query exists and neighbor exists, branch query and neighbor.
-	# 				# If only Query exists, branch query to itself.
-	#
-	# 				if input_binary[z, x, y]:
-	# 					if input_binary[neighbor]:
-	# 						graph_map.addEdge(origin = query_ID,
-	# 											destination = neighbor_ID,
-	# 											bidirectional = False,
-	# 											self_connect = True)
-	# 					else:
-	# 						graph_map.addEdge(origin = query_ID,
-	# 											destination = query_ID,
-	# 											bidirectional = False,
-	# 											self_connect = True)
-	# 				else:
-	# 					pass
-	# 	print z,
-	# print "\n"
 	return item_id, graph_map
 
 
 def layer_comparator(image3D):
+	'''
+	Uses lattice graph data to determine where the unique elements are and prune redundancies.
+
+	:param image3D: original binary image 3d
+	:return: segmented 3d image
+	'''
 	print "> Generating lattice"
 	ID_map, graph = imglattice2graph(image3D)
 
@@ -320,16 +343,30 @@ def layer_comparator(image3D):
 
 
 def euclid_dist_nD(p0, p1):
+	'''
+	Determines the euclidian distance between two n dimensional points
+
+	:param p0: point 0 tuple form
+	:param p1: point 1 tuple form
+	:return: distance
+	'''
 	return np.sum((p1 - p0) ** 2) ** 0.5
 
 
 class Point_set(object):
+	'''
+	Class creates a set of points and a set of associated attributes with the point set.
+	Intended to be used for triangles
+	'''
 	def __init__(self, point_list):
 		self.point_list = np.array([[float(coordinate) for coordinate in point] for point in point_list])
 		self.num_pts = len(self.point_list)
 
 
 	def perimeter(self):
+		'''
+		returns the perimeter of the point set (assumes order in which the points were passed)
+		'''
 		peri_distance = 0
 		for pt_indx in xrange(self.num_pts):
 			peri_distance += euclid_dist_nD(self.point_list[pt_indx],
@@ -338,6 +375,9 @@ class Point_set(object):
 
 
 	def side_lengths(self):
+		'''
+		Determines the lengths of a each of the side lenths within the point set for the geometry they describe
+		'''
 		side_len = []
 		for pt_indx in xrange(self.num_pts):
 			side_len.append(euclid_dist_nD(self.point_list[pt_indx],
@@ -346,6 +386,9 @@ class Point_set(object):
 
 
 	def heron_area(self):
+		'''
+		Intended to be used to determine the area of a triangle described by the point set (3 pts)
+		'''
 		semi_peri = self.perimeter() / 2
 		prod = semi_peri
 		for side in self.side_lengths():
@@ -354,6 +397,9 @@ class Point_set(object):
 
 
 class Surface(object):
+	'''
+	class that creates a surface given a set of faces and verticies associated with each face.
+	'''
 	def __init__(self, triangle_collection):
 		self.triangle_collection = triangle_collection
 		self.num_triangles = len(triangle_collection)
@@ -361,6 +407,9 @@ class Surface(object):
 
 
 	def get_SA(self):
+		'''
+		Determines the total surface area of the triangles in the collection of faces and verticies
+		'''
 		total = 0
 		for triangle in self.triangle_collection:
 			triangle_set = Point_set(triangle)
@@ -369,10 +418,22 @@ class Surface(object):
 
 
 	def get_stats(self):
+		'''
+		Returns the number of triangles in the surface and the total surface area
+		'''
 		return self.num_triangles, self.SA
 
 
 def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
+	'''
+	Gets the attributes of a single binary element in 3d space.
+
+	:param masked_image: binary 3d image
+	:param x: scaling factor for x (if calculation is desired in another unit than px)
+	:param y: scaling factor for y (if calculation is desired in another unit than px)
+	:param stack_height: scaling factor for z (if calculation is desired in another unit than px).
+							This is also the distance between slices in a stack image
+	'''
 	masked_image[masked_image > 0] = 1
 	volume = np.sum(masked_image) * stack_height
 
@@ -394,12 +455,22 @@ def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
 
 
 def reverse_cantor_pair(z):
+	'''
+	Decoder for determining which two numbers make the number pairing.
+
+	:param z: cantor number result
+	:return x, y: number pairing that resulted in the cantor number result
+	'''
+	Used for determining which cell and mitochondria ID correspond to a labeled mitochondria
 	w = np.floor((np.sqrt((8 * z) + 1) - 1) / 2)
 	t = (w ** 2 + w) / 2
 	return int(w - z + t), int(z - t)
 
 
 def get_args(args):
+	'''
+	Helper module for taking in arguments for running script as standalone
+	'''
 	parser = argparse.ArgumentParser(description = 'Script for 3d segmenting mitochondria')
 	parser.add_argument('-r',
 						dest = 'results_dir',
@@ -465,68 +536,7 @@ def main(save_dir):
 	print "> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics.txt"))
 	mito_stats.close()
 	processing_stats.close()
+
+	
 if __name__ == "__main__":
 	main(sys.argv)
-
-	# # stack_viewer(stack)
-	# labeled = layer_comparator(stack)
-	# stack_viewer(labeled)
-	# print "===========>"
-	# image = scipy.io.loadmat("C:\\Users\\Gordon Sun\\Documents\\GitHub\\bootlegged_pipeline\\test_run\\analysis\\CM_5f1701bd4f534712925c9b0739503215_bin.mat")['data']
-	# n_element = len(set(image.flatten()))
-	# print set(image.flatten())
-	# print n_element
-	# test = [tuple(point) for point in np.argwhere(image == 1)]
-	# print len(np.argwhere(image == 1))
-	# print image.shape
-	# post = layer_comparator(image)
-	# stack_viewer(post)
-	# print "====="
-
-
-	# my_dict = { 0 : [2,3,4],
-	# 			1 : [3,45,5],
-	# 			2 : [3,4,5],
-	# 			4 : [6,4,5],
-	# 			5 : [1,2,3],
-	# 			6 : [5,5,6,6],
-	# 			9 : [2,3,4]
-	# 			}
-	# print my_dict
-	# for key in my_dict.keys():
-	# 	try:
-	# 		for element in my_dict[key]:
-	# 			my_dict.pop(element, None)
-	# 	except:
-	# 		pass
-	# print my_dict
-	# print test
-	# for coord in test:
-	# 	print image[coord]
-
-	# image[image != 1] = 0
-	# stack_viewer(image)
-	# layer_comparator(image)
-	# stack_viewer(image)
-	# print get_attributes(image, stack_height = 0.5)
-	# print np.sum(image)
-	#
-	# verts = np.array([[1,2,3], [2,2,2], [3,3,3], [1,2,2], [4,5,3], [5,5,5]])
-	# faces = np.array([[1,2,3], [1,2,4], [0,2,3]])
-	# print verts
-	# print faces
-	# triangles =  verts[faces]
-	# print "===="
-	# print triangles
-	# print "==="
-	# for triangle in triangles:
-	# 	print triangle
-	#
-	# print "======="
-	# WOW = Surface(triangles)
-	# print WOW.get_stats()
-	# print WOW.ge
-	# labeled[labeled !=3] = 0
-	# print labeled
-
-	# get_attributes(image)
