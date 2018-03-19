@@ -42,10 +42,10 @@ def extract_details(filename_path):
 
 	# Get Well ID
 	try:
-		well_ID = re.search('[a-h]{1}(\d+)(?!.*[a-h]{1}(\d+))', fpath, re.IGNORECASE).group()
+		well_ID = re.search('[a-h]{1}([1][0-2]|[1-9](?![0-9]))(?!.*[a-h]{1}([1][0-2]|[1-9](?![0-9])))', fpath, re.IGNORECASE).group()
 	except AttributeError:
 		try:
-			well_ID = re.search('[a-h]{1}(_)(\d+)(?!.*[a-h]{1}(_)(\d+))', fpath, re.IGNORECASE).group()
+			well_ID = re.search('[a-h]{1}(_)([1][0-2]|[1-9](?![0-9]))(?!.*[a-h]{1}(_)([1][0-2]|[1-9](?![0-9])))', fpath, re.IGNORECASE).group()
 		except AttributeError:
 			well_ID = ''
 			well_found = False
@@ -106,7 +106,7 @@ def column(matrix, i):
 	:param i: column to be extracted
 	:return: column vector of ith column
 	'''
-    return [row[i] for row in matrix]
+	return [row[i] for row in matrix]
 
 
 def main(save_dir):
