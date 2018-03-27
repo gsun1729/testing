@@ -1,13 +1,9 @@
-# Program to print BFS traversal from a given source
-# vertex. BFS(int s) traverses vertices reachable
-# from s.
-# https://www.geeksforgeeks.org/?p=18382
+
 from collections import defaultdict
 import sys
 import numpy as np
-# This class represents a directed graph using adjacency
+# This matrix represents a directed graph using adjacency
 # list representation
-
 paths = np.array([[1, 1, 1, 0, 1, 0, 0, 0],
 				 [1, 1, 0, 1, 0, 1, 0, 0],
 				 [1, 0, 1, 1, 0, 0, 1, 0],
@@ -19,20 +15,20 @@ paths = np.array([[1, 1, 1, 0, 1, 0, 0, 0],
 path_direction = np.zeros((8, 8), dtype = bool)
 
 class Graph:
+	'''Class for creating graphs for 3d image segmentation'''
 	def __init__(self):
 		# default dictionary to store graph
 		self.graph = defaultdict(list)
 
 
 	def addEdge(self, origin, destination, bidirectional = False, self_connect = True):
-		'''
-		Function to add an edge to graph, can be set to bidirectional if desired
+		'''Function to add an edge to graph, can be set to bidirectional if desired
 		Manual entry of each element
-		
-		:param origin: start node ID
-		:param destination: end node ID
-		:param bidirectional: bool indicating whether the connection is bidirectional
-		:param self_connect: indicate whether the origin node connects to itself.
+
+		:param origin: [int] start node ID
+		:param destination: [int] end node ID
+		:param bidirectional: [bool] bool indicating whether the connection is bidirectional
+		:param self_connect: [bool] indicate whether the origin node connects to itself.
 		'''
 		# Append edge to dictionary of for point
 		self.graph[origin].append(destination)
@@ -49,9 +45,35 @@ class Graph:
 		self.graph[destination] = list(set(self.graph[destination]))
 
 
-	def connections2graph(self, connection_table, connection_direction, *exist_list):
+	def rmEdge(self, origin, destination):
+		'''Function tries to delete an edge in a graph, conditional on if it exists
+
+		:param origin: [int] origin node number
+		:param destination: [int] Destination node number
 		'''
-		Function creates a bidirectional graph given a 2d table of connections between points
+
+		if self.path_exists(origin, destination):
+			origin_connections = len(self.graph[origin])
+			dest_connections = len(self.graph[destination])
+			self.graph[origin].remove(destination)
+			if origin == destination:
+				pass
+			else:
+
+				if origin_connections == 1 and dest_connections == 1:
+					pass
+				else:
+					self.graph[destination].remove(origin)
+		else:
+			raise Exception("Path from {} to {} does not exist".format(origin, destination))
+
+
+	def connections2graph(self, connection_table, connection_direction, *exist_list):
+		'''Function creates a bidirectional graph given a 2d table of connections between points
+
+		:param connection_table: [nd.array] numpy binary adjacency matrix
+		:param connection_direction: [nd.array] numpy matrix of m x n bools
+		:param exist_list: [list] list of whether elements within the axes of the adjacency matrix exist
 		'''
 		if not exist_list:
 			exist_list = np.ones(len(connection_table))
@@ -71,8 +93,9 @@ class Graph:
 
 
 	def BFS(self, s):
-		'''
-		Function to print a BFS(Breadth First Traversal) of graph
+		'''Function to print a BFS(Breadth First Traversal) of graph
+
+		:param s: [int] query node ID number
 		'''
 		connections = []
 		# If element is not even in graph, there is no way to start from it
@@ -105,8 +128,10 @@ class Graph:
 
 
 	def path_exists(self, start, end):
-		'''
-		Given a start point and an end point, determine whether if the two points are connected by any path.
+		'''Given a start point and an end point, determine whether if the two points are connected by any path.
+
+		:param start: [int] node ID for starting node
+		:param end: [int] node ID for ending node
 		'''
 		if not start in self.graph or not end in self.graph:
 			return False
@@ -122,15 +147,18 @@ class Graph:
 
 
 	def get_self(self):
+		'''Statement used for getting graph contents for printing and debugging
+		'''
 		return self.graph
 
 
-
-# # Driver code
-# # Create a graph given in the above diagram
+# # Create a graph given in the above path listing
 # g = Graph()
-# #
+# # #
 # g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
+# print g.get_self()
+# print g.get_self()[2]
+# g.rmEdge(3,0)
 # print g.get_self()
 # # print g.BFS(5)/
 # #
