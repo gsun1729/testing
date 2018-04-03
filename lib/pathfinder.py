@@ -72,7 +72,7 @@ class Graph:
 		'''Function creates a bidirectional graph given a 2d table of connections between points
 
 		:param connection_table: [nd.array] numpy binary adjacency matrix
-		:param connection_direction: [nd.array] numpy matrix of m x n bools
+		:param connection_direction: [np.ndarray] numpy matrix of m x n bools
 		:param exist_list: [list] list of whether elements within the axes of the adjacency matrix exist
 		'''
 		if not exist_list:

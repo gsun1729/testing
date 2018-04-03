@@ -20,11 +20,10 @@ class rect_prism(object):
 
 
 	def corner_locations(self):
-		'''
-		Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
+		'''Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
 
-		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
-		:return: list of lists with sublists containing coordinates of the corner space
+		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question
+		:return: [list] of [list] list of lists with sublists containing coordinates of the corner space
 		'''
 		corners = []
 		for x in xrange(2 ** len(self.dimension_tuple)):
@@ -39,13 +38,12 @@ class rect_prism(object):
 
 
 	def edge_locations(self):
-		'''
-		Hardcoded edge detection
+		'''Hardcoded edge detection
 		num edge elements in an ndimensional element = (4 * (np.sum(dimension_tuple) - (2 * len(dimension_tuple)))):
 		Can only interpret edges in a 2d or 3d volume.
 
-		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
-		:return: list of lists with sublists containing coordinates of the edges
+		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question
+		:return: [list] of [list] list of lists with sublists containing coordinates of the edges
 		'''
 		edges = []
 		if len(self.dimension_tuple) == 2:
@@ -75,12 +73,11 @@ class rect_prism(object):
 
 
 	def face_locations(self):
-		'''
-		Hardcoded face detection
+		'''Hardcoded face detection
 		Can only interpret faces in a 2d or 3d volume.
 
-		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
-		:return: list of lists with sublists containing coordinates of the faces
+		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question (3D)
+		:return: [list] of [list] list of lists with sublists containing coordinates of the faces
 		'''
 		faces = []
 		if len(self.dimension_tuple) == 2:
@@ -104,12 +101,11 @@ class rect_prism(object):
 
 
 	def core_locations(self):
-		'''
-		Hardcoded core detection
+		'''Hardcoded core detection
 		Can only interpret faces in a 2d or 3d volume.
 
-		:param dimension_tuple: a tuple listing the length of the dimensions of the space in question
-		:return: list of lists with sublists containing coordinates of the cores
+		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question
+		:return: [list] of [list] list of lists with sublists containing coordinates of the cores
 		'''
 		cores = []
 		if len(self.dimension_tuple) == 2:
@@ -132,11 +128,10 @@ class rect_prism(object):
 
 
 	def is_core(self, query):
-		'''
-		returns bool if the location of the index is a core location
+		'''returns bool if the location of the index is a core location
 
-		:param query: location of the query in tuple form (3d)
-		:return: bool
+		:param query: [tuple] location of the query in tuple form (3d)
+		:return: [bool]
 		'''
 		if query not in self.core_locations():
 			return False
@@ -145,11 +140,10 @@ class rect_prism(object):
 
 
 	def is_corner(self, query):
-		'''
-		returns bool if the location of the index is a corner location
+		'''returns bool if the location of the index is a corner location
 
-		:param query: location of the query in tuple form (3d)
-		:return: bool
+		:param query: [tuple] location of the query in tuple form (3d)
+		:return: [bool]
 		'''
 		if query not in self.corner_locations():
 			return False
@@ -158,11 +152,10 @@ class rect_prism(object):
 
 
 	def is_face(self, query):
-		'''
-		returns bool if the location of the index is a face location
+		'''returns bool if the location of the index is a face location
 
-		:param query: location of the query in tuple form (3d)
-		:return: bool
+		:param query: [tuple] location of the query in tuple form (3d)
+		:return: [bool]
 		'''
 		if query not in self.face_locations():
 			return False
@@ -171,11 +164,10 @@ class rect_prism(object):
 
 
 	def is_edge(self, query):
-		'''
-		returns bool if the location of the index is a edge location
+		'''returns bool if the location of the index is a edge location
 
-		:param query: location of the query in tuple form (3d)
-		:return: bool
+		:param query: [tuple] location of the query in tuple form (3d)
+		:return: [bool]
 		'''
 		if query not in self.edge_locations():
 			return False
@@ -184,12 +176,11 @@ class rect_prism(object):
 
 
 def get_3d_neighbor_coords(tuple_location, size):
-	'''
-	Gets neighbors directly adjacent to target voxel. 1U distance max
+	'''Gets neighbors directly adjacent to target voxel. 1U distance max. Does not include diagonally adjacent neighbors
 
-	:param tuple_location: query location
-	:param size: size of the original image, to get rid of any points that exceed the boundaries of the rectangular prism space
-	:return: list of tuples indicating neighbor locations
+	:param tuple_location: [tuple] query location
+	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
+	:return: [list] of [tuple] list of tuples indicating neighbor locations
 	'''
 	neighbors = []
 	z, x, y = tuple_location
@@ -209,12 +200,11 @@ def get_3d_neighbor_coords(tuple_location, size):
 
 
 def get_3d_neighbor_coords_3U(tuple_location, size):
-	'''
-	Gets neighbors all around target voxel. sqrt(3)U distance max
+	'''Gets neighbors all around target voxel. sqrt(3)U distance max. Includes diagonally adjacent neighbors
 
-	:param tuple_location: query location
-	:param size: size of the original image, to get rid of any points that exceed the boundaries of the rectangular prism space
-	:return: list of tuples indicating neighbor locations
+	:param tuple_location: [tuple] query location
+	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
+	:return: [list] of [tuple] list of tuples indicating neighbor locations
 	'''
 	neighbors = []
 	z, x, y = tuple_location
@@ -259,12 +249,11 @@ def get_3d_neighbor_coords_3U(tuple_location, size):
 
 
 def imglattice2graph(input_binary):
-	'''
-	Converts a 3d image into a graph for segmentation
+	'''Converts a 3d image into a graph for segmentation
 
-	:param input_binary: complete binary image 3d
-	:return item_id: indicies of all elements in the lattice for identification
-	:return graph_map: graph object indicating which voxels are connected to which voxels
+	:param input_binary: [np.ndarray] complete binary image 3d
+	:return item_id: [np.ndarray] indicies of all elements in the lattice for identification
+	:return graph_map: [graph object] graph object indicating which voxels are connected to which voxels
 	'''
 	zdim, xdim, ydim = input_binary.shape
 	# Instantiate graph
@@ -303,11 +292,10 @@ def imglattice2graph(input_binary):
 
 
 def layer_comparator(image3D):
-	'''
-	Uses lattice graph data to determine where the unique elements are and prune redundancies.
+	'''Uses lattice graph data to determine where the unique elements are and prune redundancies.
 
-	:param image3D: original binary image 3d
-	:return: segmented 3d image
+	:param image3D: [np.ndarray] original binary image 3d
+	:return: [np.ndarray] segmented 3d image
 	'''
 	print "> Generating lattice"
 	ID_map, graph = imglattice2graph(image3D)
@@ -343,20 +331,19 @@ def layer_comparator(image3D):
 
 
 def euclid_dist_nD(p0, p1):
-	'''
-	Determines the euclidian distance between two n dimensional points
+	'''Determines the euclidian distance between two n dimensional points
 
-	:param p0: point 0 tuple form
-	:param p1: point 1 tuple form
-	:return: distance
+	:param p0: [tuple] point 0 tuple form
+	:param p1: [tuple] point 1 tuple form
+	:return: [float] distance
 	'''
 	return np.sum((p1 - p0) ** 2) ** 0.5
 
 
 class Point_set(object):
-	'''
-	Class creates a set of points and a set of associated attributes with the point set.
+	'''Class creates a set of points and a set of associated attributes with the point set.
 	Intended to be used for triangles
+	Points must be passed to the class in order.
 	'''
 	def __init__(self, point_list):
 		self.point_list = np.array([[float(coordinate) for coordinate in point] for point in point_list])
@@ -364,8 +351,9 @@ class Point_set(object):
 
 
 	def perimeter(self):
-		'''
-		returns the perimeter of the point set (assumes order in which the points were passed)
+		'''returns the perimeter of the point set (assumes order in which the points were passed)
+
+		:return: [float] perimeter value
 		'''
 		peri_distance = 0
 		for pt_indx in xrange(self.num_pts):
@@ -375,8 +363,9 @@ class Point_set(object):
 
 
 	def side_lengths(self):
-		'''
-		Determines the lengths of a each of the side lenths within the point set for the geometry they describe
+		'''Determines the lengths of a each of the side lenths within the point set for the geometry they describe
+
+		:return: [list] of side lengths point to point in the order they are listed.
 		'''
 		side_len = []
 		for pt_indx in xrange(self.num_pts):
@@ -386,8 +375,10 @@ class Point_set(object):
 
 
 	def heron_area(self):
-		'''
-		Intended to be used to determine the area of a triangle described by the point set (3 pts)
+		'''Intended to be used to determine the area of a triangle described by the point set (3 pts)
+		DOES NOT WORK FOR ANY OTHER 2D GEOMETRIES
+
+		:return: [float] area of prescribed triangle
 		'''
 		semi_peri = self.perimeter() / 2
 		prod = semi_peri
@@ -397,8 +388,7 @@ class Point_set(object):
 
 
 class Surface(object):
-	'''
-	class that creates a surface given a set of faces and verticies associated with each face.
+	'''class that creates a surface given a set of faces and verticies associated with each face.
 	'''
 	def __init__(self, triangle_collection):
 		self.triangle_collection = triangle_collection
@@ -407,8 +397,9 @@ class Surface(object):
 
 
 	def get_SA(self):
-		'''
-		Determines the total surface area of the triangles in the collection of faces and verticies
+		'''Determines the total surface area of the triangles in the collection of faces and verticies
+
+		:return: [float] area of all triangles in a surface
 		'''
 		total = 0
 		for triangle in self.triangle_collection:
@@ -418,21 +409,22 @@ class Surface(object):
 
 
 	def get_stats(self):
-		'''
-		Returns the number of triangles in the surface and the total surface area
+		'''Returns the number of triangles in the surface and the total surface area
+
+		:return: [int]
 		'''
 		return self.num_triangles, self.SA
 
 
 def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
-	'''
-	Gets the attributes of a single binary element in 3d space.
+	'''Gets the attributes of a single binary element in 3d space.
 
-	:param masked_image: binary 3d image
-	:param x: scaling factor for x (if calculation is desired in another unit than px)
-	:param y: scaling factor for y (if calculation is desired in another unit than px)
-	:param stack_height: scaling factor for z (if calculation is desired in another unit than px).
+	:param masked_image: [np.ndarray] binary 3d image
+	:param x: [float] scaling factor for x (if calculation is desired in another unit than px)
+	:param y: [float] scaling factor for y (if calculation is desired in another unit than px)
+	:param stack_height: [float] scaling factor for z (if calculation is desired in another unit than px).
 							This is also the distance between slices in a stack image
+	:return volume, nTriangles, surfaceArea: [float], [int], [float] volume, number of triangles, and surface area of object
 	'''
 	masked_image[masked_image > 0] = 1
 	volume = np.sum(masked_image) * stack_height
@@ -455,21 +447,21 @@ def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
 
 
 def reverse_cantor_pair(z):
-	'''
-	Decoder for determining which two numbers make the number pairing.
+	'''Decoder for determining which two numbers make the number pairing.
 
-	:param z: cantor number result
-	:return x, y: number pairing that resulted in the cantor number result
+	:param z: [float] cantor number result
+	:return x, y: [int], [int] number pairing that resulted in the cantor number result
 	'''
-	Used for determining which cell and mitochondria ID correspond to a labeled mitochondria
+	# Used for determining which cell and mitochondria ID correspond to a labeled mitochondria
 	w = np.floor((np.sqrt((8 * z) + 1) - 1) / 2)
 	t = (w ** 2 + w) / 2
 	return int(w - z + t), int(z - t)
 
 
 def get_args(args):
-	'''
-	Helper module for taking in arguments for running script as standalone
+	'''Helper module for taking in arguments for running script as standalone
+
+	:return: [dict] dictionary of  argument values
 	'''
 	parser = argparse.ArgumentParser(description = 'Script for 3d segmenting mitochondria')
 	parser.add_argument('-r',
@@ -537,6 +529,6 @@ def main(save_dir):
 	mito_stats.close()
 	processing_stats.close()
 
-	
+
 if __name__ == "__main__":
 	main(sys.argv)

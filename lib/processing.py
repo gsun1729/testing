@@ -33,15 +33,14 @@ dtype2range = { 'uint8': 255,
 				'uint32': 4294967295,
 				'uint64': 18446744073709551615}
 
-def gamma_stabilize(image, alpha_clean=5, floor_method='min'):
-	"""
-	Normalizes the luma curve. floor intensity becomes 0 and max allowed by the bit number - 1
+def gamma_stabilize(image, alpha_clean = 5, floor_method = 'min'):
+	"""Normalizes the luma curve. floor intensity becomes 0 and max allowed by the bit number - 1
 	Borrowed from Andrei's Imagepipe
 
-	:param image:
-	:param alpha_clean: size of features that would be removed if surrounded by a majority of
-	:param floor_method: ['min', '1q', '5p', 'median'] method of setting the floor intensity. 1q is first quartile, 1p is the first percentile
-	:return:
+	:param image: [np.ndarray]
+	:param alpha_clean: [int] size of features that would be removed if surrounded by a majority of
+	:param floor_method: [str] ['min', '1q', '5p', 'median'] method of setting the floor intensity. 1q is first quartile, 1p is the first percentile
+	:return: [np.ndarray]
 	"""
 	bits = dtype2bits[image.dtype.name]
 	if floor_method == 'min':
@@ -60,14 +59,13 @@ def gamma_stabilize(image, alpha_clean=5, floor_method='min'):
 
 
 def sum_projection(image, axis = 0):
-	'''
-	Axis is defined as the index of the image.shape output.
+	'''Axis is defined as the index of the image.shape output.
 	By default it is the Z axis (z,x,y)
 	Takes a 3d image, and sums it along a defined axis to form a 2d Image
 
-	:param image: 3d stack image in <np.ndarray> format
-	:param axis: axis to sum along, z = 0, x = 1, y = 2
-	:return: returns 2d image in the shape x,y summed along z axis (by default)
+	:param image: [np.ndarray] 3d stack image in [np.ndarray] format
+	:param axis: [int] axis to sum along, z = 0, x = 1, y = 2
+	:return: [np.ndarray] returns 2d image in the shape x,y summed along z axis (by default)
 	'''
 	try:
 		return np.sum(image, axis)
@@ -80,16 +78,15 @@ def sum_projection(image, axis = 0):
 
 
 def max_projection(image, axis = 0):
-	'''
-	Axis is defined as the index of the image.shape output.
+	'''Axis is defined as the index of the image.shape output.
 	By default it is the Z axis (z,x,y)
 	Takes a 3d image, and projects it along a defined axis to form a 2d Image
 	Takes the max value for each pixel along (default) x,y plane, and projects it
 	to one plane
 
-	:param image: 3d stack image in <np.ndarray> format
-	:param axis: axis to sum along, z = 0, x = 1, y = 2
-	:return: returns 2d image in the shape x,y
+	:param image: [np.ndarray] 3d stack image in <np.ndarray> format
+	:param axis: [int] axis to sum along, z = 0, x = 1, y = 2
+	:return: [np.ndarray] returns 2d image in the shape x,y
 	'''
 	try:
 		return np.amax(image, axis)
@@ -102,16 +99,15 @@ def max_projection(image, axis = 0):
 
 
 def avg_projection(image, axis = 0):
-	'''
-	Axis is defined as the index of the image.shape output.
+	'''Axis is defined as the index of the image.shape output.
 	By default it is the Z axis (z,x,y)
 	Takes a 3d image, and projects it along a defined axis to form a 2d Image
 	Takes the average value for each pixel in the (default) x,y plane along the
 	z axis
 
-	:param image: 3d stack image in <np.ndarray> format
-	:param axis: axis to sum along, z = 0, x = 1, y = 2
-	:return: returns 2d image in the shape x,y
+	:param image: [np.ndarray] 3d stack image in <np.ndarray> format
+	:param axis: [int] axis to sum along, z = 0, x = 1, y = 2
+	:return: [np.ndarray] returns 2d image in the shape x,y
 	'''
 	try:
 		print axis
@@ -126,18 +122,17 @@ def avg_projection(image, axis = 0):
 
 
 def disk_hole(image, radius, pinhole = False):
-	'''
-	Returns either an image of a pinhole or a circle in the
+	'''Returns either an image of a pinhole or a circle in the
 	middle for removing high frequency/ low frequency noise using FFT
 	same dimensions as input image
 	Pinhole =  True : pinhole filter, or high pass filter. Filters out low frequency
 	content to yield edges
 	Pinhole = False: single dot filter, preserves low frequency content
 
-	:param image: input image (filter will be applied eventually), used to get dims
-	:param radius: radius of pinhole/pinpoint
-	:param pinhole: determines whether the filter will be a pinhole or pinpoint
-	:return: filter of same size of 2d image input
+	:param image: [np.ndarray] 2d input image (filter will be applied eventually), used to get dims
+	:param radius: [int] radius of pinhole/pinpoint
+	:param pinhole: [bool] determines whether the filter will be a pinhole or pinpoint
+	:return: [np.ndarray] 2d filter of same size of 2d image input
 	'''
 	x, y = image.shape
 	structuring_element = np.zeros((x, y), dtype = long)
@@ -154,14 +149,13 @@ def disk_hole(image, radius, pinhole = False):
 
 
 def smooth(image, smoothing_px = 0.5, threshold = 1):
-	"""
-	Gaussian smoothing of the image
+	"""Gaussian smoothing of the image
 	Borrowed from Andrei's Imagepipe
 
-	:param image: Input image
-	:param smoothing_px: size of smoothing pixel
-	:param threshold: threshold to filter image intensity
-	:return:
+	:param image: [np.ndarray] Input image
+	:param smoothing_px: [float] size of smoothing pixel
+	:param threshold: [int] threshold to filter image intensity
+	:return: [np.ndarray]
 	"""
 	# print "> Filtering image with Gaussian filter"
 	if len(image.shape) > 2:
@@ -176,14 +170,13 @@ def smooth(image, smoothing_px = 0.5, threshold = 1):
 
 
 def smooth_tripleD(image, smoothing_px = 0.5, stdevs = 1):
-	"""
-	Gaussian smoothing of the image
+	"""Gaussian smoothing of the image
 	Borrowed from Andrei's Imagepipe
 
-	:param image: Input image
-	:param smoothing_px: size of smoothing pixel
-	:param threshold: threshold to filter image intensity
-	:return:
+	:param image: [np.ndarray] 3d Input image
+	:param smoothing_px: [float] size of smoothing pixel
+	:param threshold: [float] threshold to filter image intensity
+	:return: [np.ndarray]
 	"""
 	# print "> Filtering image with Gaussian filter"
 	if len(image.shape) > 2:
@@ -199,8 +192,7 @@ def smooth_tripleD(image, smoothing_px = 0.5, stdevs = 1):
 
 
 def fft_ifft(image, struct_element):
-	'''
-	Performs a fast fourier transform, removes certain frequencies highlighted by
+	'''Performs a fast fourier transform, removes certain frequencies highlighted by
 	the structuring element, and returns the inverse fourier transform back.
 	Helper function disk_hole
 
@@ -517,8 +509,7 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 
 
 def rm_eccentric(input_img, min_eccentricity = 0.7, max_area = 2500):
-	'''
-	Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
+	'''Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
 	Also chucks any cells that have an area larger than max_area
 
 	:param input_img: segmented binary image

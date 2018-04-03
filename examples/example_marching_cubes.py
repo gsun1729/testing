@@ -7,17 +7,23 @@ from skimage.draw import ellipsoid
 from skimage.data import binary_blobs
 from lib.render import *
 import sys
+
 # Generate a level set about zero of two identical ellipsoids in 3D
 # ellip_base = ellipsoid(6, 10, 16, levelset=True)
 # ellip_double = np.concatenate((ellip_base[:-1, ...],
 #                                ellip_base[2:, ...]), axis=0)
 
-data = binary_blobs(length=30, blob_size_fraction=0.2, n_dim=3, volume_fraction=0.01, seed=None)
+data = binary_blobs(length=50, blob_size_fraction=0.4, n_dim=3, volume_fraction=0.1, seed=None)
+data = scipy.io.loadmat("L:\\Users\\gordon\\00000004 - Running Projects\\20180126 Mito quantification for Gordon\\20180306_results\\3D_seg\\CSM_0b29da6715724d089eb08c6ec15ad193_3DS.mat")['data']
+data[data>0] = 1
+stack_viewer(data)
 
-print type(data[0,0,0])
+# print type(data[0,0,0])
+print data.shape
 # sys.exit()
 # Use marching cubes to obtain the surface mesh of these ellipsoids
-verts, faces, normals, values = measure.marching_cubes_lewiner(data, level=None, spacing=(1, 1.0, 3.458), gradient_direction='descent', step_size=1, allow_degenerate=True, use_classic=False)
+verts, faces, normals, values = measure.marching_cubes_lewiner(data, level=None, spacing=(1, 1.0, 1), gradient_direction='descent', step_size=1, allow_degenerate=True, use_classic=False)
+print verts
 # save_data(verts, "verts", ".\\")
 # save_data(faces, "faces", ".\\")
 # save_data(normals, "normals", ".\\")
@@ -37,9 +43,9 @@ ax.set_xlabel("x-axis: a = 6 per ellipsoid")
 ax.set_ylabel("y-axis: b = 10")
 ax.set_zlabel("z-axis: c = 16")
 
-ax.set_xlim(0, 30)  # a = 6 (times two for 2nd ellipsoid)
-ax.set_ylim(0, 30)  # b = 10
-ax.set_zlim(0, 90)  # c = 16
+ax.set_xlim(0, 13)  # a = 6 (times two for 2nd ellipsoid)
+ax.set_ylim(0, 512)  # b = 10
+ax.set_zlim(0, 512)  # c = 16
 
 plt.tight_layout()
 plt.show()
