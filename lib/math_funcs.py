@@ -3,6 +3,8 @@ import numpy as np
 from scipy import stats
 from skimage.morphology import dilation, disk, erosion
 
+'''Basic math functions for pipeline'''
+
 def distance_2d(p0, p1):
 	'''Returns the euclidian distance between two points in 2d linspace
 

@@ -14,9 +14,9 @@ def get_img_filenames(root_directory, suffix = '.TIF'):
 	Given a root directory, traverses all sub_directories and recovers any files with a given suffix.
 	Assigns a UUID to each of the files found
 
-	:param root_directory: location to search
-	:param suffix: type of image suffix to look for
-	:return: a list of image files and their corresponding properties
+	:param root_directory: [str] location to search
+	:param suffix: [str] type of image suffix to look for
+	:return: [list] a list of image files and their corresponding properties
 	'''
 	img_filelist = []
 	for current_location, sub_directories, files in os.walk(root_directory):
@@ -38,9 +38,9 @@ def get_img_filenames(root_directory, suffix = '.TIF'):
 def get_just_filenames(root_directory, suffix = '.mat'):
 	'''
 	Given directory with datafiles, get just imagefilenames
-	:param root_directory: root search directory.  Note this should be the only directory, with no subdirectories for analysis to work
-	:param suffix: type of file to search for
-	:return: <list> of filenames
+	:param root_directory: [str] root search directory.  Note this should be the only directory, with no subdirectories for analysis to work
+	:param suffix: [str] type of file to search for
+	:return: [list] of filenames
 	'''
 	img_filelist = []
 	for current_location, sub_directories, files in os.walk(root_directory):
@@ -56,9 +56,9 @@ def save_data(data, filename, write_directory):
 	saves data to a filename in a write directory
 	Saves a .mat file
 
-	:param data: data to be saved
-	:param filename: file to be saved to
-	:param write_directory: directory file will be saved in
+	:param data: [np.ndarray] data to be saved
+	:param filename: [str] file to be saved to
+	:param write_directory: [str] directory file will be saved in
 	'''
 	save_dir = os.path.join(write_directory, filename)
 	scipy.io.savemat(save_dir, mdict = {'data': data})
@@ -71,9 +71,9 @@ def save_figure(fig, name, write_directory):
 	saves data to a filename in a write directory
 	Saves a PNG file
 
-	:param data: data to be saved
-	:param filename: file to be saved to
-	:param write_directory: directory file will be saved in
+	:param data: [np.ndarray] data to be saved
+	:param filename: [str] file to be saved to
+	:param write_directory: [str] directory file will be saved in
 	'''
 	imsave(os.path.join(write_directory,name), fig)
 	print "> Image Figure '{}' saved to '{}'".format(name, write_directory)
@@ -85,8 +85,8 @@ def filepath2name(filepath):
 
 	Removes any OS identifiers
 
-	:param filepath: original filpath
-	:return: filepath concatenated
+	:param filepath: [str] original filpath
+	:return: [str] filepath concatenated
 	'''
 	if filepath[0] == ".":
 		filepath = list(filepath)
@@ -101,7 +101,7 @@ def mkdir_check(directory):
 	'''
 	Check to see if a directory exists, and if not, make the directory
 
-	:param directory: location for the directory to be made
+	:param directory: [str] location for the directory to be made
 	'''
 	if not os.path.exists(directory):
 		try:
@@ -115,9 +115,9 @@ def write_list_txt(location, filename, array):
 	'''
 	Given an array, write data to filename at location.
 
-	:param location: save directory for output file
-	:param filename: name of the output file
-	:param array: data to be saved to file.
+	:param location: [str] save directory for output file
+	:param filename: [str] name of the output file
+	:param array: [np.ndarray] data to be saved to file.
 	'''
 	writefile = open(os.path.join(location, filename), 'w')
 	for row in array:
@@ -132,8 +132,8 @@ def read_txt_file(location):
 	Reads the lookuptable generated from the main part of the algorithm, strips any new lines and tabs
 	Used for reading LUT tables and cell mito UUID pairs
 
-	:param location: directory txt file is located in, .txt file
-	:return: <list> of <lists> which includes data from the txt file.
+	:param location: [str] directory txt file is located in, .txt file
+	:return: [list] of <lists> which includes data from the txt file.
 	'''
 	file_object = open(location, 'r')
 	content = file_object.readlines()

@@ -196,9 +196,9 @@ def fft_ifft(image, struct_element):
 	the structuring element, and returns the inverse fourier transform back.
 	Helper function disk_hole
 
-	:param image: Image to be filtered
-	:param struct_element: filter to be applied to image in frequency space
-	:return: filtered image
+	:param image: [np.ndarray] Image to be filtered
+	:param struct_element: [np.ndarray] filter to be applied to image in frequency space, should be same dimension as input image
+	:return: [np.ndarray] filtered image
 	'''
 	# print "> Performing FFT>filter>IFFT transform"
 
@@ -225,10 +225,10 @@ def bandpass_disk(image, r_range = (10, 200), pinhole = False):
 	Creates a bandpass disk for filtering FFT images, creates either a solid
 	torus filter or negative image of that
 
-	:param image: image that filter will be applied to
-	:param r_range: (inner, outer) radius of bandpass filter
-	:param pinhole: torus (true) or inverse torus (false) filter
-	:return: bandpass filter structuring element
+	:param image: [np.ndarray] image that filter will be applied to
+	:param r_range: [tuple] (inner, outer) radius of bandpass filter
+	:param pinhole: [bool] torus (true) or inverse torus (false) filter
+	:return: [np.ndarray] bandpass filter structuring element
 	'''
 	outer = disk_hole(image, r_range[1], pinhole)
 	inner = disk_hole(image, r_range[0], pinhole)
@@ -240,13 +240,12 @@ def median_layers(image, struct_disk_r = 5):
 	'''
 	Applies median filter over multiple layer of a 3d stack image
 
-	:param image: input image
-	:param struct_disk_r: size of median filter kernel
-	:return: de-noised median filtered image
+	:param image: [np.ndarray] input image
+	:param struct_disk_r: [float] size of median filter kernel
+	:return: [np.ndarray] de-noised median filtered image
 	'''
 	for i in range(0, image.shape[0]):
 		image[i, :, :] = median(image[i, :, :], disk(struct_disk_r))
-		# image[image < 2 * np.mean(image)] = 0
 	return image
 
 
@@ -255,9 +254,9 @@ def img_type_2uint8(base_image, func = 'floor'):
 	Converts a given image type to a uint8 image
 	Rounding is done either via 'floor', 'ceiling', or 'fix' functions in numpy
 
-	:param base_image: input image
-	:param func: function used for scaling image pixel intensity
-	:return: uint8 image
+	:param base_image: [np.ndarray] input image
+	:param func: [str] function used for scaling image pixel intensity
+	:return: [np.ndarray] uint8 image
 	'''
 	# print "> Converting Image to uin8"
 	try:
@@ -289,10 +288,10 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 	Binarizes an image using local otsu and random walker
 	Borrowed from Andrei's Imagepipe
 
-	:param base_image: input image
-	:param _dilation: amount of dilation to implement in Binarization
-	:param feature_size: size of the structuring disk for random Walker
-	:return: binarized image
+	:param base_image: [np.ndarray] input image
+	:param _dilation: [float] amount of dilation to implement in Binarization
+	:param feature_size: [float] size of the structuring disk for random Walker
+	:return: [np.ndarray] binarized image
 	'''
 	print "> Binarizing Image..."
 	if np.percentile(base_image, 99) < 0.20:
@@ -326,11 +325,11 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	individual cells may lie. Does not take in a whole binary image, only takes in a contour converted
 	to a binary image for a single cluster
 
-	:param input_binary_img: Input binary image of the single cell group
-	:param min_r: minimum radius acceptable for a cell
-	:param max_r: maximum radius acceptable for a cell
-	:param step: rate at which minimum radius will be stepped up to maximum radius size
-	:return: cropped and split version of input binary image
+	:param input_binary_img: [np.ndarray] Input binary image of the single cell group
+	:param min_r: [float] minimum radius acceptable for a cell
+	:param max_r: [float] maximum radius acceptable for a cell
+	:param step: [float] rate at which minimum radius will be stepped up to maximum radius size
+	:return: [np.ndarray] cropped and split version of input binary image
 	'''
 	print "> Performing Hough cell splitting"
 	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
@@ -426,8 +425,8 @@ def just_label(binary_image):
 	'''
 	Just labels a binary image (segments everything)
 
-	:params binary_image: input image
-	:return: segmented image
+	:params binary_image: [np.ndarray] input image
+	:return: [np.ndarray] segmented image
 	'''
 	labeled_field, object_no = ndi.label(binary_image, structure = np.ones((3, 3)))
 	return labeled_field
@@ -438,12 +437,12 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 	Labelling of a binary image, with constraints on minimal feature size, minimal intensity of area
 	 covered by a binary label or minimal mean difference from background
 
-	:param binary_channel:
-	:param value_channel: used to compute total intensity
-	:param min_px_radius: minimal feature size
-	:param min_intensity: minimal total intensity
-	:param mean_diff: minimal (multiplicative) difference from the background
-	:return:
+	:param binary_channel: [np.ndarray] input image
+	:param pre_binary: [np.ndarray] used to compute total intensity
+	:param min_px_radius: [float] minimal feature size
+	:param min_intensity: [float] minimal total intensity
+	:param mean_diff: [float] minimal (multiplicative) difference from the background
+	:return: [np.ndarray]
 	"""
 	labeled_field, object_no = ndi.label(binary_channel, structure = np.ones((3, 3)))
 	background_mean = np.mean(pre_binary[labeled_field == 0])
@@ -465,13 +464,13 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 	Function finds individual cluster of cells that have a contour fall within the bounds of area and perimeter
 	and attempts to divide them by their constituents
 
-	:param input_img: binary input image containing all segmented cells
-	:param contours: a list of list of points for each of the contours for each cell
-	:param min_area: minimum acceptable area for a cell
-	:param max_area: max acceptable area for a cell
-	:param min_peri: minimum acceptable perimeter for a cell
-	:param max_peri: maximum acceptable perimeter for a cell
-	:return: full image with cell clusters split
+	:param input_img: [np.ndarray] binary input image containing all segmented cells
+	:param contours: [list] of [lists] a list of list of points for each of the contours for each cell
+	:param min_area: [float] minimum acceptable area for a cell
+	:param max_area: [float] max acceptable area for a cell
+	:param min_peri: [float] minimum acceptable perimeter for a cell
+	:param max_peri: [float] maximum acceptable perimeter for a cell
+	:return: [np.ndarray] full image with cell clusters split
 	'''
 	print "> Starting Cell Split"
 	output = np.zeros_like(input_img)
@@ -512,9 +511,9 @@ def rm_eccentric(input_img, min_eccentricity = 0.7, max_area = 2500):
 	'''Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
 	Also chucks any cells that have an area larger than max_area
 
-	:param input_img: segmented binary image
-	:param min_eccentricity: minimum acceptable eccentricity
-	:param max_area: maximum area acceptable for a cell
+	:param input_img: [np.ndarray] segmented binary image
+	:param min_eccentricity: [float] minimum acceptable eccentricity
+	:param max_area: [float] maximum area acceptable for a cell
 	'''
 
 	max_cells = np.amax(input_img.flatten())
@@ -536,10 +535,10 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	separation between the elements
 	Borrowed from Andrei's Imagepipe
 
-	:param binary_base: support for watershedding
-	:param intensity: intensity value used to exclude  watershed points with too low of intensity
-	:param expected_separation: expected minimal separation (in pixels) between watershed centers
-	:return:
+	:param binary_base: [np.ndarray] support for watershedding
+	:param intensity: [np.ndarray] intensity value used to exclude  watershed points with too low of intensity
+	:param expected_separation: [float] expected minimal separation (in pixels) between watershed centers
+	:return: [np.ndarray]
 	"""
 	print "> Performing Improved Watershed"
 	# sel_elem = disk(2)
@@ -606,11 +605,11 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path,
 	'''
 	Given two segmented binary images, determine the difference between the
 	cells present on both images and save differences and cell stats to a file
-	:param before_image: Image before cell deletion or addition
-	:param after_image: Image after cell deletion or addition
-	:param UID: unique UID for the image, should be the same between the two Images
-	:param filename: name of the datafile to be written to
-	:param write_path: location of the datafile containing data
+	:param before_image: [np.ndarray] Image before cell deletion or addition
+	:param after_image: [np.ndarray] Image after cell deletion or addition
+	:param UID: [str] unique UID for the image, should be the same between the two Images
+	:param filename: [str] name of the datafile to be written to
+	:param write_path: [str] location of the datafile containing data
 	'''
 	write_file = open(os.path.join(write_path, filename),'a')
 	# write_file.write("cell\tUID\tcell_num\tcell_updated_num\tdeleted\tRadius\tArea\tPerimeter\tEccentricity\tread_path\n")

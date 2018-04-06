@@ -2,6 +2,9 @@
 from collections import defaultdict
 import sys
 import numpy as np
+
+'''Module contains graph generation functions and classes
+'''
 # This matrix represents a directed graph using adjacency
 # list representation
 paths = np.array([[1, 1, 1, 0, 1, 0, 0, 0],
@@ -154,14 +157,12 @@ class Graph:
 
 # # Create a graph given in the above path listing
 # g = Graph()
-# # #
 # g.connections2graph(paths, path_direction, np.array([0,0,1,1,0,1,1,1]))
 # print g.get_self()
 # print g.get_self()[2]
 # g.rmEdge(3,0)
 # print g.get_self()
 # # print g.BFS(5)/
-# #
 # print g.path_exists(2,12)
 # print g.path_exists(1,2)
 # print g.path_exists(2,2)

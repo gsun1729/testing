@@ -11,6 +11,8 @@ def stack_viewer(image):
 	'''
 	Module to allow for scrolling through a 3d stack image modified from the following source:
 	https://matplotlib.org/gallery/animation/image_slices_viewer.html
+
+	:param image: [np.ndarray] 3d stack image for viewing
 	'''
 	try:
 		z,x,y = image.shape
@@ -53,8 +55,10 @@ def stack_viewer(image):
 
 ## 2d Stuff below here
 def view_2d_img(img, save = False):
-	'''
-	Displays a single 2d images
+	'''Displays a single 2d image
+
+	:param img: [np.ndarray] image for viewing
+	:param save: [bool] save image or not
 	'''
 	fig = plt.figure()
 	plt.imshow(img)
@@ -66,22 +70,24 @@ def view_2d_img(img, save = False):
 
 
 def make_ticklabels_invisible(fig):
-	'''
-	Helper function for montage_n_x, removes tick labels
+	'''Helper function for montage_n_x, removes tick labels
 	https://matplotlib.org/users/gridspec.html
+
+	:param fig: [matplotlib.fig] figure to have tick labels removed
 	'''
 	for i, ax in enumerate(fig.axes):
-		ax.text(0.5, 0.5, "ax%d" % (i+1), va="center", ha="center")
+		ax.text(0.5, 0.5, "ax%d" % (i + 1), va = "center", ha = "center")
 		for tl in ax.get_xticklabels() + ax.get_yticklabels():
 			tl.set_visible(False)
 
 
 def montage_n_x(*tuple_img_line):
-	'''
-	Function takes a tuple of images to show a progression of images at each step in a processing
+	'''Function takes a tuple of images to show a progression of images at each step in a processing
 	pipeline.
 	Multiple pipelines are displayed as individual rows, with each tuple submitted to the function
 	representing a single pipeline.
+
+	:param *tuple_img_line: [tuple] of images to be displayed in a row
 	'''
 	num_rows = len(tuple_img_line)
 	num_cols = 0;
@@ -112,6 +118,7 @@ def plot_contour(points):
 		 [3,2]
 		 [4,3]]]
 	plots the points in 2d space.
+	:param points: [list] of [list]
 	'''
 	plt.plot(points[:, 0],  points[:, 1])
 	plt.show()
@@ -125,6 +132,8 @@ def points2img(points):
 		 [3,2]
 		 [4,3]]]
 	Creates an image of the points. (2d Numpy array)
+	:param points: [list] of [list]
+	:return: [np.ndarray]
 	'''
 	x_data = points[:, 0]
 	y_data = points[:, 1]
@@ -139,6 +148,11 @@ def points2img(points):
 
 
 def render_contours(background, contour_list):
+	'''Helper function for displaying contours detected in an image
+
+	:param background: [np.ndarray] original image to show background
+	:param contour_list: [list] list of contour locations and points
+	'''
 	fig, ax = plt.subplots()
 	ax.imshow(background, interpolation = 'nearest', cmap = plt.cm.gray)
 	for n, contour in enumerate(contour_list):
@@ -149,6 +163,8 @@ def render_contours(background, contour_list):
 def location(points):
 	'''
 	Given a set of points, determine what square in the image they lie in
+
+	:param points: [list] of [list]
 	'''
 	x_data = points[:, 1]
 	y_data = points[:, 0]
@@ -163,6 +179,9 @@ def location(points):
 def img_px_histogram(data, nbins = None):
 	'''
 	Plots an image's pixel intensity distribution, takes in a 1d list
+
+	:param data: [list]
+	:param nbins: [int] number of bins for histogram
 	'''
 	n, bins, patches = plt.hist(data, nbins)
 	plt.show()
@@ -171,17 +190,31 @@ def img_px_histogram(data, nbins = None):
 
 
 def px_hist_stats_n0(image):
+	'''Gets the values of each px within an image and calulates the mean px intensity and standard deviation
+	Does not count px that have a value of 0
+
+	:param image: [np.ndarray]
+	:return: [float], [float]; mean and standard deviation
+	'''
 	data = image.flatten()
 	f_data = [s for s in data if s != 0]
 	return np.mean(f_data), np.std(f_data)
 
 
 def px_stats(image):
+	'''Gets the values of each px within an image and calulates the mean px intensity and standard deviation
+	Does count px that have a value of 0
+
+	:param image: [np.ndarray]
+	:return: [float], [float]; mean and standard deviation
+	'''
 	data = image.flatten()
 	return np.mean(data), np.std(data)
 
 
 if __name__ == "__main__":
+	'''Generates a 3d image of binary blobs and then runs the viewer.
+	'''
 	test_image = binary_blobs(length = 200,
 								blob_size_fraction = 0.1,
 								n_dim = 3,
