@@ -110,7 +110,7 @@ def avg_projection(image, axis = 0):
 	:return: [np.ndarray] returns 2d image in the shape x,y
 	'''
 	try:
-		print axis
+		# print axis
 		z, x, y = image.shape
 		return np.sum(image, axis)//z
 	except ValueError:
