@@ -2,6 +2,8 @@ import unittest
 import numpy as np
 import lib.pathfinder as pf
 import lines.mito_counter as mcount
+from skimage.data import binary_blobs
+from lib.render import stack_viewer
 
 class pathfinderTestCase(unittest.TestCase):
 	"""Tests for pathfinder.py in function libraries"""
@@ -82,7 +84,13 @@ class pathfinderTestCase(unittest.TestCase):
 		self.assertEqual(sorted(graph.BFS(5)), [0, 1, 2, 3, 4, 5, 6])
 		self.assertEqual(sorted(graph.BFS(6)), [0, 1, 2, 3, 4, 5, 6])
 
-# class mitoCounterTesting(unittest.TestCase):
+class mitoCounterTesting(unittest.TestCase):
+	test_image = binary_blobs(length = 200,
+								blob_size_fraction = 0.1,
+								n_dim = 3,
+								volume_fraction = 0.3,
+								seed = 1)
+
 
 if __name__ == '__main__':
 	unittest.main()

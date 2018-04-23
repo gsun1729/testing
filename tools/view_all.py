@@ -22,7 +22,7 @@ def get_args(args):
 def main(args):
 	options = get_args(args)
 	read_path = options['read_path']
-	filenames = get_img_filenames(read_path, suffix = '.tif')
+	filenames = get_img_filenames(read_path, suffix = '.mat')
 	num_images = len(filenames)
 	print "> {} Images detected".format(num_images)
 	for _, _, _, _, _, img_path in filenames:

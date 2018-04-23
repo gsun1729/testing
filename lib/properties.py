@@ -1,6 +1,8 @@
 import sys
 import numpy as np
 
+'''Helper function for render module
+'''
 def global_max(img_2d):
 	'''Returns the maximum pixel value within a 2-3d image'''
 	return np.amax(img_2d.flatten())
