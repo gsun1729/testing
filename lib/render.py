@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
 from matplotlib.gridspec import GridSpec
 import sys
-
-
+from skimage import io
+import scipy.io
 
 def stack_viewer(image):
 	'''
@@ -234,9 +234,14 @@ def properties(image):
 if __name__ == "__main__":
 	'''Generates a 3d image of binary blobs and then runs the viewer.
 	'''
-	test_image = binary_blobs(length = 200,
-								blob_size_fraction = 0.1,
-								n_dim = 3,
-								volume_fraction = 0.3,
-								seed = 1)
-	stack_viewer(test_image)
+	# test_image = binary_blobs(length = 200,
+	# 							blob_size_fraction = 0.1,
+	# 							n_dim = 3,
+	# 							volume_fraction = 0.3,
+	# 							seed = 1)
+	# stack_viewer(test_image)
+	input = sys.argv
+	# image = io.imread(input[-1])
+	image = scipy.io.loadmat(input[-1])
+	image = image['data']
+	stack_viewer(image)
