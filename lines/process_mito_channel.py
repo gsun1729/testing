@@ -40,13 +40,16 @@ def analyze(UID, read_path, write_path):
 		FFT_Filtered = fft_ifft(median_filtered, fft_filter_disk)
 		# Convert image to 8 bit for faster processing
 		image_8bit = img_type_2uint8(FFT_Filtered, func = 'floor')
+		test = median(image_8bit, sel_elem)
 		# Run local thresholding and binarization
-		local_thresh = threshold_local(image_8bit,
+		scale_ratio = 3.0
+		threshold = np.mean(asdf.flatten()) + np.std(asdf.flatten()) * scale_ratio
+		local_thresh = threshold_local(test,
 										block_size = 31,
 										offset = -15)
-		binary_local = image_8bit > local_thresh
+		binary_local = test > local_thresh
 		# label individual elements and remove really small noise and background
-		corrected_slice = label_and_correct(binary_local, image_8bit,
+		corrected_slice = label_and_correct(binary_local, test,
 												min_px_radius = 1,
 												max_px_radius = 100,
 												min_intensity = 0,
