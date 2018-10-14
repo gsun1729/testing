@@ -69,7 +69,7 @@ def analyze(UID, read_path, write_path):
 												min_px_radius = 1,
 												max_px_radius = 100,
 												min_intensity = 0,
-												mean_diff = 10)
+												mean_diff = 11.9)
 		corrected_slice[corrected_slice > 0] = 1
 		binary[layer, :, :] = corrected_slice
 
