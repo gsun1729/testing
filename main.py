@@ -14,8 +14,8 @@ from lib.UUID import *
 from lib.render import *
 from lib.read_write import *
 from lib.processing import *
-import lines.cell_line as cell_line
-import lines.mito_line as mito_line
+import lines.process_cell_channel as cell_line
+import lines.process_mito_channel as mito_line
 from lines import mito_counter
 
 def blockPrint():
@@ -32,12 +32,12 @@ def get_args(args):
 						dest = 'read_dir',
 						help = 'Raw data read directory',
 						required = False,
-						default = ".\\data")
+						default = ".\\testing_environment\\")
 	parser.add_argument('-w',
 						dest = 'save_dir',
 						help = 'Save directory for segmentation and skeletonization data',
 						required = False,
-						default = ".\\test_run")
+						default = ".\\testing_environment\\test_run\\")
 
 	options = vars(parser.parse_args())
 	if os.path.exists(options['save_dir']):
@@ -52,8 +52,8 @@ def main(args):
 	root_read_dir = options['read_dir']
 	save_dir = options['save_dir']
 
-	print "> Parent Read Directory : {}\n".format(root_read_dir)
-	print "> Save Directory : {}\n".format(save_dir)
+	print "> Parent Read Directory : {}\r".format(root_read_dir)
+	print "> Save Directory : {}\r".format(save_dir)
 
 	save_dir_cell = os.path.join(save_dir, 'cell')
 	save_dir_mito = os.path.join(save_dir, 'mito')
@@ -72,43 +72,45 @@ def main(args):
 	mito_stats = []
 	cell_stats = []
 
-	print "> Processing IDs saved here: {}\n".format(save_dir)
+	print "> Processing IDs saved here: {}\r".format(save_dir)
 
 	file_list_ID = open(os.path.join(save_dir, "UUID_LUT.txt"),'w')
 	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
-		file_list_ID.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(UID, img_name, img_fname, path_diff, img_loc, img_path))
+		file_list_ID.write('{}\t{}\t{}\t{}\t{}\t{}\r'.format(UID, img_name, img_fname, path_diff, img_loc, img_path))
 	file_list_ID.close()
 
 
 	img_num = 1
 	for UID, img_name, _, _, _, img_path in filenames:
-		print "> ==========================================================================================\n"
-		print "\n> Currently Processing : {}\n".format(img_name)
-		print "> \tImage Unique ID: {}\n".format(UID)
-		print "> \tImage/Total Number of Images: {}/{}\n".format(img_num, num_images)
+		print "> ==========================================================================================\r"
+		print "\r> Currently Processing : {}\r".format(img_name)
+		print "> \tImage Unique ID: {}\r".format(UID)
+		print "> \tImage/Total Number of Images: {}/{}\r".format(img_num, num_images)
 		if '1488' in img_name:
-			print "> Image ID: 1488 - Cell TD\n"
-			# blockPrint()
+			# continue
+			print "> Image ID: 1488 - Cell TD\r"
+			blockPrint()
 			start = time.time()
 			cell_line.analyze(UID, img_path, save_dir_cell)
 			end = time.time()
-			# enablePrint()
+			enablePrint()
 			print "> Time to Compete: {}".format(end - start)
 			mito_stats.append(end - start)
 			img_num += 1
 
 		elif '2561' in img_name:
-			print "> Image ID: 2561 - Mitochondria\n"
-			# blockPrint()
+			# continue
+			print "> Image ID: 2561 - Mitochondria\r"
+			blockPrint()
 			start = time.time()
 			mito_line.analyze(UID, img_path, save_dir_mito)
 			end = time.time()
-			# enablePrint()
+			enablePrint()
 			print "> Time to Compete: {}".format(end - start)
 			cell_stats.append(end - start)
 			img_num += 1
 
-	print "> ==========================================================================================\n"
+	print "> ==========================================================================================\r"
 	print "> Prelim Analysis completed"
 	save_data(mito_stats, "mito_processing_RT", save_dir)
 	save_data(cell_stats, "cell_processing_RT",  save_dir)
