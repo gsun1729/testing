@@ -16,6 +16,7 @@ from skimage.segmentation import active_contour
 cell_prefix = "C_"
 data_suffix = "_dat"
 projection_suffix = "_avgP"
+figure_suffix = ".png"
 
 def get_args(args):
 	parser = argparse.ArgumentParser(description = 'Script for 3d segmenting cells')
@@ -68,11 +69,10 @@ def analyze(UID, read_path, write_path):
 		mask = gaussian(mask, 2) > 0.5
 		smoothed_binary += mask * cell_label
 	smoothed_binary = smoothed_binary > 0
-	view_2d_img(smoothed_binary)
 	improved_binary2 = improved_watershed(smoothed_binary, smoothed_image, expected_separation = 1)
 	removed_eccentric = rm_eccentric(improved_binary2,
 						min_eccentricity = 0.62,
-						max_ecc = 0.85,
+						max_ecc = 0.99,
 						min_area = 500,
 						max_area = 2500)
 
@@ -82,9 +82,12 @@ def analyze(UID, read_path, write_path):
 				"single_cell_stats.txt",
 				read_path,
 				write_path)
-	montage_n_x((img_projection, noise_processing, temp_binary, improved_binary, removed_eccentric))
+	# montage_n_x((img_projection, noise_processing, temp_binary, improved_binary, removed_eccentric))
 	save_data(img_projection, cell_prefix + UID + projection_suffix, write_path)
 	save_data(removed_eccentric, cell_prefix + UID + data_suffix, write_path)
+	save_figure(img_projection, cell_prefix + UID + "_maxP" + figure_suffix, write_path)
+	save_figure(improved_binary2, cell_prefix + UID + "_binary" + figure_suffix, write_path)
+	save_figure(removed_eccentric, cell_prefix + UID + "_rmECC" + figure_suffix, write_path)
 	# return a16
 
 
