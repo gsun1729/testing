@@ -19,6 +19,7 @@ from skimage.draw import circle_perimeter
 from math_funcs import *
 from render import *
 from skimage import measure
+from scipy.stats import iqr
 from scipy.ndimage.morphology import binary_fill_holes
 from skimage.segmentation import active_contour
 from skimage import measure
@@ -445,9 +446,13 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 	:return: [np.ndarray]
 	"""
 	labeled_field, object_no = ndi.label(binary_channel, structure = np.ones((3, 3)))
+
+	# prebinary_px = pre_binary.flatten()
+	# n_bins = int(2 * iqr(prebinary_px) * (len(prebinary_px) ** (1/3)))
+	# n, bin_edge = np.histogram(prebinary_px, n_bins)
+	# peak_max_indx = np.argmax(n)
+	# background_val = (bin_edge[peak_max_indx] + bin_edge[peak_max_indx + 1]) / 2
 	background_mean = np.mean(pre_binary[labeled_field == 0])
-	# print background_mean
-	#
 	for label in range(1, object_no+1):
 		mask = labeled_field == label
 		px_radius = np.sqrt(np.sum((mask).astype(np.int8)))
@@ -507,7 +512,7 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 	return label_and_correct(output, input_img)
 
 
-def rm_eccentric(input_img, min_eccentricity = 0.7, max_area = 2500):
+def rm_eccentric(input_img, min_eccentricity, max_ecc, min_area, max_area):
 	'''Evaluates the eccentricity of single cells within an image with multiple cells, and throws away any cells that exhibit odd eccentricity
 	Also chucks any cells that have an area larger than max_area
 
@@ -524,7 +529,7 @@ def rm_eccentric(input_img, min_eccentricity = 0.7, max_area = 2500):
 
 		_, area, _, eccentricity = get_contour_details(mask)
 
-		if eccentricity < min_eccentricity or area > max_area:
+		if eccentricity < min_eccentricity or eccentricity > max_ecc and area < min_area or area > max_area:
 			output_img[output_img == x + 1] = 0
 	return output_img
 
