@@ -11,6 +11,7 @@ from skimage.morphology import (disk, dilation, watershed,
 								closing, opening, erosion, skeletonize, medial_axis)
 from skimage.morphology import skeletonize_3d
 from skimage.filters import threshold_local
+from scipy.stats import iqr
 
 mito_prefix = "M_"
 skeleton_suffix = "_skel"
@@ -22,10 +23,19 @@ def analyze(UID, read_path, write_path):
 	mito = io.imread(read_path)
 	z, x, y = mito.shape
 	binary = np.zeros_like(mito)
-	max_P_d = max_projection(mito)
+	max_P_d = avg_projection(mito)
+	# Get average background px intensity from average projection
+	px_dataset = max_P_d.flatten()
+	# n_bins = int(2 * iqr(px_dataset) * (len(px_dataset) ** (1/3)))
+	# n, bin_boundary = np.histogram(px_dataset, n_bins)
+	# hist_peak_max_indx = np.argmax(n)
+	# # threshold for the background
+	# bin_midpt = (bin_boundary[hist_peak_max_indx] + bin_boundary[hist_peak_max_indx + 1]) / 2
 	for layer in xrange(z):
+		# clean up any background noise
 		sel_elem = disk(1)
 		layer_data = mito[layer,:,:]
+
 		output1 = gamma_stabilize(layer_data,
 									alpha_clean = 1,
 									floor_method = 'min')
@@ -38,28 +48,38 @@ def analyze(UID, read_path, write_path):
 									pinhole = True)
 		# Remove High frequency noise from image
 		FFT_Filtered = fft_ifft(median_filtered, fft_filter_disk)
-		# Convert image to 8 bit for faster processing
+		# Convert image to 8 bit for median filter to work
 		image_8bit = img_type_2uint8(FFT_Filtered, func = 'floor')
 		test = median(image_8bit, sel_elem)
-		# Run local thresholding and binarization
-		scale_ratio = 3.0
-		threshold = np.mean(asdf.flatten()) + np.std(asdf.flatten()) * scale_ratio
-		local_thresh = threshold_local(test,
+
+		test_px_dataset = test.flatten()
+		n_bins = int(2 * iqr(px_dataset) * (len(px_dataset) ** (1/3)))
+		n, bin_edge = np.histogram(test_px_dataset, n_bins)
+		test_peak_max_indx = np.argmax(n)
+		bin_midpt = (bin_edge[test_peak_max_indx] + bin_edge[test_peak_max_indx + 1]) / 2
+		test_mask = test > bin_midpt
+		test_masked = test * test_mask
+
+		local_thresh = threshold_local(test_masked,
 										block_size = 31,
 										offset = -15)
-		binary_local = test > local_thresh
+		binary_local = test_masked > local_thresh
 		# label individual elements and remove really small noise and background
 		corrected_slice = label_and_correct(binary_local, test,
 												min_px_radius = 1,
 												max_px_radius = 100,
 												min_intensity = 0,
-												mean_diff = 15)
+												mean_diff = 10)
 		corrected_slice[corrected_slice > 0] = 1
-		# montage_n_x((image_8bit, binary_adaptive,  binary_adaptive3, corrected_slice))
 		binary[layer, :, :] = corrected_slice
+
 	print 'OK\n'
 	spooky = skeletonize_3d(binary)
 	binary_projection = max_projection(binary)
+
+	# montage_n_x((binary_projection, max_P_d))
+	# stack_viewer(binary)
+	# raise Exception
 	save_figure(max_P_d, mito_prefix + UID + "_maxP" + figure_suffix, write_path)
 	save_figure(binary_projection, mito_prefix + UID + "_maxPB" + figure_suffix, write_path)
 	save_data(spooky, mito_prefix + UID + skeleton_suffix, write_path)
