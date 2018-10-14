@@ -475,13 +475,13 @@ def get_args(args):
 
 
 def main(save_dir):
-	try:
-		options = get_args(sys.argv)
-		save_dir = options['results_dir']
-		print "> ==========================================================================================\n"
-		print "> Data Directory: {}\n".format(save_dir)
-	except:
-		sys.exit()
+	# try:
+	# 	options = get_args(sys.argv)
+	# 	save_dir = options['results_dir']
+	# 	print "> ==========================================================================================\n"
+	# 	print "> Data Directory: {}\n".format(save_dir)
+	# except:
+	# 	raise Exception('Provide Results Directory Please')
 	print "> ==========================================================================================\n"
 	print "> Starting 3D Segmentation and characterizing module\n"
 
