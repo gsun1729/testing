@@ -6,6 +6,7 @@ from matplotlib.gridspec import GridSpec
 import sys
 from skimage import io
 import scipy.io
+from scipy.stats import iqr
 
 def stack_viewer(image):
 	'''
@@ -176,14 +177,16 @@ def location(points):
 	return top_left_x, top_left_y, bot_rite_x, bot_rite_y
 
 
-def img_px_histogram(data, nbins = None):
+def img_px_histogram(image, nbins = None):
 	'''
-	Plots an image's pixel intensity distribution, takes in a 1d list
+	Plots an image's pixel intensity distribution, takes in a 2d/3d image
 
 	:param data: [list]
 	:param nbins: [int] number of bins for histogram
 	'''
-	n, bins, patches = plt.hist(data, nbins)
+	if not nbins:
+		nbins = int(2 * iqr(image.flatten()) * (len(image.flatten()) ** (1/3)))
+	n, bins, patches = plt.hist(image.flatten(), nbins)
 	plt.show()
 	plt.xlabel('Pixel Intensity')
 	plt.ylabel('Count')
