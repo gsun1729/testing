@@ -76,7 +76,7 @@ def main(args):
 
 	file_list_ID = open(os.path.join(save_dir, "UUID_LUT.txt"),'w')
 	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
-		file_list_ID.write('{}\t{}\t{}\t{}\t{}\t{}\r'.format(UID, img_name, img_fname, path_diff, img_loc, img_path))
+		file_list_ID.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(UID, img_name, img_fname, path_diff, img_loc, img_path))
 	file_list_ID.close()
 
 
@@ -118,6 +118,7 @@ def main(args):
 	# Start merge of MC_analyzer
 	cell_filelist = get_just_filenames(save_dir_cell, suffix = '_dat.mat')
 	mito_filelist = get_just_filenames(save_dir_mito, suffix = '.mat')
+
 	UUID_datatable = read_txt_file(os.path.join(save_dir, "UUID_LUT.txt"))
 
 	C_M_UUID_pairs, UUID_pairs = create_pairTable(cell_filelist, UUID_datatable, save_dir)
@@ -127,7 +128,7 @@ def main(args):
 		filename_pairs.append(["C_" + cell_UUID + "_dat.mat",
 								"M_" + mito_UUID + "_bin.mat",
 								"M_" + mito_UUID + "_skel.mat"])
-
+	print "> Creating UUID Filename Pairs"
 	write_list_txt(save_dir_anal, "Cell_mito_UUID_Pairs.txt", C_M_UUID_pairs)
 	write_list_txt(save_dir_anal, "UUID_paired_filenames.txt", filename_pairs)
 
