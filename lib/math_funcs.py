@@ -160,6 +160,24 @@ def stack_multiplier(image, stack):
 			composite[layer, :, :] = stack[layer, :, :] * image
 	return composite
 
+def stack_stack_multply(stack1, stack2):
+	'''	Multiplies a 3d stack layer by layer with another 3d stack (hadamard product)
+
+	:param stack1: [np.ndarray] first stack image
+	:param stack2: [np.ndarray] second stack image
+	:return: composite [np.ndarray] multiplied image
+	'''
+	z1,x1,y1 = stack1.shape
+	z2,x2,y2 = stack2.shape
+	if z1 == z2 and x1 == x2 and y1 == y2:
+		composite = np.zeros_like(stack1)
+		for layer in xrange(z1):
+			composite[layer, :, :] = stack1[layer, :, :] *  stack2[layer, :, :]
+	else:
+		raise Exception('stack stack dimensions do not match')
+	return composite
+
+
 
 def cantor_pairing_f(a, b):
 	'''pairing function for encoding 2 numbers a and b into a new number that can
