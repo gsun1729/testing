@@ -606,6 +606,19 @@ def get_contour_details(input_img):
 	return radius, Point_set.shoelace(), Point_set.perimeter(), eccentricity
 
 
+def hist_peak(image):
+	'''
+	Returns the peak histogram count for a given image
+
+	:param image: 2d-3d image for generating histogram map
+	:return: peak histogram value
+	'''
+	px_dataset = image.flatten()
+	n_bins = int(2 * iqr(px_dataset) * (len(px_dataset)) ** (1/3))
+	n, bin_edges = np.histogram(px_dataset, n_bins)
+	peak_max_indx = np.argmax(n)
+	return (bin_edges[peak_max_indx] + bin_edges[peak_max_indx]) / 2
+
 def write_stats(before_image, after_image, UID, filename, read_path, write_path, img_type = "cell"):
 	'''
 	Given two segmented binary images, determine the difference between the
