@@ -51,6 +51,22 @@ def filename2info(filename, lookupTable):
 		print "UUID ({}, {}) not found in LUT".format(UUID, filename)
 
 
+def UUID2Info(UUID, LUT):
+	'''
+	Given a UUID,  look for its presence in the LUT
+	:param filename: [str] complete UUID
+	:param lookupTable: [list] LUT to search in
+	:return: [list] if UUID is found, returns the row that the element was found in, does not return anything if nothing is found
+	'''
+	found = False
+	for row in LUT:
+		if UUID == row[0]:
+			found = True
+			return row
+	if found == False:
+		print "UUID ({}, {}) not found in LUT".format(UUID, filename)
+
+
 def get_partner(filename, lookupTable):
 	'''
 	Given a UUID for a cell or mitochondria image, determine the UUID for the mitochondria or cell data partner
