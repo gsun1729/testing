@@ -502,10 +502,16 @@ def main(save_dir):
 		CMS_filename = "CSM_" + Cell_UUID + "_3DS.mat"
 
 		cell_mitos = scipy.io.loadmat(os.path.join(save_dir_anal, CM_filename))['data']
-
-		post_segmentation = layer_comparator(cell_mitos)
-
-		labeled = stack_cantor_multiplier(cell_mitos, post_segmentation)
+		# Loop for looking for already produced mito file in case of network failure.
+		Found = False
+		try:
+			labeled = scipy.io.loadmat(os.path.join(save_dir_3D, CMS_filename))['data']
+			print "> File Found"
+			Found = True
+		except:
+			print "> File not Found for CSM, generating data"
+			post_segmentation = layer_comparator(cell_mitos)
+			labeled = stack_cantor_multiplier(cell_mitos, post_segmentation)
 
 		prior_seg_element_num = len(set(cell_mitos.flatten()))
 		post_3d_element_num = len(set(labeled.flatten())) # includes background
@@ -521,8 +527,9 @@ def main(save_dir):
 				mask[labeled == element_num] = element_num
 				vol, nTriangle, SA = get_attributes(mask, x = 1.0, y = 1.0, stack_height = 3.458)
 				mito_stats.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(Cell_UUID, Mito_UUID, cell_FID, mito_FID, origin_path, cell_num, mito_num, vol, nTriangle, SA))
-
-		save_data(labeled, CMS_filename, save_dir_3D)
+		# If CSM File was not found earlier, save data
+		if not Found:
+			save_data(labeled, CMS_filename, save_dir_3D)
 		end = time.time()
 		processing_stats.write(str(end-start) + "\n")
 	print "> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics.txt"))
