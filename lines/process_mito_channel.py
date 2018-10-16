@@ -18,6 +18,9 @@ skeleton_suffix = "_skel"
 binary_suffix = "_bin"
 figure_suffix = "_fig.png"
 
+''' Purpose of script is to segment and binarize 3d mitochondrion images.
+Runs in line with main.py up one directory (under main project path)
+'''
 def analyze(UID, read_path, write_path):
 	# Script is designed to handle 512 by 512 sized images
 	mito = io.imread(read_path)

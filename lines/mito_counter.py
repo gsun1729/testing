@@ -13,6 +13,10 @@ from scipy import ndimage as ndi
 from skimage import measure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
+'''
+Objective of script is to segment 3d mitochondrion from binary images.
+runs in line when called by main.
+'''
 
 class rect_prism(object):
 	def __init__(self, matrix):

@@ -18,6 +18,12 @@ data_suffix = "_dat"
 projection_suffix = "_avgP"
 figure_suffix = ".png"
 
+''' Purpose of script is to segment and binarize 3d cell images.
+Cell images must be full of cytoplasmic fluorescent protein - detects cells based
+on cell internal protein fluorescence.
+Runs in line with main.py up one directory (under main project path)
+'''
+
 def get_args(args):
 	parser = argparse.ArgumentParser(description = 'Script for 3d segmenting cells')
 	parser.add_argument('-id',

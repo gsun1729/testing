@@ -4,6 +4,11 @@ import os
 # sys.path.insert(0, 'C:\\Users\\Gordon Sun\\Documents\\Github\\testing\\lib')
 import lib.read_write as rw
 
+'''
+Script specifically dedicated for regex parsing hs-status and genotype ID from
+filepath
+Not integrated into main pipeline
+'''
 
 before_HS = ['beforehs', 'before hs']
 after_HS = ['hs', 'after hs', 'afterhs']
