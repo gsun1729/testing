@@ -3,7 +3,7 @@ import sys
 import os
 # sys.path.insert(0, 'C:\\Users\\Gordon Sun\\Documents\\Github\\testing\\lib')
 import lib.read_write as rw
-
+import argparse
 '''
 Script specifically dedicated for regex parsing hs-status and genotype ID from
 filepath
@@ -13,6 +13,13 @@ Not integrated into main pipeline
 before_HS = ['beforehs', 'before hs']
 after_HS = ['hs', 'after hs', 'afterhs']
 recovery = ['rec100', 're100', 'after recovery', 'recovery']
+
+def get_args(args):
+	parser = argparse.ArgumentParser(description = "script for colleating single cell stats with mitochondrion stats and HS category")
+	parser.add_argument("-r", dest = 'save_dir', help = "Save directory for the statistics files", required = True)
+
+	options = vars(parser.parse_args())
+	return options
 
 def extract_details(filename_path):
 	'''
@@ -79,7 +86,9 @@ def extract_details(filename_path):
 		except AttributeError:
 			plate_ID = ''
 			plate_found = False
-	# print "B_grp: {}\nHS: {}\nREC: {}\nHS_FOUND: {}\nWELL_FOUND: {}\nWell_ID: {}\nWT_grp: {}\nRy: {}\nts_ID: {}\nts: {}\nplate_ID: {}\nplate_fount: {}\n".format(B_grp, H_grp, R_grp, HS_status_found, well_found, well_ID, WT_grp, ry411_grp, ts_ID, ts_plate, plate_ID, plate_found)
+	# print "B_grp: {}\nHS: {}\nREC: {}\nHS_FOUND: {}\nWELL_FOUND: {}\nWell_ID: {}\nWT_grp:
+	# {}\nRy: {}\nts_ID: {}\nts: {}\nplate_ID: {}\nplate_fount: {}\n".format(B_grp,
+	# H_grp, R_grp, HS_status_found, well_found, well_ID, WT_grp, ry411_grp, ts_ID, ts_plate, plate_ID, plate_found)
 	if B_grp + H_grp + R_grp != 1:
 		print "irregular sum"
 		sys.exit()
@@ -114,7 +123,9 @@ def column(matrix, i):
 	return [row[i] for row in matrix]
 
 
-def main(save_dir):
+def main(args):
+	options = get_args(args)
+	save_dir = options['save_dir']
 	# Creates the group data
 	cell_pairs = rw.read_txt_file(os.path.join(save_dir, "analysis", "Cell_mito_UUID_Pairs.txt"))
 
@@ -176,4 +187,4 @@ def main(save_dir):
 	cell_stats_grouped.close()
 
 if __name__ == "__main__":
-	main("L:\\Users\\gordon\\00000004 - Running Projects\\20180126 Mito quantification for Gordon\\20180306_results")
+	main(sys.argv)
