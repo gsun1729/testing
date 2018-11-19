@@ -21,9 +21,9 @@ def PROCESS_IMAGE(image_path):
 	RFP_raw = image[:, :, 1]
 	DAPI_raw = image[:, :, 3]
 
-	processed_dapi = PROCESS_BIG_PUNCTA(DAPI_raw)
+	# processed_dapi = PROCESS_BIG_PUNCTA(DAPI_raw)
 	# processed_GFP = PROCESS_PUNCTA(GFP_raw)
-	processed_RFP = PROCESS_PUNCTA(RFP_raw)
+	# processed_RFP = PROCESS_PUNCTA(RFP_raw)
 
 
 
@@ -38,7 +38,6 @@ def PROCESS_PUNCTA(image):
  	converted = img_type_2uint8(sm, func = 'floor')
 	flattened = converted.flatten()
 	n_bins = int(2 * iqr(flattened) * (len(flattened) ** (1/3))) * 2
-	print(n_bins)
 	n, bin_edge = np.histogram(flattened, n_bins)
 	peak = np.argmax(n)
 	bin_midpt = (bin_edge[peak] + bin_edge[peak + 1]) / 2
@@ -51,8 +50,23 @@ def PROCESS_PUNCTA(image):
 									offset = -15)
 	binary_local = test_masked > local_thresh
 
+
+	local_thresh_flat = local_thresh.flatten()
+	n_bins = int(2 * iqr(local_thresh_flat) * (len(local_thresh_flat) ** (1/3))) * 2
+	n, bin_edge = np.histogram(local_thresh_flat, n_bins)
+	peak = np.argmax(n)
+	bin_midpt = (bin_edge[peak] + bin_edge[peak + 1]) / 2
+	local_mask = local_thresh > bin_midpt * 1.5
+	local_thresh_mask = local_thresh * local_mask
+
+	binary_local = local_thresh_mask * binary_local
+
+	binary_e = binary_erosion(binary_local, selem = disk(2), out = None)
+	binary_d = binary_dilation(binary_e, selem = disk(2), out = None)
+
+
 	# label individual elements and remove really small noise and background
-	labeled_img = just_label(binary_local)
+	labeled_img = just_label(binary_d)
 
 	montage_n_x((image, labeled_img))
 	return labeled_img
@@ -83,4 +97,6 @@ def PROCESS_BIG_PUNCTA(image):
 
 
 print("test")
-PROCESS_IMAGE("/home/gsun/Desktop/AT/MIP apj1/MAX_Apj1_30min42_003.tif")
+PROCESS_IMAGE("/home/gsun/Desktop/AT/MIP rnp8/MAX_Rnp8_30min42_002.tif")
+PROCESS_IMAGE("/home/gsun/Desktop/AT/MIP rnp8/MAX_Rnp8_37_002.tif")
+PROCESS_IMAGE("/home/gsun/Desktop/AT/MIP rnp8/MAX_Rnp8_before_002.tif")
