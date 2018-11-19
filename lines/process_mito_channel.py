@@ -56,7 +56,7 @@ def analyze(UID, read_path, write_path):
 		test = median(image_8bit, sel_elem)
 
 		test_px_dataset = test.flatten()
-		n_bins = int(2 * iqr(px_dataset) * (len(px_dataset) ** (1/3)))
+		n_bins = int(2 * iqr(test_px_dataset) * (len(test_px_dataset) ** (1/3)))
 		n, bin_edge = np.histogram(test_px_dataset, n_bins)
 		test_peak_max_indx = np.argmax(n)
 		bin_midpt = (bin_edge[test_peak_max_indx] + bin_edge[test_peak_max_indx + 1]) / 2
