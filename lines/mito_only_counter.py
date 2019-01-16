@@ -105,7 +105,7 @@ def main(args):
 		save_data(labeled_binary, UUID_ID + "_M_bin", save_dir_3D)
 		save_data(labeled_skeleton, UUID_ID + "_M_skel", save_dir_3D)
 
-	print "> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics_WT.txt"))
+	print("> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics_WT.txt")))
 	mito_stats.close()
 
 

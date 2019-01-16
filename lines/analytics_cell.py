@@ -86,11 +86,11 @@ def extract_details(filename_path):
 		except AttributeError:
 			plate_ID = ''
 			plate_found = False
-	# print "B_grp: {}\nHS: {}\nREC: {}\nHS_FOUND: {}\nWELL_FOUND: {}\nWell_ID: {}\nWT_grp:
+	# print("B_grp: {}\nHS: {}\nREC: {}\nHS_FOUND: {}\nWELL_FOUND: {}\nWell_ID: {}\nWT_grp:)
 	# {}\nRy: {}\nts_ID: {}\nts: {}\nplate_ID: {}\nplate_fount: {}\n".format(B_grp,
 	# H_grp, R_grp, HS_status_found, well_found, well_ID, WT_grp, ry411_grp, ts_ID, ts_plate, plate_ID, plate_found)
 	if B_grp + H_grp + R_grp != 1:
-		print "irregular sum"
+		print("irregular sum")
 		sys.exit()
 
 	if B_grp:
@@ -157,7 +157,7 @@ def main(args):
 	cell_grp_database = rw.read_txt_file(os.path.join(save_dir, "cell_mito_groups.txt"))
 	n = 0
 	for cell, UUID, cell_num, cell_Fnum, deleted, radius, area, perimeter, E, read_path in cell_stats:
-		# print cell, UUID, cell_num, cell_Fnum, deleted, radius, area, perimeter, E
+		# print(cell, UUID, cell_num, cell_Fnum, deleted, radius, area, perimeter, E)
 		try:
 			location = name_list.index(UUID)
 			HS_group, Plate_type, plate_num, well_num = cell_grp_database[location][4:8]

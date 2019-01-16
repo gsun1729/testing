@@ -52,8 +52,8 @@ def main(args):
 	root_read_dir = options['read_dir']
 	save_dir = options['save_dir']
 
-	print "> Parent Read Directory : {}\r".format(root_read_dir)
-	print "> Save Directory : {}\r".format(save_dir)
+	print("> Parent Read Directory : {}\r".format(root_read_dir))
+	print("> Save Directory : {}\r".format(save_dir))
 
 	save_dir_cell = os.path.join(save_dir, 'cell')
 	save_dir_mito = os.path.join(save_dir, 'mito')
@@ -67,12 +67,12 @@ def main(args):
 	filenames = get_img_filenames(root_read_dir)
 	num_images = len(filenames)
 	end = time.time()
-	print "> {} images detected, time taken: {}".format(num_images, end - start)
+	print("> {} images detected, time taken: {}".format(num_images, end - start))
 
 	mito_stats = []
 	cell_stats = []
 
-	print "> Processing IDs saved here: {}\r".format(save_dir)
+	print("> Processing IDs saved here: {}\r".format(save_dir))
 
 	file_list_ID = open(os.path.join(save_dir, "UUID_LUT.txt"),'w')
 	for UID, img_name, img_fname, path_diff, img_loc, img_path in filenames:
@@ -82,36 +82,36 @@ def main(args):
 
 	img_num = 1
 	for UID, img_name, _, _, _, img_path in filenames:
-		print "> ==========================================================================================\r"
-		print "\r> Currently Processing : {}\r".format(img_name)
-		print "> \tImage Unique ID: {}\r".format(UID)
-		print "> \tImage/Total Number of Images: {}/{}\r".format(img_num, num_images)
+		print("> ==========================================================================================\r")
+		print("\r> Currently Processing : {}\r".format(img_name))
+		print("> \tImage Unique ID: {}\r".format(UID))
+		print("> \tImage/Total Number of Images: {}/{}\r".format(img_num, num_images))
 		if '1488' in img_name:
 			# continue
-			print "> Image ID: 1488 - Cell TD\r"
+			print("> Image ID: 1488 - Cell TD\r")
 			blockPrint()
 			start = time.time()
 			cell_line.analyze(UID, img_path, save_dir_cell)
 			end = time.time()
 			enablePrint()
-			print "> Time to Compete: {}".format(end - start)
+			print("> Time to Compete: {}".format(end - start))
 			mito_stats.append(end - start)
 			img_num += 1
 
 		elif '2561' in img_name:
 			# continue
-			print "> Image ID: 2561 - Mitochondria\r"
+			print("> Image ID: 2561 - Mitochondria\r")
 			blockPrint()
 			start = time.time()
 			mito_line.analyze(UID, img_path, save_dir_mito)
 			end = time.time()
 			enablePrint()
-			print "> Time to Compete: {}".format(end - start)
+			print("> Time to Compete: {}".format(end - start))
 			cell_stats.append(end - start)
 			img_num += 1
 
-	print "> ==========================================================================================\r"
-	print "> Prelim Analysis completed"
+	print("> ==========================================================================================\r")
+	print("> Prelim Analysis completed")
 	save_data(mito_stats, "mito_processing_RT", save_dir)
 	save_data(cell_stats, "cell_processing_RT",  save_dir)
 
@@ -128,7 +128,7 @@ def main(args):
 		filename_pairs.append(["C_" + cell_UUID + "_dat.mat",
 								"M_" + mito_UUID + "_bin.mat",
 								"M_" + mito_UUID + "_skel.mat"])
-	print "> Creating UUID Filename Pairs"
+	print("> Creating UUID Filename Pairs")
 	write_list_txt(save_dir_anal, "Cell_mito_UUID_Pairs.txt", C_M_UUID_pairs)
 	write_list_txt(save_dir_anal, "UUID_paired_filenames.txt", filename_pairs)
 

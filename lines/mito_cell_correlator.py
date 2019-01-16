@@ -42,11 +42,11 @@ def main(args):
 	MASTER_SHEET = open(os.path.join(save_dir, "MASTER_RESULTS.txt"), "w")
 	for cell_UUID, mito_UUID, cell_filename, mito_filename, filepath, cell_num, mito_num, volume, nTriangles, surface_area in mito_stats:
 		location = name_list.index(mito_UUID)
-		# print cell_UUID, mito_UUID, cell_num
+		# print(cell_UUID, mito_UUID, cell_num)
 
 		for start_search in xrange(location, len(single_cell_stats)):
 			SC_cell_num = single_cell_stats[start_search][4]
-			# print SC_cell_num
+			# print(SC_cell_num)
 			if SC_cell_num == cell_num:
 				HS_group, lib_grp, plate_num, well_num, cell_R, cell_area, cell_peri, cell_E = single_cell_stats[start_search][6:14]
 				MASTER_SHEET.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(cell_UUID,

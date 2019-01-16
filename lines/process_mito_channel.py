@@ -76,7 +76,7 @@ def analyze(UID, read_path, write_path):
 		corrected_slice[corrected_slice > 0] = 1
 		binary[layer, :, :] = corrected_slice
 
-	print 'OK\n'
+	print('OK\n')
 	spooky = skeletonize_3d(binary)
 	binary_projection = max_projection(binary)
 

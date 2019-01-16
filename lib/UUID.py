@@ -48,7 +48,7 @@ def filename2info(filename, lookupTable):
 			found = True
 			return row
 	if found == False:
-		print "UUID ({}, {}) not found in LUT".format(UUID, filename)
+		print("UUID ({}, {}) not found in LUT".format(UUID, filename))
 
 
 def UUID2Info(UUID, LUT):
@@ -64,7 +64,7 @@ def UUID2Info(UUID, LUT):
 			found = True
 			return row
 	if found == False:
-		print "UUID ({}, {}) not found in LUT".format(UUID, filename)
+		print("UUID ({}, {}) not found in LUT".format(UUID, filename))
 
 
 def get_partner(filename, lookupTable):
@@ -106,8 +106,8 @@ def create_pairTable(filelist, lookupTable, save_dir):
 			UUID_pairs.append([input_info[0], partner_info[0], input_info[2], partner_info[2], input_info[-2]])
 			UUID_pairs_no_info.append([input_info[0], partner_info[0]])
 		except:
-			print "> Data not found in LUT"
-			print row
+			print("> Data not found in LUT")
+			print(row)
 			unfounds = open(os.path.join(save_dir,"Unfound_Imgs.txt"), 'a')
 			unfounds.write(row+"\n")
 			unfounds.close()

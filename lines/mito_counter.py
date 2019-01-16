@@ -85,7 +85,7 @@ class rect_prism(object):
 		'''
 		faces = []
 		if len(self.dimension_tuple) == 2:
-			print "Faces don't exist for 2D geometries"
+			print("Faces don't exist for 2D geometries")
 			return faces
 		elif len(self.dimension_tuple) == 3:
 			z_dim, x_dim, y_dim = self.dimension_tuple
@@ -265,7 +265,7 @@ def imglattice2graph(input_binary):
 	# Create an array of IDs
 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
 	# Traverse input binary image
-	# print "\tSlices Analyzed: ",
+	# print("\tSlices Analyzed: ",)
 	for label in set(input_binary.flatten()):
 		if label != 0:
 			label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
@@ -301,16 +301,16 @@ def layer_comparator(image3D):
 	:param image3D: [np.ndarray] original binary image 3d
 	:return: [np.ndarray] segmented 3d image
 	'''
-	print "> Generating lattice"
+	print("> Generating lattice")
 	ID_map, graph = imglattice2graph(image3D)
 
 	graph_dict = graph.get_self()
 	# for key in sorted(graph_dict.iterkeys()):
-	# 	print "%s: %s" % (key, graph_dict[key])
+	# 	print("%s: %s" % (key, graph_dict[key]))
 	network_element_list = []
-	print "> Network size: ", len(graph_dict)
-	# print graph_dict
-	print "> Pruning Redundancies"
+	print("> Network size: ", len(graph_dict))
+	# print(graph_dict)
+	print("> Pruning Redundancies")
 	for key in graph_dict.keys():
 		try:
 			network = sorted(graph.BFS(key))
@@ -320,13 +320,13 @@ def layer_comparator(image3D):
 				network_element_list.append(network)
 		except:
 			pass
-	print "> Unique Paths + Background [1]: ", len(network_element_list)
+	print("> Unique Paths + Background [1]: ", len(network_element_list))
 
 	img_dimensions = ID_map.shape
 	output = np.zeros_like(ID_map).flatten()
 
 	last_used_label = 1
-	print "> Labeling Network"
+	print("> Labeling Network")
 	for network in network_element_list:
 		for element in network:
 			output[element] = last_used_label
@@ -434,7 +434,7 @@ def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
 	volume = np.sum(masked_image) * stack_height
 
 	masked_image = masked_image.astype(bool)
-	# print "> Computing surface..."
+	# print("> Computing surface...")
 
 	verts, faces, normals, values = measure.marching_cubes_lewiner(masked_image,
 																	level = None,
@@ -444,7 +444,7 @@ def get_attributes(masked_image, x = 1.0, y = 1.0, stack_height = 1.0):
 																	allow_degenerate = True,
 																	use_classic = False)
 	triangle_collection = verts[faces]
-	# print "> Computing attributes..."
+	# print("> Computing attributes...")
 	triangle_Surface = Surface(triangle_collection)
 	nTriangles, surfaceArea = triangle_Surface.get_stats()
 	return volume, nTriangles, surfaceArea
@@ -482,12 +482,12 @@ def main(save_dir):
 	# try:
 	# 	options = get_args(sys.argv)
 	# 	save_dir = options['results_dir']
-	# 	print "> ==========================================================================================\n"
-	# 	print "> Data Directory: {}\n".format(save_dir)
+	# 	print("> ==========================================================================================\n")
+	# 	print("> Data Directory: {}\n".format(save_dir))
 	# except:
 	# 	raise Exception('Provide Results Directory Please')
-	print "> ==========================================================================================\n"
-	print "> Starting 3D Segmentation and characterizing module\n"
+	print("> ==========================================================================================\n")
+	print("> Starting 3D Segmentation and characterizing module\n")
 
 	save_dir_anal = os.path.join(save_dir, 'analysis')
 	cell_mito_data_pairs = read_txt_file(os.path.join(save_dir_anal, "Cell_mito_UUID_Pairs.txt"))
@@ -499,9 +499,9 @@ def main(save_dir):
 	processing_stats = open(os.path.join(save_dir, "3DS_processing_time.txt"), "w")
 	for Cell_UUID, Mito_UUID, cell_FID, mito_FID, origin_path, _ in cell_mito_data_pairs:
 		start = time.time()
-		print "> ==========================================================================================\n"
-		print "> Query C: {}".format(Cell_UUID)
-		print "> Query M: {}\n".format(Mito_UUID)
+		print("> ==========================================================================================\n")
+		print("> Query C: {}".format(Cell_UUID))
+		print("> Query M: {}\n".format(Mito_UUID))
 		CM_filename = "CM_" + Cell_UUID + "_bin.mat"
 		CMS_filename = "CSM_" + Cell_UUID + "_3DS.mat"
 
@@ -510,17 +510,17 @@ def main(save_dir):
 		Found = False
 		try:
 			labeled = scipy.io.loadmat(os.path.join(save_dir_3D, CMS_filename))['data']
-			print "> File Found"
+			print("> File Found")
 			Found = True
 		except:
-			print "> File not Found for CSM, generating data"
+			print("> File not Found for CSM, generating data")
 			post_segmentation = layer_comparator(cell_mitos)
 			labeled = stack_cantor_multiplier(cell_mitos, post_segmentation)
 
 		prior_seg_element_num = len(set(cell_mitos.flatten()))
 		post_3d_element_num = len(set(labeled.flatten())) # includes background
 
-		print "> Pre: {}\tPost: {}\t segmentation bodies".format(prior_seg_element_num, post_3d_element_num)
+		print("> Pre: {}\tPost: {}\t segmentation bodies".format(prior_seg_element_num, post_3d_element_num))
 
 		for element_num in set(labeled.flatten()):
 			cell_num, mito_num = reverse_cantor_pair(element_num)
@@ -536,7 +536,7 @@ def main(save_dir):
 			save_data(labeled, CMS_filename, save_dir_3D)
 		end = time.time()
 		processing_stats.write(str(end-start) + "\n")
-	print "> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics.txt"))
+	print("> Mitochondria Statistics written to {}".format(os.path.join(save_dir, "mitochondria_statistics.txt")))
 	mito_stats.close()
 	processing_stats.close()
 

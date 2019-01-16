@@ -72,10 +72,10 @@ def sum_projection(image, axis = 0):
 		return np.sum(image, axis)
 	except ValueError:
 		if not((axis >= 0 or axis <= 2) and isinstance(axis, int)):
-			print "Axis value invalid"
+			print("Axis value invalid")
 		else:
-			print "Image input faulty"
-		sys.exit()
+			print("Image input faulty")
+		raise Exception
 
 
 def max_projection(image, axis = 0):
@@ -93,10 +93,10 @@ def max_projection(image, axis = 0):
 		return np.amax(image, axis)
 	except ValueError:
 		if not((axis >= 0 or axis <= 2) and isinstance(axis, int)):
-			print "Axis value invalid"
+			print("Axis value invalid")
 		else:
-			print "Image input faulty"
-		sys.exit()
+			print("Image input faulty")
+		raise Exception
 
 
 def avg_projection(image, axis = 0):
@@ -116,10 +116,10 @@ def avg_projection(image, axis = 0):
 		return np.sum(image, axis)//z
 	except ValueError:
 		if not((axis >= 0 or axis <= 2) and isinstance(axis, int)):
-			print "Axis value invalid"
+			print("Axis value invalid")
 		else:
-			print "Image input faulty"
-		sys.exit()
+			print("Image input faulty")
+		raise Exception
 
 
 def disk_hole(image, radius, pinhole = False):
@@ -280,8 +280,8 @@ def img_type_2uint8(base_image, func = 'floor'):
 
 		return np.uint8(pre_int)
 	except IOError:
-		print "Function '{}' not recognized ".format(func)
-		sys.exit()
+		print("Function '{}' not recognized ".format(func))
+		raise Exception
 
 
 def binarize_image(base_image, _dilation = 0, feature_size = 2):
@@ -294,7 +294,7 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 	:param feature_size: [float] size of the structuring disk for random Walker
 	:return: [np.ndarray] binarized image
 	'''
-	print "> Binarizing Image..."
+	print("> Binarizing Image...")
 	if np.percentile(base_image, 99) < 0.20:
 		if np.percentile(base_image, 99) > 0:
 			mult = 0.20 / np.percentile(base_image, 99)  # poissonean background assumptions
@@ -305,12 +305,12 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 
 	clustering_markers = np.zeros(base_image.shape, dtype=np.uint8)
 	selem2 = disk(feature_size)
-	print '> Performing Local Otsu'
+	print('> Performing Local Otsu')
 	local_otsu = rank.otsu(base_image, selem2)
 	# view_2d_img(local_otsu)
 	clustering_markers[base_image < local_otsu * 0.9] = 1
 	clustering_markers[base_image > local_otsu * 1.1] = 2
-	print "> Performing Random Walker Binarization"
+	print("> Performing Random Walker Binarization")
 	binary_labels = random_walker(base_image, clustering_markers, beta = 10, mode = 'bf') - 1
 
 	if _dilation:
@@ -332,7 +332,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	:param step: [float] rate at which minimum radius will be stepped up to maximum radius size
 	:return: [np.ndarray] cropped and split version of input binary image
 	'''
-	print "> Performing Hough cell splitting"
+	print("> Performing Hough cell splitting")
 	# Create a list of radii to test and perform hough transform to recover circle centers (x,y) and radii
 	hough_radii = np.arange(min_r, max_r, 2)
 	hough_res = hough_circle(input_binary_img, hough_radii)
@@ -345,7 +345,7 @@ def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	# HYPOTHETICAL # of cells
 	N_cells = len(no_duplicates)
 	# view_2d_img(input_binary_img)
-	print "\t> Number cells in subsection: {}".format(N_cells)
+	print("\t> Number cells in subsection: {}".format(N_cells))
 	# print no_duplicates
 	if N_cells > 1:
 		# Set initial radius to 1
@@ -477,7 +477,7 @@ def cell_split(input_img, contours, min_area = 100, max_area = 3500, min_peri = 
 	:param max_peri: [float] maximum acceptable perimeter for a cell
 	:return: [np.ndarray] full image with cell clusters split
 	'''
-	print "> Starting Cell Split"
+	print("> Starting Cell Split")
 	output = np.zeros_like(input_img)
 	output[input_img > 0] = 1
 	for item_contour in contours:
@@ -545,7 +545,7 @@ def improved_watershed(binary_base, intensity, expected_separation = 10):
 	:param expected_separation: [float] expected minimal separation (in pixels) between watershed centers
 	:return: [np.ndarray]
 	"""
-	print "> Performing Improved Watershed"
+	print("> Performing Improved Watershed")
 	# sel_elem = disk(2)
 	#
 	# # changed variable name for "labels"

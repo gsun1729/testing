@@ -18,12 +18,12 @@ data = scipy.io.loadmat("L:\\Users\\gordon\\00000004 - Running Projects\\2018012
 data[data>0] = 1
 stack_viewer(data)
 
-# print type(data[0,0,0])
-print data.shape
+# print(type(data[0,0,0])
+print(data.shape)
 # sys.exit()
 # Use marching cubes to obtain the surface mesh of these ellipsoids
 verts, faces, normals, values = measure.marching_cubes_lewiner(data, level=None, spacing=(1, 1.0, 1), gradient_direction='descent', step_size=1, allow_degenerate=True, use_classic=False)
-print verts
+print(verts)
 # save_data(verts, "verts", ".\\")
 # save_data(faces, "faces", ".\\")
 # save_data(normals, "normals", ".\\")

@@ -62,8 +62,8 @@ def save_data(data, filename, write_directory):
 	'''
 	save_dir = os.path.join(write_directory, filename)
 	scipy.io.savemat(save_dir, mdict = {'data': data})
-	# print filename, write_directory
-	print "> Image Data '{}' saved to '{}'".format(filename, write_directory)
+	# print(filename, write_directory)
+	print("> Image Data '{}' saved to '{}'".format(filename, write_directory))
 
 
 def save_figure(fig, name, write_directory):
@@ -76,7 +76,7 @@ def save_figure(fig, name, write_directory):
 	:param write_directory: [str] directory file will be saved in
 	'''
 	imsave(os.path.join(write_directory,name), fig)
-	print "> Image Figure '{}' saved to '{}'".format(name, write_directory)
+	print("> Image Figure '{}' saved to '{}'".format(name, write_directory))
 
 
 def filepath2name(filepath):
