@@ -1,8 +1,9 @@
+import os
 import numpy as np
 from skimage import io
 import matplotlib.pyplot as plt
 
-def stack_viewer(image, image2):
+def stack_viewer_2x(image, image2):
 	'''
 	Module to allow for scrolling through two 3d stack images
 	Modified from the following source:
@@ -78,10 +79,52 @@ def make_ticklabels_invisible(fig):
 
 
 def main():
-	data = io.imread("/home/gsun/Documents/Github/mitochondria-image-processing/data/_hs/P19F8_1_w2561 Laser.TIF")
-	data2 = io.imread("/home/gsun/Documents/Github/mitochondria-image-processing/data/_hs/P19F8_1_w2561 Laser.TIF")
+	# data = io.imread("/home/gsun/Documents/Github/mitochondria-image-processing/data/_hs/P19F8_1_w2561 Laser.TIF")
+	# data2 = io.imread("/home/gsun/Documents/Github/mitochondria-image-processing/data/_hs/P19F8_1_w2561 Laser.TIF")
+	#
+	# stack_viewer_2x(data, data2)
+	os.system("cp test_file.txt ./misc/test_file_moved.txt")
 
-	stack_viewer(data, data2)
+	pairing_LUT = open('/home/gsun/Desktop/20181013 Rerun MD 13 BACKUP/MASTER_RESULTS.txt', 'r')
+	namepair_data = pairing_LUT.readlines()
+	pairing_LUT.close()
+	data_table = [x.strip('\n').split('\t') for x in namepair_data]
+
+	mito_IDs = {}
+	for indx, row in enumerate(data_table):
+		try:
+			ID = row[1]
+		except IndexError:
+			print(row)
+			raise Exception
+
+		if ID in mito_IDs:
+			pass
+		else:
+			# if the ID of the mitochondria was found, rename the directory accounting for the new location and create a dictionary with the mito key number
+			filename = row[3]
+			location = row[-1].replace('\\', '/')
+			complete_path = "/home/gsun/Desktop" + location[21:] + "/" + filename
+			mito_IDs[ID] = complete_path
+	for key, value in mito_IDs.items():
+		try:
+			new_filename = "M_" + key + "_RAW" + ".TIF"
+			new_fileloc = "/home/gsun/Desktop/20181013 Rerun MD 13 BACKUP/mito/raw_imgs/" + new_filename
+			value_spaces = value.replace(' ', '\\ ')
+			new_fileloc_spaces = new_fileloc.replace(' ', '\\ ')
+			print("cp {} > {}".format(value_spaces, new_fileloc_spaces))
+			os.system("cp {} {}".format(value_spaces, new_fileloc_spaces))
+
+			# raise Exception
+		except IOError:
+			print("Could not read file")
+			print(value)
+			raise Exception
+		# stack_viewer_2x(image, image)
+	print(len(mito_IDs))
+		# raise Exception
+
+	# print(data_table[0][-1].replace('\\', '/'))
 
 
 
