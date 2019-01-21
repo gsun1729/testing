@@ -10,9 +10,9 @@ from lib.processing import *
 def main():
 	options = sys.argv
 	if len(options) != 3:
-		print "> Wrong # of arguments, please provide input in the form \n> python main.py read_directory write_directory\n"
+		print("> Wrong # of arguments, please provide input in the form \n> python main.py read_directory write_directory\n")
 		for num, item in enumerate(options):
-			print "> \tArg{}: {}\n".format(num, item)
+			print("> \tArg{}: {}\n".format(num, item))
 		sys.exit()
 	else:
 		UID_file_loc = options[-2]
