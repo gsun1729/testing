@@ -1,4 +1,5 @@
 import sys, os, argparse
+import re
 import numpy as np
 from skimage import io
 from skimage.morphology import disk
@@ -44,6 +45,27 @@ def avg_projection(image, axis = 0):
 			raise Exception("Image input faulty")
 
 
+def max_projection(image, axis = 0):
+	'''Axis is defined as the index of the image.shape output.
+	By default it is the Z axis (z,x,y)
+	Takes a 3d image, and projects it along a defined axis to form a 2d Image
+	Takes the max value for each pixel along (default) x,y plane, and projects it
+	to one plane
+
+	:param image: [np.ndarray] 3d stack image in <np.ndarray> format
+	:param axis: [int] axis to sum along, z = 0, x = 1, y = 2
+	:return: [np.ndarray] returns 2d image in the shape x,y
+	'''
+	try:
+		return np.amax(image, axis)
+	except ValueError:
+		if not((axis >= 0 or axis <= 2) and isinstance(axis, int)):
+			print("Axis value invalid")
+		else:
+			print("Image input faulty")
+		raise Exception
+
+
 def gamma_stabilize(image, alpha_clean = 5, floor_method = 'min'):
 	"""Normalizes the luma curve. floor intensity becomes 0 and max allowed by the bit number - 1
 	Borrowed from Andrei's Imagepipe
@@ -68,7 +90,6 @@ def gamma_stabilize(image, alpha_clean = 5, floor_method = 'min'):
 	stabilized[stabilized < alpha_clean*np.median(stabilized)] = 0
 	return stabilized
 	
-
 
 def fft_ifft(image, struct_element):
 	'''Performs a fast fourier transform, removes certain frequencies highlighted by
@@ -224,13 +245,10 @@ def label_and_correct(binary_channel, pre_binary, min_px_radius = 10, max_px_rad
 	return labeled_field
 
 
-
-def binarize_img(read_path, write_path):
+def binarize_img(raw_img):
 	'''
 	Function reads in a z stack image and returns the segmented binary image in the form of a numpy array.
 	'''
-	filename = os.path.basename(read_path)
-	raw_img = io.imread(read_path)
 	z, x, y = raw_img.shape
 
 
@@ -273,13 +291,73 @@ def binarize_img(read_path, write_path):
 												mean_diff = 11.9)
 		corrected_slice[corrected_slice > 0] = 1
 		binary[img_slice, :, :] = corrected_slice
-	
 
 	return binary
 
-	
-	# print(filename)
+
+def skeletonize_binary(binary_data):
+	return skeletonize_3d(binary_data)
+
+
+def get_args(args):
+	parser = argparse.ArgumentParser(description = " Script returns skeletonization, binary, validation images for a given mitochondrial image")
+
+	parser.add_argument('-r', dest = 'read_dir', help = 'read directory for data', required = True)
+	parser.add_argument('-w', dest = 'write_dir', help = 'write directory for results', required = True)
+	options = vars(parser.parse_args())
+	return options
+
+
+def isfile(path):
+	'''
+	returns true if path leads to a file, returns false if path leads to a folder, raises error if doesnt exist
+	'''
+	if not os.path.exists(path):
+		raise Exception("{} does not exist".format(path))
+	elif os.path.isfile(path):
+		return True
+	else:
+		return False
+
+
+def get_img_filenames(root_directory, suffix = '.jpg'):
+	'''
+	Given a root directory, traverses all sub_directories and recovers any files with a given suffix.
+	Assigns a UUID to each of the files found
+
+	:param root_directory: [str] location to search
+	:param suffix: [str] type of image suffix to look for
+	'''
+	for current_location, sub_directories, files in os.walk(root_directory):
+		if files:
+			for img_file in files:
+				if (suffix.lower() in img_file.lower()) and '_thumb_' not in img_file:
+					img_filename = re.sub(suffix, '', img_file, flags=re.IGNORECASE)
+					yield os.path.join(current_location, img_file)
+
+
+def main(args):
+	options = get_args(args)
+
+	# test if file or folder, and read accordingly
+	if not isfile(options['read_dir']):
+		filepath_data = get_img_filenames(options['read_dir'], suffix = '.tif')
+	else:
+		filepath_data = [options['read_dir']]
+
+
+	# execute segmentation
+	for filepath in filepath_data:
+		raw_img = io.imread(filepath)
+		binary_img = binarize_img(raw_img)
+		sklton_img = skeletonize_binary(binary_img)
+		max_project = max_projection(raw_img)
+		max_bproject = max_projection(binary_img)
+
+
+		raise Exception
+
 
 
 if __name__ == "__main__":
-	process_image("/home/gsun/Documents/Github/yeast-image-processing/testing_environment/mito_imgs_only/M_0b4640cc06b7490a844acf710b01f425_RAW.TIF", "temp")
+	main(sys.argv)
