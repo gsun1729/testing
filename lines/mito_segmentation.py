@@ -1,3 +1,4 @@
+
 import sys, os, argparse
 import re
 import numpy as np
@@ -8,8 +9,12 @@ from skimage.filters import median
 from scipy.stats import iqr
 from skimage.filters import threshold_local
 from scipy import ndimage as ndi
-from lib.render import * 
 from skimage.morphology import skeletonize_3d
+from collections import defaultdict
+
+import lib.pathfinder as pathfinder
+from lib.render import *
+from lib.read_write import *
 
 
 dtype2bits = {'uint8': 8,
@@ -21,6 +26,11 @@ dtype2range = { 'uint8': 255,
 				'uint16': 65535,
 				'uint32': 4294967295,
 				'uint64': 18446744073709551615}
+
+projection_suffix = "_P"
+binary_suffix = "_bin"
+skel_suffix = "_skel"
+img_suffix = "_fig.png"
 
 
 def avg_projection(image, axis = 0):
@@ -298,16 +308,6 @@ def binarize_img(raw_img):
 def skeletonize_binary(binary_data):
 	return skeletonize_3d(binary_data)
 
-
-def get_args(args):
-	parser = argparse.ArgumentParser(description = " Script returns skeletonization, binary, validation images for a given mitochondrial image")
-
-	parser.add_argument('-r', dest = 'read_dir', help = 'read directory for data', required = True)
-	parser.add_argument('-w', dest = 'write_dir', help = 'write directory for results', required = True)
-	options = vars(parser.parse_args())
-	return options
-
-
 def isfile(path):
 	'''
 	returns true if path leads to a file, returns false if path leads to a folder, raises error if doesnt exist
@@ -336,6 +336,138 @@ def get_img_filenames(root_directory, suffix = '.jpg'):
 					yield os.path.join(current_location, img_file)
 
 
+def imglattice2graph(input_binary):
+	'''Converts a 3d image into a graph for segmentation
+
+	:param input_binary: [np.ndarray] complete binary image 3d
+	:return item_id: [np.ndarray] indicies of all elements in the lattice for identification
+	:return graph_map: [graph object] graph object indicating which voxels are connected to which voxels
+	'''
+	zdim, xdim, ydim = input_binary.shape
+	# Instantiate graph
+	graph_map = pathfinder.Graph()
+	# Create an array of IDs
+	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
+	# Traverse input binary image
+	# print("\tSlices Analyzed: ",)
+	for label in set(input_binary.flatten()):
+		if label != 0:
+			label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
+			for location in label_locations:
+				# Get Query ID Node #
+				query_ID = item_id[location]
+				# Get neighbors to Query
+				neighbor_locations = get_3d_neighbor_coords(location, input_binary.shape)
+				# For each neighbor
+				for neighbor in neighbor_locations:
+					# Get Neighbor ID
+					neighbor_ID = item_id[neighbor]
+					# If query exists and neighbor exists, branch query and neighbor.
+					# If only Query exists, branch query to itself.
+					if input_binary[neighbor]:
+						graph_map.addEdge(origin = query_ID,
+											destination = neighbor_ID,
+											bidirectional = False,
+											self_connect = True)
+					else:
+						graph_map.addEdge(origin = query_ID,
+											destination = query_ID,
+											bidirectional = False,
+											self_connect = True)
+		else:
+			pass
+	return item_id, graph_map
+
+
+def get_3d_neighbor_coords(tuple_location, size):
+	'''Gets neighbors directly adjacent to target voxel. 1U distance max. Does not include diagonally adjacent neighbors
+
+	:param tuple_location: [tuple] query location
+	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
+	:return: [list] of [tuple] list of tuples indicating neighbor locations
+	'''
+	neighbors = []
+	z, x, y = tuple_location
+	zdim, xdim, ydim = size
+
+	top = (z + 1, x, y)
+	bottom = (z - 1, x, y)
+	front = (z, x + 1, y)
+	back = (z, x - 1, y)
+	left = (z, x, y - 1)
+	right = (z, x, y + 1)
+
+	neighbors = [top, bottom, front, back, left, right]
+	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
+
+	return neighbors
+
+
+def layer_comparator(image3D):
+	'''Uses lattice graph data to determine where the unique elements are and prune redundancies.
+
+	:param image3D: [np.ndarray] original binary image 3d
+	:return: [np.ndarray] segmented 3d image
+	'''
+	ID_map, graph = imglattice2graph(image3D)
+
+	graph_dict = graph.get_self()
+	# for key in sorted(graph_dict.iterkeys()):
+	# 	print("%s: %s" % (key, graph_dict[key]))
+	network_element_list = []
+	print("> Network size: ", len(graph_dict))
+	# print(graph_dict)
+	print("> Pruning Redundancies")
+	for key in list(graph_dict.keys()):
+		try:
+			network = sorted(graph.BFS(key))
+			for connected_key in network:
+				graph_dict.pop(connected_key, None)
+			if network not in network_element_list:
+				network_element_list.append(network)
+		except:
+			pass
+	print("> Unique Paths + Background [1]: ", len(network_element_list))
+
+	img_dimensions = ID_map.shape
+	output = np.zeros_like(ID_map).flatten()
+
+	last_used_label = 1
+	print("> Labeling Network")
+	for network in network_element_list:
+		for element in network:
+			output[element] = last_used_label
+		last_used_label += 1
+	return output.reshape(img_dimensions)
+
+
+def stack_stack_multply(stack1, stack2):
+	'''	Multiplies a 3d stack layer by layer with another 3d stack (hadamard product)
+
+	:param stack1: [np.ndarray] first stack image
+	:param stack2: [np.ndarray] second stack image
+	:return: composite [np.ndarray] multiplied image
+	'''
+	z1,x1,y1 = stack1.shape
+	z2,x2,y2 = stack2.shape
+	if z1 == z2 and x1 == x2 and y1 == y2:
+		composite = np.zeros_like(stack1)
+		for layer in range(z1):
+			composite[layer, :, :] = stack1[layer, :, :] *  stack2[layer, :, :]
+	else:
+		raise Exception('stack stack dimensions do not match')
+	return composite
+
+
+def get_args(args):
+	parser = argparse.ArgumentParser(description = " Script returns skeletonization, binary, validation images for a given mitochondrial image")
+
+	parser.add_argument('-r', dest = 'read_dir', help = 'read directory for data', required = True)
+	parser.add_argument('-w', dest = 'write_dir', help = 'write directory for results', required = True)
+	options = vars(parser.parse_args())
+	return options
+
+
 def main(args):
 	options = get_args(args)
 
@@ -347,16 +479,30 @@ def main(args):
 
 
 	# execute segmentation
+	n = 0
 	for filepath in filepath_data:
+		full_filename = os.path.splitext(os.path.basename(filepath))[0]
+		file_ID = full_filename.replace("_RAW", "")
+
+		print(full_filename, n)
 		raw_img = io.imread(filepath)
+		
 		binary_img = binarize_img(raw_img)
-		sklton_img = skeletonize_binary(binary_img)
+		labeled_binary = layer_comparator(binary_img)
+		skeletonization = skeletonize_binary(binary_img)
+		labeled_skeletons = stack_stack_multply(skeletonization, labeled_binary)
+
 		max_project = max_projection(raw_img)
 		max_bproject = max_projection(binary_img)
+		max_skelproject = max_projection(skeletonization)
 
+		save_figure(max_project, file_ID + projection_suffix + img_suffix, options['write_dir'])
+		save_figure(max_bproject, file_ID + binary_suffix + projection_suffix + img_suffix, options['write_dir'])
+		save_figure(max_skelproject, file_ID + skel_suffix + projection_suffix + img_suffix, options['write_dir'])
+		save_data(labeled_skeletons, file_ID + skel_suffix, options['write_dir'])
+		save_data(labeled_binary, file_ID + binary_suffix, options['write_dir'])
 
-		raise Exception
-
+		n += 1
 
 
 if __name__ == "__main__":
