@@ -619,6 +619,38 @@ def hist_peak(image):
 	peak_max_indx = np.argmax(n)
 	return (bin_edges[peak_max_indx] + bin_edges[peak_max_indx]) / 2
 
+
+def get_bounding_img(binary_img):
+	'''
+	Given a binary image, reduces the image down to the size where it only isolates the binary elements.
+	Binary features must be presented as greater than 0 in a numpy array (2d and 3d compatible)
+	:param binary_img: [np.ndarray] Image before reduction
+	:return: [np.ndarray] reduced minimum bounding box image
+	'''
+	dims = len(binary_img.shape)
+	pos_coord = np.where(binary_img > 0)
+	
+	mins = np.amin(pos_coord, axis = 1)
+	maxs = np.amax(pos_coord, axis = 1) + 1
+
+	if dims == 3:
+		z_min = mins[0]
+		z_max = maxs[0]
+		x_min = mins[1]
+		x_max = maxs[1]
+		y_min = mins[2]
+		y_max = maxs[2]
+		return binary_img[z_min:z_max, x_min:x_max, y_min:y_max]
+	elif dims == 2:
+		x_min = mins[1]
+		x_max = maxs[1]
+		y_min = mins[2]
+		y_max = maxs[2]
+		return binary_img[x_min:x_max, y_min:y_max]	
+	else:
+		raise ValueError
+
+
 def write_stats(before_image, after_image, UID, filename, read_path, write_path, img_type = "cell"):
 	'''
 	Given two segmented binary images, determine the difference between the
