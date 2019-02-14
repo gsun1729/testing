@@ -11,11 +11,11 @@ from skimage.filters import threshold_local
 from scipy import ndimage as ndi
 from skimage.morphology import skeletonize_3d
 from collections import defaultdict
+import mahotas as mh
 
 import lib.pathfinder as pathfinder
-from lib.render import *
 from lib.read_write import *
-
+from lib.render import *
 
 dtype2bits = {'uint8': 8,
 			  'uint16': 16,
@@ -263,7 +263,6 @@ def binarize_img(raw_img):
 
 
 	binary = np.zeros_like(raw_img)
-
 	for img_slice in range(z):
 		struct_elemt = disk(1)
 		slice_data = raw_img[img_slice, :, :]
@@ -283,7 +282,12 @@ def binarize_img(raw_img):
 
 		test_px_dataset = test.flatten()
 		n_bins = int(2 * iqr(test_px_dataset) * (len(test_px_dataset) ** (1/3)))
-		n, bin_edge = np.histogram(test_px_dataset, n_bins)
+		
+		if n_bins <= 0:
+			n, bin_edge = np.histogram(test_px_dataset)
+		else:
+			n, bin_edge = np.histogram(test_px_dataset, n_bins)
+
 		test_peak_max_indx = np.argmax(n)
 		bin_midpt = (bin_edge[test_peak_max_indx] + bin_edge[test_peak_max_indx + 1]) / 2
 		test_mask = test > bin_midpt
@@ -302,11 +306,13 @@ def binarize_img(raw_img):
 		corrected_slice[corrected_slice > 0] = 1
 		binary[img_slice, :, :] = corrected_slice
 
+
 	return binary
 
 
 def skeletonize_binary(binary_data):
-	return skeletonize_3d(binary_data)
+	# return skeletonize_3d(binary_data)
+	return mh.thin(binary_data)
 
 def isfile(path):
 	'''
@@ -459,6 +465,21 @@ def stack_stack_multply(stack1, stack2):
 	return composite
 
 
+def stack_multiplier(image, stack):
+	'''Multiplies each layer of a 3d stack image (3d image) with a 2d image after
+	verifying shape fit
+
+	:param image: [np.ndarray] 2d Image to be multiplied
+	:param stack: [np.ndarray] 3d stack image to have 2d image convoluted w/ along all slices
+	:return: [np.ndarray] returns a convoluted 3d image
+	'''
+	z, x, y = stack.shape
+	composite = np.zeros_like(stack)
+	for layer in range(z):
+		composite[layer, :, :] = stack[layer, :, :] * image
+	return composite
+
+
 def get_args(args):
 	parser = argparse.ArgumentParser(description = " Script returns skeletonization, binary, validation images for a given mitochondrial image")
 
@@ -466,6 +487,18 @@ def get_args(args):
 	parser.add_argument('-w', dest = 'write_dir', help = 'write directory for results', required = True)
 	options = vars(parser.parse_args())
 	return options
+
+
+def spinning_disk_correction(stack_image):
+	'''
+	Special function designed to get rid of image abberation on spinning disk microscope 
+	Removes two bright spots on the image owing to some strange particulate matter
+	'''
+	z, x, y = stack_image.shape
+	screen_mask = np.ones((x, y))
+	screen_mask[40:70, 390:410] = 0
+	screen_mask[140:150, 284:293] = 0
+	return stack_multiplier(screen_mask, stack_image)
 
 
 def main(args):
@@ -481,27 +514,33 @@ def main(args):
 	# execute segmentation
 	n = 0
 	for filepath in filepath_data:
-		full_filename = os.path.splitext(os.path.basename(filepath))[0]
-		file_ID = full_filename.replace("_RAW", "")
+		file_ID = os.path.splitext(os.path.basename(filepath))[0]
+		if 'w1488' in file_ID:
+			# file_ID = full_filename.replace("_RAW", "")
 
-		print(full_filename, n)
-		raw_img = io.imread(filepath)
-		
-		binary_img = binarize_img(raw_img)
-		labeled_binary = layer_comparator(binary_img)
-		skeletonization = skeletonize_binary(binary_img)
-		labeled_skeletons = stack_stack_multply(skeletonization, labeled_binary)
+			print(file_ID, n)
+			raw_img = io.imread(filepath)
+			
+			binary_img = binarize_img(raw_img)
+			binary_img = spinning_disk_correction(binary_img)
+			
+			labeled_binary = layer_comparator(binary_img)
+			skeletonization = skeletonize_binary(binary_img)
+			stack_viewer(skeletonization)
+			raise Exception
+			labeled_skeletons = stack_stack_multply(skeletonization, labeled_binary)
 
-		max_project = max_projection(raw_img)
-		max_bproject = max_projection(binary_img)
-		max_skelproject = max_projection(skeletonization)
+			max_project = max_projection(raw_img)
+			max_bproject = max_projection(binary_img)
+			max_skelproject = max_projection(skeletonization)
 
-		save_figure(max_project, file_ID + projection_suffix + img_suffix, options['write_dir'])
-		save_figure(max_bproject, file_ID + binary_suffix + projection_suffix + img_suffix, options['write_dir'])
-		save_figure(max_skelproject, file_ID + skel_suffix + projection_suffix + img_suffix, options['write_dir'])
-		save_data(labeled_skeletons, file_ID + skel_suffix, options['write_dir'])
-		save_data(labeled_binary, file_ID + binary_suffix, options['write_dir'])
-
+			save_figure(max_project, file_ID + projection_suffix + img_suffix, options['write_dir'])
+			save_figure(max_bproject, file_ID + binary_suffix + projection_suffix + img_suffix, options['write_dir'])
+			save_figure(max_skelproject, file_ID + skel_suffix + projection_suffix + img_suffix, options['write_dir'])
+			save_data(labeled_skeletons, file_ID + skel_suffix, options['write_dir'])
+			save_data(labeled_binary, file_ID + binary_suffix, options['write_dir'])
+		else:
+			pass
 		n += 1
 
 
