@@ -1,4 +1,3 @@
-from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.data import binary_blobs
@@ -18,9 +17,8 @@ def stack_viewer(image):
 	try:
 		z,x,y = image.shape
 	except ValueError:
-		print("Improper dimensions, non-stack Image")
-		print(image.shape)
-		sys.exit()
+		raise Exception("Improper dimensions, non-stack Image {}".format(image.shape))
+
 
 	class IndexTracker(object):
 		def __init__(self, axes, image_stack):
