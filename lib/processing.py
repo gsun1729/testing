@@ -3,7 +3,6 @@ import os
 import sys
 import math
 import copy
-from point import *
 from skimage.exposure import adjust_gamma
 from skimage import io
 from scipy.ndimage import gaussian_filter
@@ -13,16 +12,17 @@ from skimage.filters import median, rank, threshold_otsu, gaussian
 from skimage.segmentation import random_walker
 from skimage.restoration import denoise_bilateral, estimate_sigma
 from skimage.feature import peak_local_max
-from properties import global_max, global_min
 from skimage.transform import hough_circle, hough_circle_peaks
 from skimage.draw import circle_perimeter
-from math_funcs import *
-from render import *
 from skimage import measure
 from scipy.stats import iqr
 from scipy.ndimage.morphology import binary_fill_holes
 from skimage.segmentation import active_contour
 from skimage import measure
+
+from lib.point import *
+from lib.math_funcs import *
+from lib.render import *
 
 
 dtype2bits = {'uint8': 8,
@@ -318,7 +318,7 @@ def binarize_image(base_image, _dilation = 0, feature_size = 2):
 		binary_labels = dilation(binary_labels, selem)
 	return binary_labels
 
-
+# Depreciated
 def hough_num_circles(input_binary_img, min_r = 15, max_r = 35, step = 2):
 	'''
 	Helper function for cell_split
@@ -620,7 +620,7 @@ def hist_peak(image):
 	return (bin_edges[peak_max_indx] + bin_edges[peak_max_indx]) / 2
 
 
-def get_bounding_img(binary_img):
+def get_bounding_img(binary_img, condition):
 	'''
 	Given a binary image, reduces the image down to the size where it only isolates the binary elements.
 	Binary features must be presented as greater than 0 in a numpy array (2d and 3d compatible)
@@ -628,8 +628,7 @@ def get_bounding_img(binary_img):
 	:return: [np.ndarray] reduced minimum bounding box image
 	'''
 	dims = len(binary_img.shape)
-	pos_coord = np.where(binary_img > 0)
-	
+	pos_coord = np.where(binary_img == condition)
 	mins = np.amin(pos_coord, axis = 1)
 	maxs = np.amax(pos_coord, axis = 1) + 1
 
@@ -699,3 +698,26 @@ def write_stats(before_image, after_image, UID, filename, read_path, write_path,
 																			E,
 																			read_path))
 	write_file.close()
+
+
+def global_max(img_2d):
+	'''Returns the maximum pixel value within a 2-3d image'''
+	return np.amax(img_2d.flatten())
+
+
+def global_min(img_2d):
+	'''
+	Returns the minimum pixel value within a 2-3d image
+	'''
+	return np.amin(img_2d.flatten())
+
+
+def properties(image):
+	'''Prints some of an image's properties into the console directly'''
+	print(">Image Properties")
+	print("Dimensions: {}".format(image.shape))
+	print("Format: {}".format(image.dtype.name))
+	print("Global Max: {}\tGlobal Min: {}".format(global_max(image), global_min(image)))
+
+
+	
