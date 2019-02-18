@@ -3,17 +3,9 @@ import numpy as np
 from scipy import stats
 from skimage.morphology import dilation, disk, erosion
 
+from lib.processing import *
+
 '''Basic math functions for pipeline'''
-
-def distance_2d(p0, p1):
-	'''Returns the euclidian distance between two points in 2d linspace
-
-	:param p0: [tuple] point 1 tuple
-	:param p1: [tuple] point 2 tuple
-	:return: [float] distance between p1 and p0
-	'''
-	return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
-
 
 def perimeter(ordered_points):
 	'''Given a list of cartesian points describing a perimeter, measure the length of that perimeter
@@ -22,7 +14,7 @@ def perimeter(ordered_points):
 	'''
 	perimeter = 0
 	for pt in xrange(len(ordered_points)):
-		perimeter += distance_2d(ordered_points[pt], ordered_points[pt - 1])
+		perimeter += euclid_dist_nD(ordered_points[pt], ordered_points[pt - 1])
 	return perimeter
 
 
@@ -44,7 +36,7 @@ def crop_close(points, max_sep = 20):
 	# Compute upper triangular of distance matrix
 	for x in xrange(0, num_pts):
 		for y in xrange(x + 1, num_pts):
-			distance_array[x, y] = distance_2d(points_no_R[x], points_no_R[y])
+			distance_array[x, y] = euclid_dist_nD(points_no_R[x], points_no_R[y])
 			if distance_array[x, y] <= max_sep:
 				failures.append(x)
 	failures = sorted(failures, key = int, reverse = True)
