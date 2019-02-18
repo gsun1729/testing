@@ -18,238 +18,77 @@ Objective of script is to segment 3d mitochondrion from binary images.
 runs in line when called by main.
 '''
 
-class rect_prism(object):
-	def __init__(self, matrix):
-		self.dimension_tuple = matrix.shape
+# def get_3d_neighbor_coords(tuple_location, size):
+# 	'''Gets neighbors directly adjacent to target voxel. 1U distance max. Does not include diagonally adjacent neighbors
+
+# 	:param tuple_location: [tuple] query location
+# 	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
+# 	:return: [list] of [tuple] list of tuples indicating neighbor locations
+# 	'''
+# 	neighbors = []
+# 	z, x, y = tuple_location
+# 	zdim, xdim, ydim = size
+
+# 	top = (z + 1, x, y)
+# 	bottom = (z - 1, x, y)
+# 	front = (z, x + 1, y)
+# 	back = (z, x - 1, y)
+# 	left = (z, x, y - 1)
+# 	right = (z, x, y + 1)
+
+# 	neighbors = [top, bottom, front, back, left, right]
+# 	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
+
+# 	return neighbors
 
 
-	def corner_locations(self):
-		'''Given n dimensions, returns the coordinates of where the corners should be in the given space in the form of a list of lists
+# def get_3d_neighbor_coords_3U(tuple_location, size):
+# 	'''Gets neighbors all around target voxel. sqrt(3)U distance max. Includes diagonally adjacent neighbors
 
-		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question
-		:return: [list] of [list] list of lists with sublists containing coordinates of the corner space
-		'''
-		corners = []
-		for x in xrange(2 ** len(self.dimension_tuple)):
-			binary = str(np.binary_repr(x))
-			if len(binary) < len(self.dimension_tuple):
-				binary = str(0) * (len(self.dimension_tuple) - len(binary)) + binary
-			empty_corner = list(np.zeros(len(binary), dtype = int))
-			for coord in xrange(len(binary)):
-				empty_corner[coord] = int(binary[coord], 2) * int(self.dimension_tuple[coord] - 1)
-			corners.append(tuple(empty_corner))
-		return corners
+# 	:param tuple_location: [tuple] query location
+# 	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
+# 	:return: [list] of [tuple] list of tuples indicating neighbor locations
+# 	'''
+# 	neighbors = []
+# 	z, x, y = tuple_location
+# 	zdim, xdim, ydim = size
 
+# 	top = (z + 1, x, y)
+# 	bottom = (z - 1, x, y)
+# 	front = (z, x + 1, y)
+# 	back = (z, x - 1, y)
+# 	left = (z, x, y - 1)
+# 	right = (z, x, y + 1)
 
-	def edge_locations(self):
-		'''Hardcoded edge detection
-		num edge elements in an ndimensional element = (4 * (np.sum(dimension_tuple) - (2 * len(dimension_tuple)))):
-		Can only interpret edges in a 2d or 3d volume.
+# 	corner1 = (z - 1, x - 1, y - 1)
+# 	corner2 = (z - 1, x + 1, y - 1)
+# 	corner3 = (z - 1, x + 1, y + 1)
+# 	corner4 = (z - 1, x - 1, y + 1)
+# 	corner5 = (z + 1, x - 1, y - 1)
+# 	corner6 = (z + 1, x + 1, y - 1)
+# 	corner7 = (z + 1, x + 1, y + 1)
+# 	corner8 = (z + 1, x - 1, y + 1)
 
-		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question
-		:return: [list] of [list] list of lists with sublists containing coordinates of the edges
-		'''
-		edges = []
-		if len(self.dimension_tuple) == 2:
-			x_dim, y_dim = self.dimension_tuple
-			for x in xrange(x_dim):
-				for y in xrange(y_dim):
-					if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
-						edges.append((x, y))
+# 	edge1 = (z - 1, x, y - 1)
+# 	edge2 = (z - 1, x + 1, y)
+# 	edge3 = (z - 1, x, y + 1)
+# 	edge4 = (z - 1, x - 1, y)
+# 	edge5 = (z, x - 1, y - 1)
+# 	edge6 = (z, x + 1, y - 1)
+# 	edge7 = (z, x + 1, y + 1)
+# 	edge8 = (z, x - 1, y + 1)
+# 	edge9 = (z + 1, x, y -1)
+# 	edge10 = (z + 1, x + 1, y)
+# 	edge11 = (z + 1, x, y + 1)
+# 	edge12 = (z + 1, x - 1, y)
 
-		elif len(self.dimension_tuple) == 3:
-			z_dim, x_dim, y_dim = self.dimension_tuple
-			for z in xrange(z_dim):
-				for x in xrange(x_dim):
-					for y in xrange(y_dim):
-						if (x == 0 or x == x_dim - 1):
-							if (y == 0 or y == y_dim - 1):
-								edges.append((z, x, y))
-						if (x == 0 or x == x_dim - 1):
-							if (z == 0 or z == z_dim - 1):
-								edges.append((z, x, y))
-						if (y == 0 or y == y_dim - 1):
-							if (z == 0 or z == z_dim - 1):
-								edges.append((z, x, y))
-		corners = self.corner_locations()
-		edges = [edge for edge in edges if edge not in corners]
-		return edges
+# 	neighbors = [top, bottom, front, back, left, right,
+# 					corner1, corner2, corner3, corner4, corner5, corner6, corner7, corner8,
+# 					edge1, edge2, edge3, edge4, edge5, edge6, edge7, edge8, edge9, edge10, edge11, edge12]
 
+# 	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
 
-	def face_locations(self):
-		'''Hardcoded face detection
-		Can only interpret faces in a 2d or 3d volume.
-
-		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question (3D)
-		:return: [list] of [list] list of lists with sublists containing coordinates of the faces
-		'''
-		faces = []
-		if len(self.dimension_tuple) == 2:
-			print("Faces don't exist for 2D geometries")
-			return faces
-		elif len(self.dimension_tuple) == 3:
-			z_dim, x_dim, y_dim = self.dimension_tuple
-			for z in xrange(z_dim):
-				for x in xrange(x_dim):
-					for y in xrange(y_dim):
-						if (z == 0 or z == z_dim - 1):
-							faces.append((z, x, y))
-						if (x == 0 or x == x_dim - 1):
-							faces.append((z, x, y))
-						if (y == 0 or y == y_dim - 1):
-							faces.append((z, x, y))
-		corners = self.corner_locations()
-		edges = self.edge_locations()
-		faces = [face for face in faces if face not in corners and face not in edges]
-		return faces
-
-
-	def core_locations(self):
-		'''Hardcoded core detection
-		Can only interpret faces in a 2d or 3d volume.
-
-		:param dimension_tuple: [tuple] a tuple listing the length of the dimensions of the space in question
-		:return: [list] of [list] list of lists with sublists containing coordinates of the cores
-		'''
-		cores = []
-		if len(self.dimension_tuple) == 2:
-			x_dim, y_dim = self.dimension_tuple
-			for x in xrange(x_dim):
-				for y in xrange(y_dim):
-					cores.append((x, y))
-
-		elif len(self.dimension_tuple) == 3:
-			z_dim, x_dim, y_dim = self.dimension_tuple
-			for z in xrange(z_dim):
-				for x in xrange(x_dim):
-					for y in xrange(y_dim):
-						cores.append((z, x, y))
-		corners = self.corner_locations()
-		edges = self.edge_locations()
-		faces = self.face_locations()
-		cores = [core for core in cores if core not in corners and core not in edges and core not in faces]
-		return cores
-
-
-	def is_core(self, query):
-		'''returns bool if the location of the index is a core location
-
-		:param query: [tuple] location of the query in tuple form (3d)
-		:return: [bool]
-		'''
-		if query not in self.core_locations():
-			return False
-		else:
-			return True
-
-
-	def is_corner(self, query):
-		'''returns bool if the location of the index is a corner location
-
-		:param query: [tuple] location of the query in tuple form (3d)
-		:return: [bool]
-		'''
-		if query not in self.corner_locations():
-			return False
-		else:
-			return True
-
-
-	def is_face(self, query):
-		'''returns bool if the location of the index is a face location
-
-		:param query: [tuple] location of the query in tuple form (3d)
-		:return: [bool]
-		'''
-		if query not in self.face_locations():
-			return False
-		else:
-			return True
-
-
-	def is_edge(self, query):
-		'''returns bool if the location of the index is a edge location
-
-		:param query: [tuple] location of the query in tuple form (3d)
-		:return: [bool]
-		'''
-		if query not in self.edge_locations():
-			return False
-		else:
-			return True
-
-
-def get_3d_neighbor_coords(tuple_location, size):
-	'''Gets neighbors directly adjacent to target voxel. 1U distance max. Does not include diagonally adjacent neighbors
-
-	:param tuple_location: [tuple] query location
-	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
-	:return: [list] of [tuple] list of tuples indicating neighbor locations
-	'''
-	neighbors = []
-	z, x, y = tuple_location
-	zdim, xdim, ydim = size
-
-	top = (z + 1, x, y)
-	bottom = (z - 1, x, y)
-	front = (z, x + 1, y)
-	back = (z, x - 1, y)
-	left = (z, x, y - 1)
-	right = (z, x, y + 1)
-
-	neighbors = [top, bottom, front, back, left, right]
-	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
-
-	return neighbors
-
-
-def get_3d_neighbor_coords_3U(tuple_location, size):
-	'''Gets neighbors all around target voxel. sqrt(3)U distance max. Includes diagonally adjacent neighbors
-
-	:param tuple_location: [tuple] query location
-	:param size: [tuple] size dimensions of the original image listed in order of Z, X, Y, to get rid of any points that exceed the boundaries of the rectangular prism space
-	:return: [list] of [tuple] list of tuples indicating neighbor locations
-	'''
-	neighbors = []
-	z, x, y = tuple_location
-	zdim, xdim, ydim = size
-
-	top = (z + 1, x, y)
-	bottom = (z - 1, x, y)
-	front = (z, x + 1, y)
-	back = (z, x - 1, y)
-	left = (z, x, y - 1)
-	right = (z, x, y + 1)
-
-	corner1 = (z - 1, x - 1, y - 1)
-	corner2 = (z - 1, x + 1, y - 1)
-	corner3 = (z - 1, x + 1, y + 1)
-	corner4 = (z - 1, x - 1, y + 1)
-	corner5 = (z + 1, x - 1, y - 1)
-	corner6 = (z + 1, x + 1, y - 1)
-	corner7 = (z + 1, x + 1, y + 1)
-	corner8 = (z + 1, x - 1, y + 1)
-
-	edge1 = (z - 1, x, y - 1)
-	edge2 = (z - 1, x + 1, y)
-	edge3 = (z - 1, x, y + 1)
-	edge4 = (z - 1, x - 1, y)
-	edge5 = (z, x - 1, y - 1)
-	edge6 = (z, x + 1, y - 1)
-	edge7 = (z, x + 1, y + 1)
-	edge8 = (z, x - 1, y + 1)
-	edge9 = (z + 1, x, y -1)
-	edge10 = (z + 1, x + 1, y)
-	edge11 = (z + 1, x, y + 1)
-	edge12 = (z + 1, x - 1, y)
-
-	neighbors = [top, bottom, front, back, left, right,
-					corner1, corner2, corner3, corner4, corner5, corner6, corner7, corner8,
-					edge1, edge2, edge3, edge4, edge5, edge6, edge7, edge8, edge9, edge10, edge11, edge12]
-
-	neighbors = [pt for pt in neighbors if (pt[0] >= 0 and pt[1] >= 0 and pt[2] >= 0) and (pt[0] < zdim and pt[1] < xdim and pt[2] < ydim)]
-
-	return neighbors
+# 	return neighbors
 
 
 def imglattice2graph(input_binary):
@@ -273,7 +112,7 @@ def imglattice2graph(input_binary):
 				# Get Query ID Node #
 				query_ID = item_id[location]
 				# Get neighbors to Query
-				neighbor_locations = get_3d_neighbor_coords(location, input_binary.shape)
+				neighbor_locations = get_3d_neighbor_coords_3U(location, input_binary.shape)
 				# For each neighbor
 				for neighbor in neighbor_locations:
 					# Get Neighbor ID
