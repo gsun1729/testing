@@ -180,12 +180,9 @@ class Graph:
 	def rm_max_cliques(self):
 		'''
 		scans through max cliques and replaces them with a singular node if the max clique size is larger than 2
-		
+
 		'''
 		max_clique_ls = self.get_cliques()
-		for a in max_clique_ls:
-			print(a)
-		raise
 		max_key = np.amax(list(self.graph.keys()))
 		last_nnode = max_key
 		for clique in max_clique_ls:
@@ -202,6 +199,44 @@ class Graph:
 					self.rmNode(node)
 
 
+	def check_empty(self):
+		'''Hacky fix for dealing with single px images with no neighbors, result is that node ends up getting recorded as nonexistent
+		:return: False if graph has elements, True if it is Empty
+		'''
+
+		if not self.graph.keys():
+			self.graph[1] = [1]
+			return True
+		else:
+			return False
+
+
+	def num_junctions(self):
+		'''count the number of junctions in a graph and return marked junctions w/ connections
+		'''
+		junctions = {}
+		for key, values in self.graph.items():
+			temp_connections = copy.deepcopy(values)
+			temp_connections.remove(key)
+			if len(temp_connections) > 2:
+				junctions[key] = temp_connections
+			else:
+				pass
+		return junctions
+
+
+	def num_endpoints(self):
+		'''count the number of junctions in a graph and return marked junctions w/ connections
+		'''
+		endpts = {}
+		for key, values in self.graph.items():
+			temp_connections = copy.deepcopy(values)
+			temp_connections.remove(key)
+			if len(temp_connections) < 2:
+				endpts[key] = temp_connections
+			else:
+				pass
+		return endpts
 
 
 class Neighbors_3D:
@@ -601,10 +636,21 @@ def layer_comparator(image3D):
 	return output.reshape(img_dimensions)
 
 
+def prune_graph(graph_object):
+	if graph_object.check_empty():
+		graph_object.check_empty()
+	else:
+		graph_object.rm_max_cliques()
+
+	return graph_object
+
 
 def ddict2nx_graph(default_dict_graph):
 	temp = dict(default_dict_graph)
 	G = nx.from_dict_of_lists(temp)
+	H = nx.to_dict_of_lists(G)
+	print(H)
+	print(nx.cycle_basis(G))
 	# print('\n')
 	# print('\n')
 	# print('\n')
