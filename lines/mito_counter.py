@@ -91,86 +91,86 @@ runs in line when called by main.
 # 	return neighbors
 
 
-def imglattice2graph(input_binary):
-	'''Converts a 3d image into a graph for segmentation
+# def imglattice2graph(input_binary):
+# 	'''Converts a 3d image into a graph for segmentation
 
-	:param input_binary: [np.ndarray] complete binary image 3d
-	:return item_id: [np.ndarray] indicies of all elements in the lattice for identification
-	:return graph_map: [graph object] graph object indicating which voxels are connected to which voxels
-	'''
-	zdim, xdim, ydim = input_binary.shape
-	# Instantiate graph
-	graph_map = pathfinder.Graph()
-	# Create an array of IDs
-	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
-	# Traverse input binary image
-	# print("\tSlices Analyzed: ",)
-	for label in set(input_binary.flatten()):
-		if label != 0:
-			label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
-			for location in label_locations:
-				# Get Query ID Node #
-				query_ID = item_id[location]
-				# Get neighbors to Query
-				neighbor_locations = get_3d_neighbor_coords_3U(location, input_binary.shape)
-				# For each neighbor
-				for neighbor in neighbor_locations:
-					# Get Neighbor ID
-					neighbor_ID = item_id[neighbor]
-					# If query exists and neighbor exists, branch query and neighbor.
-					# If only Query exists, branch query to itself.
-					if input_binary[neighbor]:
-						graph_map.addEdge(origin = query_ID,
-											destination = neighbor_ID,
-											bidirectional = False,
-											self_connect = True)
-					else:
-						graph_map.addEdge(origin = query_ID,
-											destination = query_ID,
-											bidirectional = False,
-											self_connect = True)
-		else:
-			pass
-	return item_id, graph_map
+# 	:param input_binary: [np.ndarray] complete binary image 3d
+# 	:return item_id: [np.ndarray] indicies of all elements in the lattice for identification
+# 	:return graph_map: [graph object] graph object indicating which voxels are connected to which voxels
+# 	'''
+# 	zdim, xdim, ydim = input_binary.shape
+# 	# Instantiate graph
+# 	graph_map = pathfinder.Graph()
+# 	# Create an array of IDs
+# 	item_id = np.array(range(0, zdim * xdim * ydim)).reshape(zdim, xdim, ydim)
+# 	# Traverse input binary image
+# 	# print("\tSlices Analyzed: ",)
+# 	for label in set(input_binary.flatten()):
+# 		if label != 0:
+# 			label_locations = [tuple(point) for point in np.argwhere(input_binary == label)]
+# 			for location in label_locations:
+# 				# Get Query ID Node #
+# 				query_ID = item_id[location]
+# 				# Get neighbors to Query
+# 				neighbor_locations = get_3d_neighbor_coords_3U(location, input_binary.shape)
+# 				# For each neighbor
+# 				for neighbor in neighbor_locations:
+# 					# Get Neighbor ID
+# 					neighbor_ID = item_id[neighbor]
+# 					# If query exists and neighbor exists, branch query and neighbor.
+# 					# If only Query exists, branch query to itself.
+# 					if input_binary[neighbor]:
+# 						graph_map.addEdge(origin = query_ID,
+# 											destination = neighbor_ID,
+# 											bidirectional = False,
+# 											self_connect = True)
+# 					else:
+# 						graph_map.addEdge(origin = query_ID,
+# 											destination = query_ID,
+# 											bidirectional = False,
+# 											self_connect = True)
+# 		else:
+# 			pass
+# 	return item_id, graph_map
 
 
-def layer_comparator(image3D):
-	'''Uses lattice graph data to determine where the unique elements are and prune redundancies.
+# def layer_comparator(image3D):
+# 	'''Uses lattice graph data to determine where the unique elements are and prune redundancies.
 
-	:param image3D: [np.ndarray] original binary image 3d
-	:return: [np.ndarray] segmented 3d image
-	'''
-	print("> Generating lattice")
-	ID_map, graph = imglattice2graph(image3D)
+# 	:param image3D: [np.ndarray] original binary image 3d
+# 	:return: [np.ndarray] segmented 3d image
+# 	'''
+# 	print("> Generating lattice")
+# 	ID_map, graph = imglattice2graph(image3D)
 
-	graph_dict = graph.get_self()
-	# for key in sorted(graph_dict.iterkeys()):
-	# 	print("%s: %s" % (key, graph_dict[key]))
-	network_element_list = []
-	print("> Network size: ", len(graph_dict))
-	# print(graph_dict)
-	print("> Pruning Redundancies")
-	for key in graph_dict.keys():
-		try:
-			network = sorted(graph.BFS(key))
-			for connected_key in network:
-				graph_dict.pop(connected_key, None)
-			if network not in network_element_list:
-				network_element_list.append(network)
-		except:
-			pass
-	print("> Unique Paths + Background [1]: ", len(network_element_list))
+# 	graph_dict = graph.get_self()
+# 	# for key in sorted(graph_dict.iterkeys()):
+# 	# 	print("%s: %s" % (key, graph_dict[key]))
+# 	network_element_list = []
+# 	print("> Network size: ", len(graph_dict))
+# 	# print(graph_dict)
+# 	print("> Pruning Redundancies")
+# 	for key in graph_dict.keys():
+# 		try:
+# 			network = sorted(graph.BFS(key))
+# 			for connected_key in network:
+# 				graph_dict.pop(connected_key, None)
+# 			if network not in network_element_list:
+# 				network_element_list.append(network)
+# 		except:
+# 			pass
+# 	print("> Unique Paths + Background [1]: ", len(network_element_list))
 
-	img_dimensions = ID_map.shape
-	output = np.zeros_like(ID_map).flatten()
+# 	img_dimensions = ID_map.shape
+# 	output = np.zeros_like(ID_map).flatten()
 
-	last_used_label = 1
-	print("> Labeling Network")
-	for network in network_element_list:
-		for element in network:
-			output[element] = last_used_label
-		last_used_label += 1
-	return output.reshape(img_dimensions)
+# 	last_used_label = 1
+# 	print("> Labeling Network")
+# 	for network in network_element_list:
+# 		for element in network:
+# 			output[element] = last_used_label
+# 		last_used_label += 1
+# 	return output.reshape(img_dimensions)
 
 
 def euclid_dist_nD(p0, p1):
