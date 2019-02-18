@@ -1,5 +1,6 @@
 from collections import defaultdict
 import sys
+import copy
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -71,6 +72,17 @@ class Graph:
 					self.graph[destination].remove(origin)
 		else:
 			raise Exception("Path from {} to {} does not exist".format(origin, destination))
+
+
+	def rmNode(self, node):
+		'''Function removes a node and all of its associated connections from the graph
+
+		:param node: [int] node to be removed
+		'''
+		connections = copy.deepcopy(self.graph[node])
+		for connection in connections:
+			self.graph[connection].remove(node)
+		self.graph.pop(node, None)
 
 
 	def connections2graph(self, connection_table, connection_direction, *exist_list):
@@ -155,6 +167,41 @@ class Graph:
 		'''Statement used for getting graph contents for printing and debugging
 		'''
 		return self.graph
+
+
+	def get_cliques(self):
+		'''Using networkx find cliques algorithm (Bron Kerbosch)
+		'''
+		nx_graph = nx.from_dict_of_lists(self.graph)
+		max_cliques = nx.find_cliques(nx_graph)
+		return max_cliques
+
+
+	def rm_max_cliques(self):
+		'''
+		scans through max cliques and replaces them with a singular node if the max clique size is larger than 2
+		
+		'''
+		max_clique_ls = self.get_cliques()
+		for a in max_clique_ls:
+			print(a)
+		raise
+		max_key = np.amax(list(self.graph.keys()))
+		last_nnode = max_key
+		for clique in max_clique_ls:
+			if len(clique) <= 2: 
+				continue
+			else:
+				new_node = last_nnode + 1
+				last_nnode = new_node
+				for node in clique:
+					for connection in self.graph[node]:
+						self.addEdge(new_node, connection, 
+											bidirectional = True, 
+											self_connect = True)
+					self.rmNode(node)
+
+
 
 
 class Neighbors_3D:
@@ -290,6 +337,7 @@ class Neighbors_3D:
 		neighbors.append(self.adjacent_2U)
 		neighbors.append(self.adjacent_3U)
 		return neighbors
+
 
 class rect_prism(object):
 	'''
@@ -553,22 +601,20 @@ def layer_comparator(image3D):
 	return output.reshape(img_dimensions)
 
 
+
 def ddict2nx_graph(default_dict_graph):
 	temp = dict(default_dict_graph)
-	G = nx.from_dict_of_lists(default_dict_graph)
-	print(temp)
-	print('\n')
-	print('\n')
-	print('\n')
-	print(nx.graph_clique_number(G))
-	print('\n')
-	print(G)
-	print('\n')
-	for n in nx.find_cliques(G):
-		print(n)
-	print('\n')
-	for i in nx.enumerate_all_cliques(G):
-		print(i)
+	G = nx.from_dict_of_lists(temp)
+	# print('\n')
+	# print('\n')
+	# print('\n')
+	# print(nx.graph_clique_number(G))
+	# print('\n')
+	# print(G)
+	# print('\n')
+	# print(default_dict_graph.get_cliques())
+	# for i in nx.enumerate_all_cliques(G):
+	# 	print(i)
 	nx.draw_networkx(G)
 	plt.show()
 	# for key, value in default_dict_graph.items():
