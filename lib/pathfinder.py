@@ -645,28 +645,46 @@ def prune_graph(graph_object):
 	return graph_object
 
 
-def ddict2nx_graph(default_dict_graph):
-	temp = dict(default_dict_graph)
-	G = nx.from_dict_of_lists(temp)
-	H = nx.to_dict_of_lists(G)
-	print(H)
-	print(nx.cycle_basis(G))
-	# print('\n')
-	# print('\n')
-	# print('\n')
-	# print(nx.graph_clique_number(G))
-	# print('\n')
-	# print(G)
-	# print('\n')
-	# print(default_dict_graph.get_cliques())
-	# for i in nx.enumerate_all_cliques(G):
-	# 	print(i)
-	nx.draw_networkx(G)
+def filter_unitcycles(list_cycles):
+	long_cycles = []
+	for cycle in list_cycles:
+		if len(cycle) == 1:
+			pass
+		else:
+			long_cycles.append(cycle)
+	if long_cycles:
+		return long_cycles
+	else:
+		return None
+
+
+
+def process_graph(graph_object):
+	graph = graph_object.get_self()
+	reduced_graph = prune_graph(graph_object)
+	junct = graph_object.num_junctions()
+	endpt = graph_object.num_endpoints()
+
+	# convert graph to dict for transfer to networkx handling
+	reduced_graph = dict(reduced_graph.get_self())
+	nx_graph = nx.from_dict_of_lists(reduced_graph)
+	n_edges = np.ceil((nx_graph.number_of_edges() - 1) / 2)
+
+	cycles = nx.cycle_basis(nx_graph)
+
+	ecc = nx.eccentricity(nx_graph)
+	max_ecc = max(ecc.values())
+	min_ecc = min(ecc.values())
+	brdge = list(nx.bridges(nx_graph))
+	print(len(brdge))
+	print(n_edges, len(endpt), len(junct), filter_unitcycles(cycles))
+	print(min_ecc, max_ecc)
+	# print(ecc)
+	# A = nx.nx_agraph.to_agraph(nx_graph)        
+	# A.layout(prog='dot')
+	# A.draw('file.png')
+	nx.draw_networkx(nx_graph)
 	plt.show()
-	# for key, value in default_dict_graph.items():
-	# 	print(type(key))
-	# 	print(type(value))
-		# print(key, value)
 
 
 if __name__ == "__main__":
