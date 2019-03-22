@@ -3,7 +3,7 @@ import scipy.io
 import sys
 import argparse
 import os
-from lib.processing import avg_projection
+# from lib.processing import avg_projection
 from lib.read_write import get_img_filenames
 
 '''
@@ -21,10 +21,10 @@ def show_img(image):
 		view_2d_img(image)
 	elif len(image.shape) == 3:
 		stack_viewer(image)
-		avg_p = avg_projection(image)
-		view_2d_img(avg_p)
+		# avg_p = avg_projection(image)
+		# view_2d_img(avg_p)
 	else:
-		print "Too many dimensions to resolve"
+		print("Too many dimensions to resolve")
 
 
 def main(args):
@@ -38,9 +38,9 @@ def main(args):
 	else:
 		filenames = get_img_filenames(path, suffix = '.mat')
 		num_images = len(filenames)
-		print "> {} Images detected".format(num_images)
+		print("> {} Images detected".format(num_images))
 		for _, _, _, _, _, img_path in filenames:
-			print "> Image Name: {}".format(img_path)
+			print("> Image Name: {}".format(img_path))
 			image = scipy.io.loadmat(img_path)['data']
 			show_img(image)
 
