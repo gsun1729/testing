@@ -95,8 +95,8 @@ def montage_n_x(*tuple_img_line):
 			num_cols = len(lines)
 	# plt.figure()
 	grid = GridSpec(num_rows, num_cols)
-	for row in xrange(num_rows):
-		for col in xrange(num_cols):
+	for row in range(num_rows):
+		for col in range(num_cols):
 			try:
 				plt.subplot(grid[row,col])
 				properties(tuple_img_line[row][col])
