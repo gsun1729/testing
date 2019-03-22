@@ -311,8 +311,8 @@ def binarize_img(raw_img):
 
 
 def skeletonize_binary(binary_data):
-	# return skeletonize_3d(binary_data)
-	return mh.thin(binary_data)
+	return skeletonize_3d(binary_data)
+	
 
 def isfile(path):
 	'''
@@ -409,42 +409,42 @@ def get_3d_neighbor_coords(tuple_location, size):
 	return neighbors
 
 
-def layer_comparator(image3D):
-	'''Uses lattice graph data to determine where the unique elements are and prune redundancies.
+# def layer_comparator(image3D):
+# 	'''Uses lattice graph data to determine where the unique elements are and prune redundancies.
 
-	:param image3D: [np.ndarray] original binary image 3d
-	:return: [np.ndarray] segmented 3d image
-	'''
-	ID_map, graph = imglattice2graph(image3D)
+# 	:param image3D: [np.ndarray] original binary image 3d
+# 	:return: [np.ndarray] segmented 3d image
+# 	'''
+# 	ID_map, graph = imglattice2graph(image3D)
 
-	graph_dict = graph.get_self()
-	# for key in sorted(graph_dict.iterkeys()):
-	# 	print("%s: %s" % (key, graph_dict[key]))
-	network_element_list = []
-	print("> Network size: ", len(graph_dict))
-	# print(graph_dict)
-	print("> Pruning Redundancies")
-	for key in list(graph_dict.keys()):
-		try:
-			network = sorted(graph.BFS(key))
-			for connected_key in network:
-				graph_dict.pop(connected_key, None)
-			if network not in network_element_list:
-				network_element_list.append(network)
-		except:
-			pass
-	print("> Unique Paths + Background [1]: ", len(network_element_list))
+# 	graph_dict = graph.get_self()
+# 	# for key in sorted(graph_dict.iterkeys()):
+# 	# 	print("%s: %s" % (key, graph_dict[key]))
+# 	network_element_list = []
+# 	print("> Network size: ", len(graph_dict))
+# 	# print(graph_dict)
+# 	print("> Pruning Redundancies")
+# 	for key in list(graph_dict.keys()):
+# 		try:
+# 			network = sorted(graph.BFS(key))
+# 			for connected_key in network:
+# 				graph_dict.pop(connected_key, None)
+# 			if network not in network_element_list:
+# 				network_element_list.append(network)
+# 		except:
+# 			pass
+# 	print("> Unique Paths + Background [1]: ", len(network_element_list))
 
-	img_dimensions = ID_map.shape
-	output = np.zeros_like(ID_map).flatten()
+# 	img_dimensions = ID_map.shape
+# 	output = np.zeros_like(ID_map).flatten()
 
-	last_used_label = 1
-	print("> Labeling Network")
-	for network in network_element_list:
-		for element in network:
-			output[element] = last_used_label
-		last_used_label += 1
-	return output.reshape(img_dimensions)
+# 	last_used_label = 1
+# 	print("> Labeling Network")
+# 	for network in network_element_list:
+# 		for element in network:
+# 			output[element] = last_used_label
+# 		last_used_label += 1
+# 	return output.reshape(img_dimensions)
 
 
 def stack_stack_multply(stack1, stack2):
@@ -526,8 +526,8 @@ def main(args):
 			
 			labeled_binary = layer_comparator(binary_img)
 			skeletonization = skeletonize_binary(binary_img)
-			stack_viewer(skeletonization)
-			raise Exception
+			# stack_viewer(skeletonization)
+			# raise Exception
 			labeled_skeletons = stack_stack_multply(skeletonization, labeled_binary)
 
 			max_project = max_projection(raw_img)
