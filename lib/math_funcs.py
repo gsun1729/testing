@@ -13,7 +13,7 @@ def perimeter(ordered_points):
 	:param ordered_points: [list] of points [tuple]
 	'''
 	perimeter = 0
-	for pt in xrange(len(ordered_points)):
+	for pt in range(len(ordered_points)):
 		perimeter += euclid_dist_nD(ordered_points[pt], ordered_points[pt - 1])
 	return perimeter
 
@@ -34,8 +34,8 @@ def crop_close(points, max_sep = 20):
 	# Indexes of duplicate points
 	failures = []
 	# Compute upper triangular of distance matrix
-	for x in xrange(0, num_pts):
-		for y in xrange(x + 1, num_pts):
+	for x in range(0, num_pts):
+		for y in range(x + 1, num_pts):
 			distance_array[x, y] = euclid_dist_nD(points_no_R[x], points_no_R[y])
 			if distance_array[x, y] <= max_sep:
 				failures.append(x)
@@ -66,8 +66,8 @@ def obtain_border(input_image_2d):
 	'''
 	points = []
 	x_dim, y_dim = input_image_2d.shape
-	for x in xrange(x_dim):
-		for y in xrange(y_dim):
+	for x in range(x_dim):
+		for y in range(y_dim):
 			if (x == 0 or x == x_dim - 1) or (y == 0 or y == y_dim - 1):
 				points.append([x,y])
 	return np.asarray(points)
@@ -112,8 +112,8 @@ def array_all_ones(array):
 	'''
 	x, y = array.shape
 	result = True
-	for xd in xrange(x):
-		for yd in xrange(y):
+	for xd in range(x):
+		for yd in range(y):
 			if array[xd, yd] != 1:
 				result = False
 				break
@@ -148,7 +148,7 @@ def stack_multiplier(image, stack):
 	z, x, y = stack.shape
 	composite = np.zeros_like(stack)
 	if verify_shape(image, stack):
-		for layer in xrange(z):
+		for layer in range(z):
 			composite[layer, :, :] = stack[layer, :, :] * image
 	return composite
 
@@ -163,7 +163,7 @@ def stack_stack_multply(stack1, stack2):
 	z2,x2,y2 = stack2.shape
 	if z1 == z2 and x1 == x2 and y1 == y2:
 		composite = np.zeros_like(stack1)
-		for layer in xrange(z1):
+		for layer in range(z1):
 			composite[layer, :, :] = stack1[layer, :, :] *  stack2[layer, :, :]
 	else:
 		raise Exception('stack stack dimensions do not match')

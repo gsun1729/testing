@@ -604,7 +604,7 @@ def layer_comparator(image3D):
 	:return: [np.ndarray] segmented 3d image
 	'''
 	print("> Generating lattice")
-	ID_map, graph = imglattice2graph(image3D)
+	ID_map, graph = imglattice2graph(image3D, neighbor_distance = ['1U','3U'])
 
 	graph_dict = graph.get_self()
 	# for key in sorted(graph_dict.iterkeys()):
@@ -613,7 +613,7 @@ def layer_comparator(image3D):
 	print("> Network size: ", len(graph_dict))
 	# print(graph_dict)
 	print("> Pruning Redundancies")
-	for key in graph_dict.keys():
+	for key in list(graph_dict):
 		try:
 			network = sorted(graph.BFS(key))
 			for connected_key in network:
@@ -662,6 +662,7 @@ def filter_unitcycles(list_cycles):
 def process_graph(graph_object):
 	graph = graph_object.get_self()
 	reduced_graph = prune_graph(graph_object)
+	# reduced_graph = graph_object
 	junct = graph_object.num_junctions()
 	endpt = graph_object.num_endpoints()
 
